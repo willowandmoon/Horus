@@ -1,0 +1,61 @@
+# Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Next.js build / cache / export
+.next/
+.next/cache/
+out/
+build/
+
+# Environment variables (keep example files)
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env.*.local
+!.env.example
+
+# Editor / OS files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+
+# Logs, pids, temp
+logs/
+*.log
+pids/
+*.pid
+*.pid.lock
+*.seed
+
+# Coverage / test artifacts
+coverage/
+jest-cache/
+jest*.cache
+
+# TypeScript build info
+*.tsbuildinfo
+
+# Bundler / cache / tooling
+.cache/
+.eslintcache
+.next/standalone
+.turbo/
+.vercel/
+.vercel/output/
+.now
+
+# Misc
+dist/
+out/
+.storybook/build/
