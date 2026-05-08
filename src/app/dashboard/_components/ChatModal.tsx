@@ -4,11 +4,15 @@ import SplineRobot from "./SplineRobot";
 
 type Message = { role: "user" | "assistant"; content: string };
 
+interface SREvent {
+    results: ArrayLike<ArrayLike<{ transcript: string }>>;
+}
+
 interface SR {
     lang: string;
     continuous: boolean;
     interimResults: boolean;
-    onresult: ((e: SpeechRecognitionEvent) => void) | null;
+    onresult: ((e: SREvent) => void) | null;
     onend:   (() => void) | null;
     onerror: (() => void) | null;
     start(): void;
@@ -120,7 +124,7 @@ export default function ChatModal({ onClose }: { onClose: () => void }) {
         rec.lang = "es-CO";
         rec.continuous = false;
         rec.interimResults = false;
-        rec.onresult = (e: SpeechRecognitionEvent) => sendMessage(e.results[0][0].transcript);
+        rec.onresult = (e: SREvent) => sendMessage(e.results[0][0].transcript);
         rec.onend    = () => setListening(false);
         rec.onerror  = () => setListening(false);
         rec.start();
