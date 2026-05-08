@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 
 interface GeoData {
     city: string;
@@ -29,12 +29,12 @@ async function reverseGeocode(lat: number, lon: number): Promise<{ city: string;
         );
         const data = await res.json();
         const city =
-            data.address?.suburb      ??
+            data.address?.suburb        ??
             data.address?.neighbourhood ??
-            data.address?.city        ??
-            data.address?.town        ??
-            data.address?.village     ??
-            data.address?.municipality ??
+            data.address?.city          ??
+            data.address?.town          ??
+            data.address?.village       ??
+            data.address?.municipality  ??
             "Ubicación detectada";
         return { city, country: data.address?.country ?? "" };
     } catch {
@@ -46,9 +46,35 @@ export default function LocationMap() {
     const [geo,    setGeo]    = useState<GeoData | null>(null);
     const [status, setStatus] = useState<Status>("idle");
 
+    // Carga el script de spline-viewer
+    useEffect(() => {
+        if (!document.querySelector('script[data-spline-map]')) {
+            const s = document.createElement("script");
+            s.type = "module";
+            s.src  = "https://unpkg.com/@splinetool/viewer@1.12.92/build/spline-viewer.js";
+            s.dataset.splineMap = "true";
+            document.head.appendChild(s);
+        }
+
+        // Oculta el badge de Spline
+        const hideBadge = () => {
+            document.querySelectorAll("spline-viewer").forEach((el) => {
+                const root = (el as Element & { shadowRoot: ShadowRoot | null }).shadowRoot;
+                if (root && !root.querySelector("#no-badge-map")) {
+                    const style = document.createElement("style");
+                    style.id = "no-badge-map";
+                    style.textContent = `[part="logo"],#logo,.logo,a[href*="spline"]{display:none!important}`;
+                    root.appendChild(style);
+                }
+            });
+        };
+        const t1 = setTimeout(hideBadge, 800);
+        const t2 = setTimeout(hideBadge, 2500);
+        return () => { clearTimeout(t1); clearTimeout(t2); };
+    }, []);
+
     function requestGps() {
         setStatus("loading");
-
         navigator.geolocation.getCurrentPosition(
             async (pos) => {
                 const lat = pos.coords.latitude;
@@ -58,11 +84,7 @@ export default function LocationMap() {
                 setStatus("ready");
             },
             (err) => {
-                if (err.code === err.PERMISSION_DENIED) {
-                    setStatus("denied");
-                } else {
-                    setStatus("unavailable");
-                }
+                setStatus(err.code === err.PERMISSION_DENIED ? "denied" : "unavailable");
             },
             { enableHighAccuracy: true, timeout: 12000, maximumAge: 0 }
         );
@@ -73,7 +95,6 @@ export default function LocationMap() {
             Promise.resolve().then(() => setStatus("unavailable"));
             return;
         }
-
         navigator.permissions.query({ name: "geolocation" }).then((result) => {
             if (result.state === "granted") requestGps();
         }).catch(() => requestGps());
@@ -84,32 +105,32 @@ export default function LocationMap() {
     const displayLon = geo ? `${Math.abs(geo.lon).toFixed(5)}° ${geo.lon >= 0 ? "E" : "W"}` : "—";
 
     return (
-        <div className="relative w-full h-64 bg-[#e8edf2] rounded-xl overflow-hidden flex items-center justify-center">
-            {/* grid */}
-            <svg className="absolute inset-0 w-full h-full opacity-20">
-                <defs>
-                    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
-                        <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#8D99AE" strokeWidth="0.5"/>
-                    </pattern>
-                </defs>
-                <rect width="100%" height="100%" fill="url(#grid)"/>
-            </svg>
-            <svg className="absolute inset-0 w-full h-full opacity-25">
-                <line x1="0" y1="50%" x2="100%" y2="50%" stroke="#8D99AE" strokeWidth="4"/>
-                <line x1="40%" y1="0" x2="40%" y2="100%" stroke="#8D99AE" strokeWidth="4"/>
-                <line x1="70%" y1="0" x2="70%" y2="100%" stroke="#8D99AE" strokeWidth="2"/>
-                <line x1="0" y1="28%" x2="100%" y2="28%" stroke="#8D99AE" strokeWidth="2"/>
-                <line x1="0" y1="75%" x2="100%" y2="75%" stroke="#8D99AE" strokeWidth="2"/>
-            </svg>
+        <div className="relative w-full h-96 rounded-xl overflow-hidden flex items-center justify-center">
+
+            {/* ── Fondo: animación Spline ────────────────────────────────── */}
+            <div className="absolute inset-0 z-0">
+                {React.createElement("spline-viewer", {
+                    url: "https://prod.spline.design/0ixXRYHzRjQMO6cT/scene.splinecode",
+                    "events-target": "none",
+                    style: {
+                        width: "120%", height: "120%", display: "block",
+                        transform: "translate(-8.33%, -8.33%) scale(1.15)",
+                        transformOrigin: "center center",
+                    },
+                })}
+            </div>
+
+            {/* ── Blur suave encima del fondo ────────────────────────────── */}
+            <div className="absolute inset-0 z-10 backdrop-blur-[2px] bg-[#0b0f1a]/30" />
 
             {/* ── Estado: solicitando permiso ────────────────────────────── */}
             {status === "idle" && (
-                <div className="flex flex-col items-center gap-3 text-center px-6 z-10">
+                <div className="flex flex-col items-center gap-3 text-center px-6 z-20">
                     <div className="w-10 h-10 rounded-full bg-[#EF233C] flex items-center justify-center">
                         <IconLocation />
                     </div>
-                    <p className="text-sm font-semibold text-[#2B2D42]">Activa tu ubicación real</p>
-                    <p className="text-xs text-[#8D99AE] max-w-55">
+                    <p className="text-sm font-semibold text-white">Activa tu ubicación real</p>
+                    <p className="text-xs text-white/60 max-w-55">
                         Necesitamos acceso al GPS de tu dispositivo para mostrar tu posición exacta.
                     </p>
                     <button
@@ -123,9 +144,9 @@ export default function LocationMap() {
 
             {/* ── Estado: cargando ───────────────────────────────────────── */}
             {status === "loading" && (
-                <div className="flex flex-col items-center gap-2 z-10">
+                <div className="flex flex-col items-center gap-2 z-20">
                     <div className="w-8 h-8 rounded-full border-2 border-[#EF233C] border-t-transparent animate-spin"/>
-                    <p className="text-xs text-[#8D99AE]">Obteniendo ubicación GPS...</p>
+                    <p className="text-xs text-white/70">Obteniendo ubicación GPS...</p>
                 </div>
             )}
 
@@ -135,14 +156,14 @@ export default function LocationMap() {
                     href={mapsUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="relative flex flex-col items-center group cursor-pointer z-10"
+                    className="relative flex flex-col items-center group cursor-pointer z-20"
                     title="Ver en Google Maps"
                 >
-                    <div className="absolute top-0 w-36 h-36 rounded-full border-2 border-[#EF233C]/20 bg-[#EF233C]/5 -translate-y-12 pointer-events-none"/>
+                    <div className="absolute top-0 w-36 h-36 rounded-full border-2 border-[#EF233C]/40 bg-[#EF233C]/10 -translate-y-12 pointer-events-none"/>
                     <div className="w-10 h-10 rounded-full bg-[#EF233C] flex items-center justify-center shadow-lg z-10 group-hover:scale-110 transition-transform">
                         <IconLocation />
                     </div>
-                    <div className="mt-2 bg-white rounded-lg px-3 py-1.5 shadow text-center z-10 group-hover:shadow-md transition-shadow">
+                    <div className="mt-2 bg-white/90 backdrop-blur-sm rounded-lg px-3 py-1.5 shadow text-center z-10 group-hover:shadow-md transition-shadow">
                         <div className="flex items-center justify-center gap-1.5 mb-0.5">
                             <p className="text-xs font-semibold text-[#2B2D42]">
                                 {geo.city}{geo.country ? `, ${geo.country}` : ""}
@@ -161,15 +182,15 @@ export default function LocationMap() {
 
             {/* ── Estado: permiso denegado ───────────────────────────────── */}
             {status === "denied" && (
-                <div className="flex flex-col items-center gap-2 text-center px-6 z-10">
-                    <p className="text-sm font-semibold text-[#2B2D42]">Permiso bloqueado</p>
-                    <p className="text-xs text-[#8D99AE] max-w-60">
+                <div className="flex flex-col items-center gap-2 text-center px-6 z-20">
+                    <p className="text-sm font-semibold text-white">Permiso bloqueado</p>
+                    <p className="text-xs text-white/60 max-w-60">
                         Tu navegador tiene la ubicación bloqueada. Ve a{" "}
-                        <strong>Configuración del sitio → Ubicación</strong> y cámbiala a <strong>Permitir</strong>, luego recarga la página.
+                        <strong className="text-white">Configuración del sitio → Ubicación</strong> y cámbiala a <strong className="text-white">Permitir</strong>, luego recarga la página.
                     </p>
                     <button
                         onClick={() => setStatus("idle")}
-                        className="px-3 py-1.5 rounded-lg border border-[#EF233C] text-[#EF233C] text-xs font-medium hover:bg-[#EF233C]/5 transition-colors"
+                        className="px-3 py-1.5 rounded-lg border border-[#EF233C] text-[#EF233C] text-xs font-medium hover:bg-[#EF233C]/10 transition-colors"
                     >
                         Reintentar
                     </button>
@@ -178,9 +199,9 @@ export default function LocationMap() {
 
             {/* ── Estado: no disponible ──────────────────────────────────── */}
             {status === "unavailable" && (
-                <div className="flex flex-col items-center gap-2 text-center px-6 z-10">
-                    <p className="text-sm font-semibold text-[#2B2D42]">GPS no disponible</p>
-                    <p className="text-xs text-[#8D99AE]">Tu dispositivo no soporta geolocalización.</p>
+                <div className="flex flex-col items-center gap-2 text-center px-6 z-20">
+                    <p className="text-sm font-semibold text-white">GPS no disponible</p>
+                    <p className="text-xs text-white/60">Tu dispositivo no soporta geolocalización.</p>
                 </div>
             )}
         </div>

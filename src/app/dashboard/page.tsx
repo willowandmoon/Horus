@@ -6,13 +6,11 @@ import EyeOfHorusIcon from "@/src/components/EyeOfHorusIcon";
 import LogoutButton from "./_components/LogoutButton";
 import LocationMap from "./_components/LocationMap";
 import ContactsPanel from "./_components/ContactsPanel";
+import WeatherCard from "./_components/WeatherCard";
+import ChatButton from "./_components/ChatButton";
 
 // ── Iconos ────────────────────────────────────────────────────────────────────
 
-function IconBattery()  { return <svg className="w-5 h-5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}><path strokeLinecap="round" strokeLinejoin="round" d="M21 10.5h.375c.621 0 1.125.504 1.125 1.125v2.25c0 .621-.504 1.125-1.125 1.125H21M3.75 18h15A2.25 2.25 0 0 0 21 15.75v-6a2.25 2.25 0 0 0-2.25-2.25h-15A2.25 2.25 0 0 0 1.5 9.75v6A2.25 2.25 0 0 0 3.75 18Z"/></svg>; }
-function IconGps()      { return <svg className="w-5 h-5 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}><path strokeLinecap="round" strokeLinejoin="round" d="M8.288 15.038a5.25 5.25 0 0 1 7.424 0M5.106 11.856c3.807-3.808 9.98-3.808 13.788 0M1.924 8.674c5.565-5.565 14.587-5.565 20.152 0M12.53 18.22l-.53.53-.53-.53a.75.75 0 0 1 1.06 0Z"/></svg>; }
-function IconNfc()      { return <svg className="w-5 h-5 text-[#EF233C]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z"/></svg>; }
-function IconHeart()    { return <svg className="w-5 h-5 text-pink-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}><path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z"/></svg>; }
 function IconPhone()    { return <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 0 0 2.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 0 1-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 0 0-1.091-.852H4.5A2.25 2.25 0 0 0 2.25 4.5v2.25Z"/></svg>; }
 function IconLocation() { return <svg className="w-4 h-4 text-[#EF233C]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}><path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/><path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z"/></svg>; }
 function IconClock()    { return <svg className="w-4 h-4 text-[#8D99AE]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}><path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>; }
@@ -25,18 +23,6 @@ function NavLink({ href, label, icon, active }: { href: string; label: string; i
             {icon}
             {label}
         </Link>
-    );
-}
-
-// ── Tarjeta de estadística ────────────────────────────────────────────────────
-
-function StatCard({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
-    return (
-        <div className="bg-white rounded-2xl p-5 flex flex-col gap-2 shadow-sm">
-            {icon}
-            <p className="text-xs text-[#8D99AE] font-medium uppercase tracking-wide">{label}</p>
-            <p className="text-2xl font-bold text-[#2B2D42]">{value}</p>
-        </div>
     );
 }
 
@@ -140,12 +126,13 @@ export default async function DashboardPage() {
                     </div>
                 </div>
 
-                {/* Tarjetas de estadísticas */}
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 mb-4 md:mb-6">
-                    <StatCard icon={<IconBattery />} label="Batería"     value="85%"       />
-                    <StatCard icon={<IconGps />}     label="Señal GPS"   value="Fuerte"    />
-                    <StatCard icon={<IconNfc />}     label="Último NFC"  value="Hoy, 9:30" />
-                    <StatCard icon={<IconHeart />}   label="Ritmo Card." value="72 bpm"    />
+                {/* Tarjetas principales */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4 mb-4 md:mb-6">
+                    {/* Chat de asistencia */}
+                    <ChatButton />
+
+                    {/* Pronóstico de clima */}
+                    <WeatherCard />
                 </div>
 
                 {/* Contenido principal: mapa + panel derecho */}

@@ -6,6 +6,11 @@ export async function POST() {
         { message: "Sesión cerrada correctamente" },
         { status: 200 }
     );
+    return clearAuthCookies(response);
+}
 
+// GET: visitar /api/auth/logout en el navegador limpia la sesión y redirige a /login
+export async function GET(req: Request) {
+    const response = NextResponse.redirect(new URL("/login", req.url));
     return clearAuthCookies(response);
 }

@@ -55,6 +55,9 @@ jest*.cache
 .vercel/output/
 .now
 
+# Uploads de usuarios
+public/uploads/
+
 # Misc
 dist/
 out/

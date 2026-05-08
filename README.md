@@ -1,101 +1,134 @@
-# Horus Bracelet
+# Horus Braslet
 
-## Description
+**Horus Braslet** es un sistema de identificación médica de emergencia basado en una pulsera inteligente con NFC. Al escanear la pulsera, el personal de emergencias o cualquier persona puede acceder al perfil médico completo del portador: tipo de sangre, alergias, medicamentos, condiciones crónicas y contactos de emergencia. La plataforma también incluye un asistente de primeros auxilios con inteligencia artificial y voz.
 
-**Horus Bracelet** is a web application focused on **health and safety**, designed to integrate with an NFC bracelet.
+---
 
-Its goal is to allow anyone, in emergency situations, to access critical user information within seconds, enabling faster and more appropriate care.
+## ¿Cómo funciona?
 
-## Problem
+1. El usuario se registra y completa su perfil médico en la aplicación web.
+2. Un tag NFC físico (integrado en la pulsera) queda vinculado a su cuenta.
+3. Al acercar la pulsera a cualquier teléfono con NFC, se redirige automáticamente al perfil público del usuario.
+4. Desde el dashboard, el usuario puede consultar su ubicación en tiempo real, el pronóstico del clima y chatear con Horus, el asistente de primeros auxilios IA.
 
-People who suffer a medical emergency are often unable to communicate their health condition, which delays proper care.
+---
 
-Currently, there are no accessible solutions that combine:
+## Stack tecnológico
 
-- Immediate identification
-- Critical medical information
-- Real-time guided assistance
-- Risk prevention
+### Frontend
+| Tecnología | Uso |
+|---|---|
+| **Next.js 16** | Framework principal — App Router, Server Components, API Routes |
+| **React 19** | UI declarativa con hooks y componentes del lado del cliente |
+| **TypeScript 5** | Tipado estático en todo el proyecto |
+| **Tailwind CSS 4** | Estilos utilitarios y diseño responsivo |
+| **Spline** (`@splinetool/react-spline`) | Animaciones 3D interactivas — robot asistente y fondo del mapa |
 
-## Solution
+### Backend / API Routes
+| Tecnología | Uso |
+|---|---|
+| **Next.js API Routes** | Endpoints REST dentro del mismo proyecto (`/api/*`) |
+| **Groq API** | LLM gratuito — modelo `llama-3.3-70b-versatile` para el chat de primeros auxilios |
+| **ElevenLabs** | Síntesis de voz (TTS) — modelo `eleven_flash_v2_5`, voz Matilda |
+| **Open-Meteo** | API de clima en tiempo real (gratuita, sin clave) |
+| **Nominatim / OpenStreetMap** | Geocodificación inversa — convierte coordenadas GPS a ciudad y país |
 
-Horus Bracelet proposes an integrated system that:
+### Autenticación y seguridad
+| Tecnología | Uso |
+|---|---|
+| **JWT** (`jsonwebtoken`) | Tokens de acceso (15 min) y refresh (7 días) almacenados en cookies HttpOnly |
+| **bcryptjs** | Hash de contraseñas con salt |
+| **Zod** | Validación de esquemas en API Routes |
 
-- Identifies the user through **NFC** technology
-- Displays critical medical information in seconds
-- Allows quick access to emergency contacts
-- Integrates intelligent assistance to act in critical situations
-- Evolves into a preventive health risk system
+### Base de datos
+| Tecnología | Uso |
+|---|---|
+| **PostgreSQL** | Base de datos relacional principal |
+| **Supabase** | Plataforma que provee la instancia de PostgreSQL en la nube |
+| **Prisma ORM** (`@prisma/client`, `@prisma/adapter-pg`) | Modelado, migraciones y queries tipados contra la base de datos |
+| **Pinecone** | Base de datos vectorial para RAG — almacena embeddings del historial médico y documentos de primeros auxilios para enriquecer las respuestas del asistente IA |
+| **Cloudinary** | Almacenamiento y optimización de imágenes de perfil y documentos médicos del usuario |
 
-## How does it work?
+### Hardware (pulsera física)
+| Tecnología | Uso |
+|---|---|
+| **MicroPython** | Lenguaje de programación del microcontrolador embebido en la pulsera |
+| **NFC (Near Field Communication)** | Tag pasivo integrado en la pulsera — al ser escaneado redirige al perfil del usuario sin necesidad de batería |
+| **GPS / Geolocalización** | Módulo de localización en el hardware + Web Geolocation API en el navegador para mostrar la posición exacta del usuario |
 
-1. The user creates an account and registers their medical profile
-2. The information is linked to a unique NFC bracelet
-3. In case of emergency, the bracelet is scanned
-4. An optimized view with key data is displayed
-5. (Future) An intelligent assistant guides the response in real time
+### APIs de dispositivo (Web APIs)
+| API | Uso |
+|---|---|
+| **Web Geolocation API** | Obtiene coordenadas GPS del dispositivo del usuario |
+| **Web Speech API** (`SpeechRecognition`) | Entrada de voz en el chat — reconocimiento en español colombiano (`es-CO`) |
+| **Web Audio API** | Reproducción del audio generado por ElevenLabs TTS |
 
-## Main features
+---
 
-### User management
+## Modelos de datos principales
 
-- Secure registration and authentication
-- Complete medical profile (allergies, conditions, medications)
-- Emergency contacts
+```
+User → PersonalInformation, MedicalProfile, Allergy[], ChronicCondition[],
+        UserMedication[], EmergencyContact[], MedicalHistory[],
+        NfcScan[], EmergencyAlert[], PrivacySettings
+```
 
-### Medical information
+Cada usuario puede controlar qué información es visible públicamente mediante `PrivacySettings`.
 
-- Medical history
-- Digital medical documents
-- Quick emergency view
+---
 
-### NFC integration
+## Variables de entorno requeridas
 
-- Unique identifier per user
-- Instant scan and access
-- QR code fallback
+```env
+DATABASE_URL=           # Cadena de conexión PostgreSQL (Supabase)
+JWT_SECRET=             # Secreto para firmar tokens JWT
+GROQ_API_KEY=           # API key de Groq (LLM gratuito)
+ELEVENLABS_API_KEY=     # API key de ElevenLabs (TTS)
+PINECONE_API_KEY=       # API key de Pinecone (RAG vectorial)
+CLOUDINARY_URL=         # URL de conexión a Cloudinary
+```
 
-### AI assistance (in progress)
+---
 
-- First aid instructions
-- Responses adapted to the medical profile
-- Stress-mode interaction
+## Instalación y desarrollo
 
-### Prevention and alerts (future vision)
+```bash
+npm install
+npx prisma generate
+npm run dev
+```
 
-- Risk detection
-- Smart alerts
-- Location sharing in emergencies
+La aplicación queda disponible en `http://localhost:3000`.  
+Usuarios no autenticados son redirigidos a `/login`.
 
-### Security and privacy
+---
 
-- Access control to information
-- User consent
-- Data protection and encryption
+## Estructura del proyecto
 
-## Future vision
+```
+src/
+├── app/
+│   ├── api/              # Endpoints: auth, chat, tts
+│   ├── dashboard/        # Panel principal del usuario
+│   │   └── _components/  # ChatModal, LocationMap, WeatherCard, SplineRobot...
+│   ├── login/
+│   └── register/
+├── shared/
+│   └── lib/              # JWT, cookies, Prisma client
+prisma/
+└── schema.prisma         # Esquema relacional completo
+```
 
-The project will evolve into a platform that not only reacts to emergencies but also:
+---
 
-- Prevents health risks
-- Assists actively in real time
-- Improves decision-making in critical situations using AI
+## Números de emergencia (Colombia)
 
-## Objective
+| Servicio | Número |
+|---|---|
+| Línea de emergencias unificada | **123** |
+| Cruz Roja Colombiana | **132** |
+| Bomberos | **119** |
 
-To create an accessible, fast, and reliable solution that can **save lives** by providing critical information at the right time.
+---
 
-## Project status
-
-In development — early stage (foundations and architecture)
-
-## Current focus
-
-The first iterations of the product are focused on:
-
-- User registration and authentication
-- Medical profile setup
-- NFC integration
-- Accessible emergency page
-- Basic AI assistance
-- Core security implementation
+> Proyecto desarrollado para mejorar la respuesta ante emergencias médicas en Colombia mediante tecnología accesible, portátil e inmediata.
