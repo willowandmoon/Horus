@@ -1,10 +1,10 @@
-import { medicalDocumentRepository } from '@../../../src/infrastucture/database/medicalDocumentRepository';
-import { uploadToCloudinary } from '@../../../src/infrastucture/database/cloudinary';
-import { extractTextFromPDF } from '@../../../src/infrastucture/pdf/pdfExtractor';
+import { medicalDocumentRepository } from '@/src/infrastucture/database/medicalDocumentRepository';
+import { uploadToCloudinary } from '@/src/infrastucture/database/cloudinary';
+import { extractTextFromPDF } from '@/src/infrastucture/pdf/pdfExtractor';
 import {
   MedicalDocument,
   MedicalDocumentCreate,
-} from '@../../../src/types/historyMedical';
+} from '@/src/types/historyMedical';
 
 export async function saveMedicalDocument(
   fileBuffer: Buffer,

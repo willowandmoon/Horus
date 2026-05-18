@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
-import { createHistory } from '@../../../src/application/historyMedical/createHistory';
-import { getHistoryByUserId } from '@../../../src/application/historyMedical/getHistory';
-import { HistoryMedicalCreate } from '@../../../src/types/historyMedical';
+import { createHistory } from '@/src/application/historyMedical/createHistory';
+import { getHistoryByUserId } from '@/src/application/historyMedical/getHistory';
+import { HistoryMedicalCreate } from '@/src/types/historyMedical';
 
 export async function POST(request: Request) {
   try {

@@ -1,4 +1,4 @@
-import { historyRepository } from '@../../../src/infrastucture/database/historyRepository';
+import { historyRepository } from '@/src/infrastucture/database/historyRepository';
 
 export async function deleteHistory(id: string): Promise<boolean> {
   try {

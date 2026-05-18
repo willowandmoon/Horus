@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { saveMedicalDocument } from '@/application/historyMedical/saveMedicalDocument';
+import { saveMedicalDocument } from '@/src/application/historyMedical/saveMedicalDocument';
 
 export async function POST(request: Request) {
   try {

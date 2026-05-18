@@ -1,5 +1,5 @@
-import { historyRepository } from '@../../../src/infrastucture/database/historyRepository';
-import { HistoryMedical } from '@../../../src/types/historyMedical';
+import { historyRepository } from '@/src/infrastucture/database/historyRepository';
+import { HistoryMedical } from '@/src/types/historyMedical';
 
 export async function getHistory(id: string): Promise<HistoryMedical | null> {
   try {

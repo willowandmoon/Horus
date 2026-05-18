@@ -3,7 +3,7 @@ import {
   HistoryMedical,
   HistoryMedicalCreate,
   HistoryMedicalUpdate,
-} from "@../../../src/types/historyMedical";
+} from "@/src/types/historyMedical";
 
 const HISTORY_COLLECTION = "history_medical";
 

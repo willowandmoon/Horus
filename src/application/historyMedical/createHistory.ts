@@ -1,8 +1,8 @@
-import { historyRepository } from '@../../../src/infrastucture/database/historyRepository';
+import { historyRepository } from '@/src/infrastucture/database/historyRepository';
 import {
   HistoryMedical,
   HistoryMedicalCreate,
-} from '@../../../src/types/historyMedical';
+} from '@/src/types/historyMedical';
 
 export async function createHistory(
   data: HistoryMedicalCreate

@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
-import { getHistory } from '@../../../src/application/historyMedical/getHistory';
-import { updateHistory } from '@../../../src/application/historyMedical/updateHistory';
-import { deleteHistory } from '@../../../src/application/historyMedical/deleteHistory';
-import { HistoryMedicalUpdate } from '@../../../src/types/historyMedical';
+import { getHistory } from '@/src/application/historyMedical/getHistory';
+import { updateHistory } from '@/src/application/historyMedical/updateHistory';
+import { deleteHistory } from '@/src/application/historyMedical/deleteHistory';
+import { HistoryMedicalUpdate } from '@/src/types/historyMedical';
 
 export async function GET(
   request: Request,

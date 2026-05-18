@@ -2,7 +2,7 @@ import { db } from './firebase';
 import {
   MedicalDocument,
   MedicalDocumentCreate,
-} from '@../../../src/types/historyMedical';
+} from '@/src/types/historyMedical';
 
 const MEDICAL_DOCUMENTS_COLLECTION = 'medical_documents';
 
