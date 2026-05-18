@@ -3,9 +3,10 @@ import { prisma }                    from "@/src/infrastructure/database/prisma/
 
 export async function GET(
     request: NextRequest,
-    { params }: { params: { orderId: string } }
+    { params }: { params: Promise<{ orderId: string }> }
 ) {
     try {
+        const { orderId } = await params;
         const userId = request.headers.get("x-user-id");
         if (!userId) {
             return NextResponse.json(
@@ -15,7 +16,7 @@ export async function GET(
         }
 
         const order = await prisma.order.findUnique({
-            where: { id: params.orderId },
+            where: { id: orderId },
             select: {
                 id:          true,
                 reference:   true,

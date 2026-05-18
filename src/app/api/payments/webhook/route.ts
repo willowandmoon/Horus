@@ -1,7 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { mp }                        from "@/src/infrastructure/payments/mercadopago.client";
 import { prisma }                    from "@/src/infrastructure/database/prisma/client";
-import type { Order } from "@/generated/prisma/client";
+import type { Prisma } from "@/generated/prisma/client";
+import { sendOrderConfirmationEmail } from "@/src/infrastructure/email/order-confirmation";
+
+export const runtime = "nodejs";
+
+type OrderWithProduct = Prisma.OrderGetPayload<{ include: { product: true } }>;
 
 interface MercadoPagoPayment {
     id?: string | number;
@@ -31,10 +36,10 @@ export async function POST(request: NextRequest) {
 
         // 1. Consultar el pago en MercadoPago
         const mpPayment = await mp.payment.get({ id: paymentId });
-        const mpData    = mpPayment as unknown as MercadoPagoPayment;
+        const mpPayload = ((mpPayment as { response?: unknown })?.response ?? mpPayment) as unknown as MercadoPagoPayment;
 
-        const status    = mpData.status;           // approved, rejected, pending
-        const reference = mpData.external_reference; // nuestra referencia de orden
+        const status    = mpPayload.status;             // approved, rejected, pending
+        const reference = mpPayload.external_reference; // nuestra referencia de orden
 
         if (!reference) {
             return NextResponse.json({ received: true });
@@ -53,9 +58,9 @@ export async function POST(request: NextRequest) {
 
         // 3. Actualizar según el estado de MercadoPago
         if (status === "approved") {
-            await handleApprovedPayment(order, mpData, String(paymentId));
+            await handleApprovedPayment(order, mpPayload, String(paymentId));
         } else if (status === "rejected") {
-            await handleRejectedPayment(order, mpData, String(paymentId));
+            await handleRejectedPayment(order, mpPayload, String(paymentId));
         } else if (status === "pending" || status === "in_process") {
             await handlePendingPayment(order, String(paymentId));
         }
@@ -72,7 +77,7 @@ export async function POST(request: NextRequest) {
 
 // Pago aprobado
 
-async function handleApprovedPayment(order: Order, mpData: MercadoPagoPayment, paymentId: string) {
+async function handleApprovedPayment(order: OrderWithProduct, mpData: MercadoPagoPayment, paymentId: string) {
     // Actualizar el pago
     await prisma.payment.update({
         where: { orderId: order.id },
@@ -95,8 +100,15 @@ async function handleApprovedPayment(order: Order, mpData: MercadoPagoPayment, p
     const endDate   = new Date();
     endDate.setFullYear(endDate.getFullYear() + 1); // +1 año
 
-    await prisma.subscription.create({
-        data: {
+    await prisma.subscription.upsert({
+        where: { orderId: order.id },
+        update: {
+            status: "ACTIVE",
+            startDate,
+            endDate,
+            autoRenew: true,
+        },
+        create: {
             userId:     order.userId,
             orderId:    order.id,
             productId:  order.productId,
@@ -107,17 +119,35 @@ async function handleApprovedPayment(order: Order, mpData: MercadoPagoPayment, p
         },
     });
 
-    console.log(`[WEBHOOK] Pago aprobado — Orden: ${order.reference} | Usuario: ${order.userId}`);
+    try {
+        await sendOrderConfirmationEmail({
+            to: process.env.EMAIL_TO ?? "emma122120063a@gmail.com",
+            from: process.env.EMAIL_FROM ?? "emma122120063a@gmail.com",
+            orderId: order.id,
+            userId: order.userId,
+            reference: order.reference,
+            productName: order.product?.name ?? "Horus Braslet",
+            productType: order.product?.productType ?? "BRACELET",
+            totalAmount: Number(order.totalAmount),
+            currency: order.currency,
+            createdAt: order.createdAt,
+            shipping: {
+                street: order.shippingStreet,
+                city: order.shippingCity,
+                department: order.shippingDepartment,
+                zip: order.shippingZip,
+            },
+        });
+    } catch (error) {
+        console.error("[EMAIL_ERROR]", error);
+    }
 
-    // Aquí puedes agregar:
-    // → Enviar email de confirmación
-    // → Generar orden de envío física
-    // → Activar perfil médico completo
+    console.log(`[WEBHOOK] Pago aprobado — Orden: ${order.reference} | Usuario: ${order.userId}`);
 }
 
 // Pago rechazado
 
-async function handleRejectedPayment(order: Order, mpData: MercadoPagoPayment, paymentId: string) {
+async function handleRejectedPayment(order: OrderWithProduct, mpData: MercadoPagoPayment, paymentId: string) {
     await prisma.payment.update({
         where: { orderId: order.id },
         data: {
@@ -137,7 +167,7 @@ async function handleRejectedPayment(order: Order, mpData: MercadoPagoPayment, p
 
 // Pago pendiente
 
-async function handlePendingPayment(order: Order, paymentId: string) {
+async function handlePendingPayment(order: OrderWithProduct, paymentId: string) {
     await prisma.payment.update({
         where: { orderId: order.id },
         data: {

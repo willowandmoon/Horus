@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "receipt:sample": "tsx scripts/generate-sample-receipt.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.95.1",
@@ -17,6 +18,8 @@
     "jsonwebtoken": "^9.0.3",
     "mercadopago": "^2.12.1",
     "next": "16.2.4",
+    "nodemailer": "^6.9.13",
+    "pdfkit": "^0.15.0",
     "react": "19.2.4",
     "react-dom": "19.2.4",
     "zod": "^4.3.6"
@@ -26,6 +29,8 @@
     "@types/bcryptjs": "^2.4.6",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^20",
+    "@types/nodemailer": "^6.4.14",
+    "@types/pdfkit": "^0.13.6",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",

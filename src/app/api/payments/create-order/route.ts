@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        const { productId } = validation.data;
+        const { productId, shippingAddress } = validation.data;
 
         // 2. Verificar usuario autenticado — viene del middleware
         const userId = request.headers.get("x-user-id");
@@ -73,58 +73,155 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        // 5. Crear referencia única para la orden
-        const reference = `horus-${userId.slice(0, 8)}-${Date.now()}`;
-
-        // 6. Crear la orden en BD
-        const order: Order = await prisma.order.create({
-            data: {
+        // 5. Reutilizar orden pendiente si ya existe
+        const openOrders = await prisma.order.findMany({
+            where: {
                 userId,
                 productId,
-                reference,
-                status:          "PENDING",
-                totalAmount:     product.price,
-                currency:        "COP"
+                status: { in: ["PENDING", "PAYMENT_PENDING"] },
             },
+            orderBy: { createdAt: "desc" },
+            include: { payment: true },
         });
 
-        // 7. Crear preferencia de pago en MercadoPago
+        const [latestOrder, ...olderOrders] = openOrders;
+
+        if (olderOrders.length > 0) {
+            const olderOrderIds = olderOrders.map((item) => item.id);
+            await prisma.$transaction([
+                prisma.payment.updateMany({
+                    where: { orderId: { in: olderOrderIds } },
+                    data: { status: "VOIDED" },
+                }),
+                prisma.order.updateMany({
+                    where: { id: { in: olderOrderIds } },
+                    data: { status: "CANCELLED" },
+                }),
+            ]);
+        }
+
+        let order: Order;
+        if (latestOrder) {
+            order = await prisma.order.update({
+                where: { id: latestOrder.id },
+                data: {
+                    status: "PENDING",
+                    totalAmount: product.price,
+                    currency: "COP",
+                    shippingStreet: shippingAddress.street,
+                    shippingCity: shippingAddress.city,
+                    shippingDepartment: shippingAddress.department,
+                    shippingZip: shippingAddress.zip ?? null,
+                },
+            });
+        } else {
+            // Crear referencia única para la orden
+            const reference = `horus-${userId.slice(0, 8)}-${Date.now()}`;
+
+            // Crear la orden en BD
+            order = await prisma.order.create({
+                data: {
+                    userId,
+                    productId,
+                    reference,
+                    status: "PENDING",
+                    totalAmount: product.price,
+                    currency: "COP",
+                    shippingStreet: shippingAddress.street,
+                    shippingCity: shippingAddress.city,
+                    shippingDepartment: shippingAddress.department,
+                    shippingZip: shippingAddress.zip ?? null,
+                },
+            });
+        }
+
+        const reference = order.reference;
+
+        // 6. Crear preferencia de pago en MercadoPago
+        const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? request.nextUrl.origin;
+
+        if (!appUrl) {
+            return NextResponse.json(
+                { success: false, message: "Falta configurar NEXT_PUBLIC_APP_URL" },
+                { status: 500 }
+            );
+        }
+
+        const successUrl = new URL("/payment/success", appUrl);
+        successUrl.searchParams.set("orderId", order.id);
+        const failureUrl = new URL("/payment/error", appUrl);
+        failureUrl.searchParams.set("orderId", order.id);
+        const pendingUrl = new URL("/payment/pending", appUrl);
+        pendingUrl.searchParams.set("orderId", order.id);
+        const notificationUrl = new URL("/api/payments/webhook", appUrl);
+
+        type PreferenceBody = {
+            external_reference: string;
+            items: Array<{
+                id: string;
+                title: string;
+                description?: string;
+                quantity: number;
+                unit_price: number;
+                currency_id: string;
+            }>;
+            payer: { email: string };
+            back_urls: { success: string; failure: string; pending: string };
+            notification_url: string;
+            statement_descriptor: string;
+            auto_return?: "approved";
+        };
+
+        const preferenceBody: PreferenceBody = {
+            external_reference: reference,
+            items: [
+                {
+                    id:          product.id,
+                    title:       product.name,
+                    description: product.description ?? product.name,
+                    quantity:    1,
+                    unit_price:  Number(product.price),
+                    currency_id: "COP",
+                },
+            ],
+            payer: {
+                email: userEmail,
+            },
+            back_urls: {
+                success: successUrl.toString(),
+                failure: failureUrl.toString(),
+                pending: pendingUrl.toString(),
+            },
+            notification_url: notificationUrl.toString(),
+            statement_descriptor: "HORUS BRACELET",
+        };
+
+        if (appUrl.startsWith("https://")) {
+            preferenceBody.auto_return = "approved";
+        }
+
         const preference: { id?: string; init_point?: string; sandbox_init_point?: string } = await mp.preferences.create({
-            body: {
-                external_reference: reference,         // referencia para el webhook
-                items: [
-                    {
-                        id:          product.id,
-                        title:       product.name,
-                        description: product.description ?? product.name,
-                        quantity:    1,
-                        unit_price:  Number(product.price),
-                        currency_id: "COP",
-                    },
-                ],
-                payer: {
-                    email: userEmail,
-                },
-                back_urls: {
-                    success: `${process.env.NEXT_PUBLIC_APP_URL}/payment/success?orderId=${order.id}`,
-                    failure: `${process.env.NEXT_PUBLIC_APP_URL}/payment/failure?orderId=${order.id}`,
-                    pending: `${process.env.NEXT_PUBLIC_APP_URL}/payment/pending?orderId=${order.id}`,
-                },
-                auto_return:        "approved",
-                notification_url:   `${process.env.NEXT_PUBLIC_APP_URL}/api/payments/webhook`,
-                statement_descriptor: "HORUS BRACELET",
-            },
+            body: preferenceBody,
         });
 
-        // 8. Crear registro de pago en BD
-        await prisma.payment.create({
-            data: {
-                orderId:       order.id,
+        // 8. Crear o actualizar registro de pago en BD
+        await prisma.payment.upsert({
+            where: { orderId: order.id },
+            update: {
+                status: "PENDING",
+                paymentMethod: "CARD",
+                amount: product.price,
+                currency: "COP",
+                mpReference: reference,
+            },
+            create: {
+                orderId: order.id,
                 userId,
                 paymentMethod: "CARD",
-                status:        "PENDING",
-                amount:        product.price,
-                currency:      "COP",
+                status: "PENDING",
+                amount: product.price,
+                currency: "COP",
+                mpReference: reference,
             },
         });
 
