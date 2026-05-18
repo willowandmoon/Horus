@@ -1,129 +1,99 @@
-import clientPromise from "./mongodb";
-import { ObjectId } from "mongodb";
+import { db } from "./firebase";
+import {
+  HistoryMedical,
+  HistoryMedicalCreate,
+  HistoryMedicalUpdate,
+} from "@../../../src/types/historyMedical";
 
-export async function getHistory(userId: string) {
-  const client = await clientPromise;
-  const db = client.db("MedicalRecords");
-  // Devuelve el documento del usuario con todos sus historiales
-  return db.collection("history_medical").findOne({ userId });
-}
+const HISTORY_COLLECTION = "history_medical";
 
-export async function createHistory(data: any) {
-  const client = await clientPromise;
-  const db = client.db("MedicalRecords");
-  // Inserta un historial en el array histories del usuario, crea el documento si no existe
-  const result = await db.collection<MedicalHistoryModel>("history_medical").updateOne(
-    { userId: data.userId },
-    {
-      $push: {
-        histories: {
-          type: data.type,
-          description: data.description,
-          diagnosis: data.diagnosis,
-          treatment: data.treatment,
-          doctor: data.doctor,
-          documents: data.documents || [],
-          createdAt: new Date(),
-          updatedAt: new Date()
-        }
-      },
-      $setOnInsert: {
-        userId: data.userId
-      }
-    },
-    { upsert: true }
-  );
-  return result;
-}
-
-export async function updateHistory(id: string, data: any) {
-  const client = await clientPromise;
-  const db = client.db("MedicalRecords");
-
-  const result = await db.collection("history_medical").updateOne(
-    { _id: new ObjectId(id) },
-    {
-      $set: {
+export const historyRepository = {
+  async create(data: HistoryMedicalCreate): Promise<HistoryMedical> {
+    try {
+      const now = new Date();
+      const docRef = await db.collection(HISTORY_COLLECTION).add({
         ...data,
-        updatedAt: new Date()
-      }
+        createdAt: now,
+        updatedAt: now,
+      });
+      const doc = await docRef.get();
+      return { id: doc.id, ...doc.data() } as HistoryMedical;
+    } catch (error) {
+      console.error("Error creating history medical:", error);
+      throw new Error("Failed to create history medical");
     }
-  );
+  },
 
-  return result;
-}
-
-export async function deleteHistory(id: string) {
-  const client = await clientPromise;
-  const db = client.db("MedicalRecords");
-
-  const result = await db.collection("history_medical").deleteOne({
-    _id: new ObjectId(id)
-  });
-
-  return result;
-}
-
-export interface MedicalHistoryModel extends Document {
-  userId: string;
-  histories?: {
-    type?: string;
-    description?: string;
-    diagnosis?: string;
-    treatment?: string;
-    doctor?: string;
-    documents?: {
-      url: string;
-      publicId: string;
-      extractedText: string;
-      uploadedAt: Date;
-    }[];
-    createdAt?: Date;
-    updatedAt?: Date;
-  }[];
-  // Para compatibilidad con saveMedicalDocument
-  documents?: {
-    url: string;
-    publicId: string;
-    extractedText: string;
-    uploadedAt: Date;
-  }[];
-  createdAt?: Date;
-  type?: string;
-  description?: string;
-}
-
-export interface SaveMedicalDocumentDTO {
-  userId: string;
-  url: string;
-  publicId: string;
-  extractedText: string;
-}
-
-export async function saveMedicalDocument(data: SaveMedicalDocumentDTO) {
-  const client = await clientPromise;
-  const db = client.db("MedicalRecords");
-
-  // Actualiza el registro del usuario (o lo crea si no existe) insertando el documento en su arreglo
-  const result = await db.collection<MedicalHistoryModel>("history_medical").updateOne(
-    { userId: data.userId },
-    {
-      $push: {
-        documents: {
-          url: data.url,
-          publicId: data.publicId,
-          extractedText: data.extractedText,
-          uploadedAt: new Date()
-        }
-      },
-      $setOnInsert: {
-        createdAt: new Date(),
-        type: "Document Upload",
-        description: "User document repository"
+  async findById(id: string): Promise<HistoryMedical | null> {
+    try {
+      const docRef = db.collection(HISTORY_COLLECTION).doc(id);
+      const doc = await docRef.get();
+      if (!doc.exists) {
+        return null;
       }
-    },
-    { upsert: true }
-  );
+      return { id: doc.id, ...doc.data() } as HistoryMedical;
+    } catch (error) {
+      console.error(`Error finding history medical by id ${id}:`, error);
+      throw new Error("Failed to find history medical");
+    }
+  },
 
-  return result;
-}
+  async findByUserId(userId: string): Promise<HistoryMedical[]> {
+    try {
+      const snapshot = await db
+        .collection(HISTORY_COLLECTION)
+        .where("userId", "==", userId)
+        .get();
+      if (snapshot.empty) {
+        return [];
+      }
+      return snapshot.docs.map(
+        (doc) => ({ id: doc.id, ...doc.data() } as HistoryMedical)
+      );
+    } catch (error) {
+      console.error(
+        `Error finding history medical by user id ${userId}:`,
+        error
+      );
+      throw new Error("Failed to find history medical by user");
+    }
+  },
+
+  async update(
+    id: string,
+    data: HistoryMedicalUpdate
+  ): Promise<HistoryMedical | null> {
+    try {
+      const docRef = db.collection(HISTORY_COLLECTION).doc(id);
+      const doc = await docRef.get();
+      if (!doc.exists) {
+        return null;
+      }
+      const now = new Date();
+      await docRef.update({
+        ...data,
+        updatedAt: now,
+      });
+      const updatedDoc = await docRef.get();
+      return { id: updatedDoc.id, ...updatedDoc.data() } as HistoryMedical;
+    } catch (error) {
+      console.error(`Error updating history medical ${id}:`, error);
+      throw new Error("Failed to update history medical");
+    }
+  },
+
+  async delete(id: string): Promise<boolean> {
+    try {
+      const docRef = db.collection(HISTORY_COLLECTION).doc(id);
+      const doc = await docRef.get();
+      if (!doc.exists) {
+        return false;
+      }
+      await docRef.delete();
+      return true;
+    } catch (error) {
+      console.error(`Error deleting history medical ${id}:`, error);
+      throw new Error("Failed to delete history medical");
+    }
+  },
+};

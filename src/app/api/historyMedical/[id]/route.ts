@@ -1,58 +1,54 @@
-import { updateHistoryUseCase } from "@/src/application/historyMedical/updateHistory";
-import { deleteHistoryUseCase } from "@/src/application/historyMedical/deleteHistory";
+import { NextResponse } from 'next/server';
+import { getHistory } from '@../../../src/application/historyMedical/getHistory';
+import { updateHistory } from '@../../../src/application/historyMedical/updateHistory';
+import { deleteHistory } from '@../../../src/application/historyMedical/deleteHistory';
+import { HistoryMedicalUpdate } from '@../../../src/types/historyMedical';
 
-export async function PUT(
-  req: Request,
-  { params }: { params: Promise<{ id: string }> }
+export async function GET(
+  request: Request,
+  { params }: { params: { id: string } }
 ) {
   try {
-    const { id } = await params;
-
-    const body = await req.json();
-
-    const result = await updateHistoryUseCase(id, body);
-
-    return Response.json({
-      message: "History updated successfully",
-      data: result
-    });
-  } catch (error) {
-    console.error("UPDATE ERROR:", error);
-
-    return Response.json(
-    {
-        error: String(error)
-    },
-    {
-        status: 500
+    const { id } = params;
+    const history = await getHistory(id);
+    if (!history) {
+      return NextResponse.json({ error: 'History not found' }, { status: 404 });
     }
-    );
+    return NextResponse.json(history);
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message }, { status: 400 });
+  }
+}
+
+export async function PUT(
+  request: Request,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const { id } = params;
+    const body: HistoryMedicalUpdate = await request.json();
+    const updatedHistory = await updateHistory(id, body);
+    if (!updatedHistory) {
+      return NextResponse.json({ error: 'History not found' }, { status: 404 });
     }
+    return NextResponse.json(updatedHistory);
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message }, { status: 400 });
+  }
 }
 
 export async function DELETE(
-        req: Request,
-        { params }: { params: Promise<{ id: string }> }
-    ) {
-        try {
-            const { id } = await params;
-
-            const reult = await deleteHistoryUseCase(id);
-
-            return Response.json({
-                message: "History deleted successfully",
-                data: reult
-            });
-        }catch (error){
-            console.error("DELETE ERROR:", error);
-
-            return Response.json(
-                {
-                    error: String(error)
-                },
-                {
-                    status: 500
-                }
-            );
-        }
+  request: Request,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const { id } = params;
+    const success = await deleteHistory(id);
+    if (!success) {
+      return NextResponse.json({ error: 'History not found' }, { status: 404 });
     }
+    return NextResponse.json({ message: 'History deleted successfully' });
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message }, { status: 400 });
+  }
+}

@@ -1,29 +1,31 @@
+import { NextResponse } from 'next/server';
+import { createHistory } from '@../../../src/application/historyMedical/createHistory';
+import { getHistoryByUserId } from '@../../../src/application/historyMedical/getHistory';
+import { HistoryMedicalCreate } from '@../../../src/types/historyMedical';
 
-import { getHistoryUseCase } from "@/src/application/historyMedical/getHistory";
-import { createHistoryUseCase } from "@/src/application/historyMedical/createHistory";
-
-export async function GET(req: Request) {
-  const { searchParams } = new URL(req.url);
-  const userId = searchParams.get("userId");
-  if (!userId) {
-    return new Response("Missing userId", { status: 400 });
+export async function POST(request: Request) {
+  try {
+    const body: HistoryMedicalCreate = await request.json();
+    const newHistory = await createHistory(body);
+    return NextResponse.json(newHistory, { status: 201 });
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message }, { status: 400 });
   }
-  const data = await getHistoryUseCase(userId);
-  return Response.json(data);
 }
 
-export async function POST(req: Request) {
+export async function GET(request: Request) {
   try {
-    const body = await req.json();
-
-    const result = await createHistoryUseCase(body);
-
-    return Response.json({
-      message: "History created successfully",
-      data: result
-    });
-  } catch (error) {
-    console.error(error);
-    return new Response("Error creating history", { status: 500 });
+    const { searchParams } = new URL(request.url);
+    const userId = searchParams.get('userId');
+    if (!userId) {
+      return NextResponse.json(
+        { error: 'userId query param is required' },
+        { status: 400 }
+      );
+    }
+    const histories = await getHistoryByUserId(userId);
+    return NextResponse.json(histories);
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message }, { status: 400 });
   }
 }

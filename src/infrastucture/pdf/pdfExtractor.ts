@@ -1,14 +1,13 @@
-import pdfParse from "pdf-parse";
+import pdf from 'pdf-parse';
 
-export async function extractPdfText(buffer: Buffer) {
-  if (!buffer || buffer.length === 0) {
-    throw new Error("El buffer del PDF está vacío.");
-  }
+export async function extractTextFromPDF(
+  buffer: Buffer
+): Promise<string> {
   try {
-    const data = await pdfParse(buffer);
+    const data = await pdf(buffer);
     return data.text;
   } catch (error) {
-    console.error("Error al extraer el texto del PDF:", error);
-    throw new Error("No se pudo extraer el texto del PDF.");
+    console.error('Error extracting text from PDF:', error);
+    throw new Error('Failed to extract text from PDF');
   }
 }
