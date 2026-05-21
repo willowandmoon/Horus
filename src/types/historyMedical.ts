@@ -1,31 +1,18 @@
-export interface HistoryMedical {
-  id: string;
-  userId: string;
-  type: string;
-  description: string;
-  diagnosis: string;
-  treatment: string;
-  doctor: string;
-  documents: string[];
-  createdAt: Date;
+// Unified medical records types for Firestore document `medical_records/{userId}`
+
+export interface DocumentItem {
+  fileUrl: string; // secure URL from Cloudinary
+  publicId: string; // Cloudinary public_id
+  extractedText: string; // extracted text for PDFs, empty string for images
+  fileType: 'pdf' | 'image' | string;
+  uploadedAt: Date;
+}
+
+export interface UserMedicalRecord {
+  // Stored as document id = userId in collection `medical_records`
+  documents: DocumentItem[];
   updatedAt: Date;
 }
 
-export type HistoryMedicalCreate = Omit<
-  HistoryMedical,
-  'id' | 'createdAt' | 'updatedAt'
->;
-export type HistoryMedicalUpdate = Partial<HistoryMedicalCreate>;
+export type UserMedicalRecordCreate = Partial<UserMedicalRecord>;
 
-export interface MedicalDocument {
-  id: string;
-  userId: string;
-  document: {
-    url: string;
-    publicId: string;
-  };
-  extractedText: string;
-  createdAt: Date;
-}
-
-export type MedicalDocumentCreate = Omit<MedicalDocument, 'id' | 'createdAt'>;

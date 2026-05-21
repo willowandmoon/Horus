@@ -61,4 +61,4 @@ out/
 .storybook/build/
 
 # Firebase service account (keep example file)
-horus-64e3b-firebase-adminsdk-fbsvc-4616637f8a.json
+src/config/*.json
