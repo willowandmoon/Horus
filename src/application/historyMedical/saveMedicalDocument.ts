@@ -1,6 +1,7 @@
 import { uploadMedicalDocument } from '@/src/infrastructure/cloudinary/cloudinary';
 import { extractTextFromPDF } from '@/src/infrastructure/pdf/pdfExtractor';
 import { extractTextFromImage } from '@/src/infrastructure/ocr/tesseractOcr';
+import { extractTextFromWord } from '@/src/infrastructure/word/wordExtractor';
 import { correctOcrTextWithGemini } from '@/src/infrastructure/ai/gemini';
 import { medicalRecordsRepository } from '@/src/infrastructure/database/medicalRecordsRepository';
 import { DocumentItem, UserMedicalRecord } from '@/src/types/historyMedical';
@@ -22,26 +23,53 @@ export async function saveMedicalDocument(
     // Determinar tipo de archivo: preferir mimeType, fallback a Cloudinary resource_type
     const mime = (options?.mimeType || '').toLowerCase();
     const resourceType = (uploadResult && (uploadResult.resource_type || '')).toLowerCase();
-    const isPdf = mime.includes('pdf') || resourceType === 'raw' || (options?.filename || '').toLowerCase().endsWith('.pdf');
-    const isImage = mime.startsWith('image') || resourceType === 'image' || (options?.filename || '').toLowerCase().match(/\.(jpg|jpeg|png|webp)$/);
+    const filenameLow = (options?.filename || '').toLowerCase();
+    
+    // Mejorar la aserción de PDF vs WORD priorizando la extensión del archivo, 
+    // usualmente el mime type en formData puede decir `application/octet-stream`
+    const isWord = mime.includes('word') || mime.includes('msword') || filenameLow.match(/\.(docx|doc)$/);
+    const isImage = mime.startsWith('image') || resourceType === 'image' || filenameLow.match(/\.(jpg|jpeg|png|webp)$/);
+    const isPdf = !isWord && !isImage && (mime.includes('pdf') || filenameLow.endsWith('.pdf'));
+    const isJson = mime.includes('json') || filenameLow.endsWith('.json');
+    const isText = mime.includes('text') || filenameLow.match(/\.(txt|csv|md)$/);
 
-    // Extraer texto: PDF -> pdf-parse, Imagen -> Tesseract OCR
+    // Extraer texto dependiendo del tipo de archivo
     let extractedText = '';
+    let fileType = 'unknown';
+
     if (isPdf) {
       extractedText = await extractTextFromPDF(fileBuffer);
+      fileType = 'pdf';
     } else if (isImage) {
       extractedText = await extractTextFromImage(fileBuffer);
+      fileType = 'image';
+    } else if (isWord) {
+      extractedText = await extractTextFromWord(fileBuffer);
+      fileType = 'word';
+    } else if (isJson || isText) {
+      extractedText = fileBuffer.toString('utf-8');
+      fileType = isJson ? 'json' : 'text';
+    } else {
+      // Para cualquier otro archivo (Excel, Powerpoint, videos, etc.)
+      // No extraemos texto ni forzamos utf-8 para no mandar datos ilegibles a la IA.
+      extractedText = '';
+      
+      const match = filenameLow.match(/\.([a-z0-9]+)$/);
+      fileType = match ? match[1] : 'other';
     }
 
     // Post-procesamiento con Inteligencia Artificial
-    let finalCleanText = await correctOcrTextWithGemini(extractedText);
+    let finalCleanText = extractedText;
+    if (extractedText.trim().length > 0) {
+      finalCleanText = await correctOcrTextWithGemini(extractedText);
+    }
 
     // Construir el documento para insertar en el registro del usuario
     const documentItem: DocumentItem = {
       fileUrl: uploadResult.secure_url,
       publicId: uploadResult.public_id,
       extractedText: finalCleanText,
-      fileType: isPdf ? 'pdf' : 'image',
+      fileType: fileType,
       uploadedAt: new Date(),
     };
 
