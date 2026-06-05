@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { saveMedicalDocument } from '@/src/application/historyMedical/saveMedicalDocument';
+import { MedicalHistoryScraper } from '@/src/infrastructure/medical-history/scraper/scraper';
 
 export async function POST(request: Request) {
   try {
@@ -16,7 +17,6 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'userId is required (form-data key: userId)' }, { status: 400 });
     }
 
-    // Ensure the file is a File/Blob-like object with arrayBuffer
     if (typeof fileEntry === 'string' || typeof fileEntry.arrayBuffer !== 'function') {
       return NextResponse.json({ error: 'file must be uploaded as form-data file' }, { status: 400 });
     }
@@ -26,7 +26,27 @@ export async function POST(request: Request) {
     const filename = file.name || undefined;
     const mimeType = file.type || undefined;
 
+    // 1. Se ejecuta la lógica para guardar en Firebase y extraer texto.
     const updatedRecord = await saveMedicalDocument(fileBuffer, userId, { filename, mimeType });
+
+    // 2. Se extrae el texto OCR de forma segura y tipada.
+    const latestDocument = updatedRecord.documents[updatedRecord.documents.length - 1];
+    const firebaseOcrText = latestDocument?.extractedText || '';
+
+    if (firebaseOcrText && firebaseOcrText.trim() !== '') {
+      console.log(`[API Bridge] Documento subido con éxito. Enviando texto OCR al Scraper para el usuario: ${userId}`);
+      
+      // 3. El pipeline del scraper se ejecuta de forma segura.
+      try {
+        const scraper = new MedicalHistoryScraper();
+        await scraper.processFirebaseText(userId, firebaseOcrText);
+      } catch (scraperError) {
+        console.error('[API Bridge] Error en el scraper al procesar la información médica con IA:', scraperError);
+        // No arrojamos el error para evitar que la subida del documento falle
+      }
+    } else {
+      console.warn('[API Bridge] El documento se guardó pero no se detectó texto OCR para procesar.');
+    }
 
     return NextResponse.json(updatedRecord, { status: 201 });
   } catch (error: Omit<Error, never> | unknown) {

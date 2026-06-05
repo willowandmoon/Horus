@@ -8,7 +8,8 @@ export const medicalRecordsRepository = {
     const userRef = db.collection(MEDICAL_RECORDS_COLLECTION).doc(userId);
     const doc = await userRef.get();
     if (!doc.exists) {
-      await userRef.set({ documents: [], updatedAt: new Date() });
+      const nowColombia = new Date(Date.now() - 5 * 60 * 60 * 1000);
+      await userRef.set({ documents: [], updatedAt: nowColombia });
     }
   },
 
@@ -42,7 +43,7 @@ export const medicalRecordsRepository = {
     try {
       const result = await db.runTransaction(async (tx) => {
         const userDoc = await tx.get(userRef);
-        const now = new Date();
+        const now = new Date(Date.now() - 5 * 60 * 60 * 1000); // Ajustado a hora de Colombia (UTC-5)
 
         // If user document does not exist, create it automatically
         if (!userDoc.exists) {

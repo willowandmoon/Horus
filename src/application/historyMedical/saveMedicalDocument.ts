@@ -1,7 +1,7 @@
 import { uploadMedicalDocument } from '@/src/infrastructure/cloudinary/cloudinary';
-import { extractTextFromPDF } from '@/src/infrastructure/pdf/pdfExtractor';
-import { extractTextFromImage } from '@/src/infrastructure/ocr/tesseractOcr';
-import { extractTextFromWord } from '@/src/infrastructure/word/wordExtractor';
+import { extractTextFromPDF } from '@/src/infrastructure/medical-history/pdf/pdfExtractor';
+import { extractTextFromImage } from '@/src/infrastructure/medical-history/ocr/tesseractOcr';
+import { extractTextFromWord } from '@/src/infrastructure/medical-history/word/wordExtractor';
 import { correctOcrTextWithGemini } from '@/src/infrastructure/ai/gemini';
 import { medicalRecordsRepository } from '@/src/infrastructure/database/medicalRecordsRepository';
 import { DocumentItem, UserMedicalRecord } from '@/src/types/historyMedical';
@@ -27,9 +27,9 @@ export async function saveMedicalDocument(
     
     // Mejorar la aserción de PDF vs WORD priorizando la extensión del archivo, 
     // usualmente el mime type en formData puede decir `application/octet-stream`
+    const isPdf = mime.includes('pdf') || filenameLow.endsWith('.pdf');
     const isWord = mime.includes('word') || mime.includes('msword') || filenameLow.match(/\.(docx|doc)$/);
-    const isImage = mime.startsWith('image') || resourceType === 'image' || filenameLow.match(/\.(jpg|jpeg|png|webp)$/);
-    const isPdf = !isWord && !isImage && (mime.includes('pdf') || filenameLow.endsWith('.pdf'));
+    const isImage = !isPdf && !isWord && (mime.startsWith('image') || resourceType === 'image' || filenameLow.match(/\.(jpg|jpeg|png|webp|gif|bmp|tiff|heic)$/));
     const isJson = mime.includes('json') || filenameLow.endsWith('.json');
     const isText = mime.includes('text') || filenameLow.match(/\.(txt|csv|md)$/);
 
@@ -70,7 +70,7 @@ export async function saveMedicalDocument(
       publicId: uploadResult.public_id,
       extractedText: finalCleanText,
       fileType: fileType,
-      uploadedAt: new Date(),
+      uploadedAt: new Date(Date.now() - 5 * 60 * 60 * 1000), // Ajustado a hora de Colombia (UTC-5)
     };
 
     // Agregar el documento al arreglo `documents[]` del usuario (crea el documento si no existe)

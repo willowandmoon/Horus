@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { extractTextFromImage } from "@/src/infrastructure/ocr/tesseractOcr";
+import { extractTextFromImage } from "@/src/infrastructure/medical-history/ocr/tesseractOcr";
 import { correctOcrTextWithGemini } from "@/src/infrastructure/ai/gemini";
 
 export async function POST(req: NextRequest) {
