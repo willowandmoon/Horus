@@ -159,6 +159,13 @@ export class MedicalHistoryScraper {
       }
 
       // 4. Medicamentos (Relación 1:N y Catálogo)
+      if (data.explicitNoMedications === true) {
+        await tx.userMedication.updateMany({
+          where: { userId: userId, isCurrent: true },
+          data: { isCurrent: false, updatedAt: nowColombia }
+        });
+      }
+
       if (data.medications && data.medications.length > 0) {
         const existingMedications = await tx.userMedication.findMany({
           where: { userId: userId }

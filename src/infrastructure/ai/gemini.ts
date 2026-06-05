@@ -139,6 +139,7 @@ Estructura JSON requerida:
 {
   "personalInfo": { "bloodType": "ENUM o null", "gender": "ENUM o null" },
   "explicitNoAllergies": boolean,
+  "explicitNoMedications": boolean,
   "allergies": [
     { "allergenName": "string", "allergyType": "ENUM", "severity": "ENUM", "reactionDescription": "string o null" }
   ],
@@ -155,6 +156,7 @@ Estructura JSON requerida:
 
 REGLAS ADICIONALES DE EXTRACCIÓN:
 - explicitNoAllergies: Pon true únicamente si el texto del documento indica de manera explícita que el paciente no tiene ninguna alergia o que las alergias son negadas (por ejemplo: 'alergias: negadas', 'sin alergias', 'niega alergias', 'no tiene alergias conocidas'). Si el documento simplemente no menciona el tema de las alergias o no hay información sobre ellas, debe ser false.
+- explicitNoMedications: Pon true únicamente si el texto del documento indica de manera explícita que el paciente no toma ningún medicamento, no tiene tratamiento farmacológico activo o que los medicamentos son negados (por ejemplo: 'medicamentos: negados', 'no toma medicamentos', 'sin medicamentos actuales', 'niega fármacos'). Si el documento simplemente no menciona el tema o no contiene esa información, debe ser false.
 
 REGLAS CRÍTICAS DE CALIDAD:
 1. Si no encuentras datos reales y comprensibles para una sección, deja su arreglo vacío []. 
