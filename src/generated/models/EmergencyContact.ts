@@ -535,14 +535,6 @@ export type EmergencyContactUncheckedUpdateManyWithoutUserNestedInput = {
   deleteMany?: Prisma.EmergencyContactScalarWhereInput | Prisma.EmergencyContactScalarWhereInput[]
 }
 
-export type IntFieldUpdateOperationsInput = {
-  set?: number
-  increment?: number
-  decrement?: number
-  multiply?: number
-  divide?: number
-}
-
 export type EmergencyContactCreateWithoutUserInput = {
   id?: string
   fullName: string

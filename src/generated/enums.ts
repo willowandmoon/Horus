@@ -9,6 +9,14 @@
 * 🟢 You can import this file directly.
 */
 
+export const ScanType = {
+  NFC: 'NFC',
+  QR: 'QR'
+} as const
+
+export type ScanType = (typeof ScanType)[keyof typeof ScanType]
+
+
 export const AccountStatus = {
   ACTIVE: 'ACTIVE',
   INACTIVE: 'INACTIVE',
@@ -119,6 +127,15 @@ export const ProductType = {
 } as const
 
 export type ProductType = (typeof ProductType)[keyof typeof ProductType]
+
+
+export const UserDeviceType = {
+  BRACELET: 'BRACELET',
+  SMARTWATCH: 'SMARTWATCH',
+  CARD: 'CARD'
+} as const
+
+export type UserDeviceType = (typeof UserDeviceType)[keyof typeof UserDeviceType]
 
 
 export const OrderStatus = {

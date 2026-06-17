@@ -52,6 +52,10 @@ export const AnyNull = runtime.AnyNull
 
 export const ModelName = {
   User: 'User',
+  UserDevice: 'UserDevice',
+  DeviceLoginCode: 'DeviceLoginCode',
+  DeviceSession: 'DeviceSession',
+  SecurityLog: 'SecurityLog',
   PersonalInformation: 'PersonalInformation',
   MedicalProfile: 'MedicalProfile',
   Allergy: 'Allergy',
@@ -60,7 +64,7 @@ export const ModelName = {
   UserMedication: 'UserMedication',
   EmergencyContact: 'EmergencyContact',
   MedicalHistory: 'MedicalHistory',
-  NfcScan: 'NfcScan',
+  ProfileScan: 'ProfileScan',
   EmergencyAlert: 'EmergencyAlert',
   PrivacySettings: 'PrivacySettings',
   Product: 'Product',
@@ -92,11 +96,64 @@ export const UserScalarFieldEnum = {
   nfcTagId: 'nfcTagId',
   accountStatus: 'accountStatus',
   lastLogin: 'lastLogin',
+  pushToken: 'pushToken',
+  healthReportEnabled: 'healthReportEnabled',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
 
 export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
+
+
+export const UserDeviceScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  type: 'type',
+  identifier: 'identifier',
+  registeredAt: 'registeredAt'
+} as const
+
+export type UserDeviceScalarFieldEnum = (typeof UserDeviceScalarFieldEnum)[keyof typeof UserDeviceScalarFieldEnum]
+
+
+export const DeviceLoginCodeScalarFieldEnum = {
+  id: 'id',
+  codeHash: 'codeHash',
+  userId: 'userId',
+  expiresAt: 'expiresAt',
+  attempts: 'attempts',
+  createdAt: 'createdAt'
+} as const
+
+export type DeviceLoginCodeScalarFieldEnum = (typeof DeviceLoginCodeScalarFieldEnum)[keyof typeof DeviceLoginCodeScalarFieldEnum]
+
+
+export const DeviceSessionScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  deviceName: 'deviceName',
+  deviceModel: 'deviceModel',
+  osVersion: 'osVersion',
+  isActive: 'isActive',
+  lastActive: 'lastActive',
+  refreshToken: 'refreshToken',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type DeviceSessionScalarFieldEnum = (typeof DeviceSessionScalarFieldEnum)[keyof typeof DeviceSessionScalarFieldEnum]
+
+
+export const SecurityLogScalarFieldEnum = {
+  id: 'id',
+  eventType: 'eventType',
+  ipAddress: 'ipAddress',
+  details: 'details',
+  userId: 'userId',
+  createdAt: 'createdAt'
+} as const
+
+export type SecurityLogScalarFieldEnum = (typeof SecurityLogScalarFieldEnum)[keyof typeof SecurityLogScalarFieldEnum]
 
 
 export const PersonalInformationScalarFieldEnum = {
@@ -225,9 +282,10 @@ export const MedicalHistoryScalarFieldEnum = {
 export type MedicalHistoryScalarFieldEnum = (typeof MedicalHistoryScalarFieldEnum)[keyof typeof MedicalHistoryScalarFieldEnum]
 
 
-export const NfcScanScalarFieldEnum = {
+export const ProfileScanScalarFieldEnum = {
   id: 'id',
   userId: 'userId',
+  scanType: 'scanType',
   scanTimestamp: 'scanTimestamp',
   scannerIp: 'scannerIp',
   scannerDeviceInfo: 'scannerDeviceInfo',
@@ -235,7 +293,7 @@ export const NfcScanScalarFieldEnum = {
   createdAt: 'createdAt'
 } as const
 
-export type NfcScanScalarFieldEnum = (typeof NfcScanScalarFieldEnum)[keyof typeof NfcScanScalarFieldEnum]
+export type ProfileScanScalarFieldEnum = (typeof ProfileScanScalarFieldEnum)[keyof typeof ProfileScanScalarFieldEnum]
 
 
 export const EmergencyAlertScalarFieldEnum = {
@@ -262,6 +320,7 @@ export const PrivacySettingsScalarFieldEnum = {
   showMedications: 'showMedications',
   showAllergies: 'showAllergies',
   showEmergencyContacts: 'showEmergencyContacts',
+  showChronicConditions: 'showChronicConditions',
   requireAuthentication: 'requireAuthentication',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'

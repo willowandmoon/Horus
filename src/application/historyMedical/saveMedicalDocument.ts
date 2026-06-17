@@ -2,7 +2,7 @@ import { uploadMedicalDocument } from '@/src/infrastructure/cloudinary/cloudinar
 import { extractTextFromPDF } from '@/src/infrastructure/medical-history/pdf/pdfExtractor';
 import { extractTextFromImage } from '@/src/infrastructure/medical-history/ocr/tesseractOcr';
 import { extractTextFromWord } from '@/src/infrastructure/medical-history/word/wordExtractor';
-import { correctOcrTextWithGemini } from '@/src/infrastructure/ai/gemini';
+import { correctOcrTextWithGemini } from '@/src/infrastructure/ai/openai';
 import { medicalRecordsRepository } from '@/src/infrastructure/database/medicalRecordsRepository';
 import { DocumentItem, UserMedicalRecord } from '@/src/types/historyMedical';
 

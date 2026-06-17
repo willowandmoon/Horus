@@ -385,6 +385,10 @@ type FieldRefInputType<Model, FieldType> = Model extends never ? never : FieldRe
 
 export const ModelName = {
   User: 'User',
+  UserDevice: 'UserDevice',
+  DeviceLoginCode: 'DeviceLoginCode',
+  DeviceSession: 'DeviceSession',
+  SecurityLog: 'SecurityLog',
   PersonalInformation: 'PersonalInformation',
   MedicalProfile: 'MedicalProfile',
   Allergy: 'Allergy',
@@ -393,7 +397,7 @@ export const ModelName = {
   UserMedication: 'UserMedication',
   EmergencyContact: 'EmergencyContact',
   MedicalHistory: 'MedicalHistory',
-  NfcScan: 'NfcScan',
+  ProfileScan: 'ProfileScan',
   EmergencyAlert: 'EmergencyAlert',
   PrivacySettings: 'PrivacySettings',
   Product: 'Product',
@@ -415,7 +419,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "personalInformation" | "medicalProfile" | "allergy" | "chronicCondition" | "medicationCatalog" | "userMedication" | "emergencyContact" | "medicalHistory" | "nfcScan" | "emergencyAlert" | "privacySettings" | "product" | "order" | "payment" | "subscription"
+    modelProps: "user" | "userDevice" | "deviceLoginCode" | "deviceSession" | "securityLog" | "personalInformation" | "medicalProfile" | "allergy" | "chronicCondition" | "medicationCatalog" | "userMedication" | "emergencyContact" | "medicalHistory" | "profileScan" | "emergencyAlert" | "privacySettings" | "product" | "order" | "payment" | "subscription"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -490,6 +494,302 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.UserCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.UserCountAggregateOutputType> | number
+        }
+      }
+    }
+    UserDevice: {
+      payload: Prisma.$UserDevicePayload<ExtArgs>
+      fields: Prisma.UserDeviceFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.UserDeviceFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserDevicePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.UserDeviceFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserDevicePayload>
+        }
+        findFirst: {
+          args: Prisma.UserDeviceFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserDevicePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.UserDeviceFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserDevicePayload>
+        }
+        findMany: {
+          args: Prisma.UserDeviceFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserDevicePayload>[]
+        }
+        create: {
+          args: Prisma.UserDeviceCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserDevicePayload>
+        }
+        createMany: {
+          args: Prisma.UserDeviceCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.UserDeviceCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserDevicePayload>[]
+        }
+        delete: {
+          args: Prisma.UserDeviceDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserDevicePayload>
+        }
+        update: {
+          args: Prisma.UserDeviceUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserDevicePayload>
+        }
+        deleteMany: {
+          args: Prisma.UserDeviceDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.UserDeviceUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.UserDeviceUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserDevicePayload>[]
+        }
+        upsert: {
+          args: Prisma.UserDeviceUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserDevicePayload>
+        }
+        aggregate: {
+          args: Prisma.UserDeviceAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateUserDevice>
+        }
+        groupBy: {
+          args: Prisma.UserDeviceGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.UserDeviceGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.UserDeviceCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.UserDeviceCountAggregateOutputType> | number
+        }
+      }
+    }
+    DeviceLoginCode: {
+      payload: Prisma.$DeviceLoginCodePayload<ExtArgs>
+      fields: Prisma.DeviceLoginCodeFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.DeviceLoginCodeFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DeviceLoginCodePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.DeviceLoginCodeFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DeviceLoginCodePayload>
+        }
+        findFirst: {
+          args: Prisma.DeviceLoginCodeFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DeviceLoginCodePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.DeviceLoginCodeFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DeviceLoginCodePayload>
+        }
+        findMany: {
+          args: Prisma.DeviceLoginCodeFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DeviceLoginCodePayload>[]
+        }
+        create: {
+          args: Prisma.DeviceLoginCodeCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DeviceLoginCodePayload>
+        }
+        createMany: {
+          args: Prisma.DeviceLoginCodeCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.DeviceLoginCodeCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DeviceLoginCodePayload>[]
+        }
+        delete: {
+          args: Prisma.DeviceLoginCodeDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DeviceLoginCodePayload>
+        }
+        update: {
+          args: Prisma.DeviceLoginCodeUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DeviceLoginCodePayload>
+        }
+        deleteMany: {
+          args: Prisma.DeviceLoginCodeDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.DeviceLoginCodeUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.DeviceLoginCodeUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DeviceLoginCodePayload>[]
+        }
+        upsert: {
+          args: Prisma.DeviceLoginCodeUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DeviceLoginCodePayload>
+        }
+        aggregate: {
+          args: Prisma.DeviceLoginCodeAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateDeviceLoginCode>
+        }
+        groupBy: {
+          args: Prisma.DeviceLoginCodeGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.DeviceLoginCodeGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.DeviceLoginCodeCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.DeviceLoginCodeCountAggregateOutputType> | number
+        }
+      }
+    }
+    DeviceSession: {
+      payload: Prisma.$DeviceSessionPayload<ExtArgs>
+      fields: Prisma.DeviceSessionFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.DeviceSessionFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DeviceSessionPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.DeviceSessionFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DeviceSessionPayload>
+        }
+        findFirst: {
+          args: Prisma.DeviceSessionFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DeviceSessionPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.DeviceSessionFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DeviceSessionPayload>
+        }
+        findMany: {
+          args: Prisma.DeviceSessionFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DeviceSessionPayload>[]
+        }
+        create: {
+          args: Prisma.DeviceSessionCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DeviceSessionPayload>
+        }
+        createMany: {
+          args: Prisma.DeviceSessionCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.DeviceSessionCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DeviceSessionPayload>[]
+        }
+        delete: {
+          args: Prisma.DeviceSessionDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DeviceSessionPayload>
+        }
+        update: {
+          args: Prisma.DeviceSessionUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DeviceSessionPayload>
+        }
+        deleteMany: {
+          args: Prisma.DeviceSessionDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.DeviceSessionUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.DeviceSessionUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DeviceSessionPayload>[]
+        }
+        upsert: {
+          args: Prisma.DeviceSessionUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DeviceSessionPayload>
+        }
+        aggregate: {
+          args: Prisma.DeviceSessionAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateDeviceSession>
+        }
+        groupBy: {
+          args: Prisma.DeviceSessionGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.DeviceSessionGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.DeviceSessionCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.DeviceSessionCountAggregateOutputType> | number
+        }
+      }
+    }
+    SecurityLog: {
+      payload: Prisma.$SecurityLogPayload<ExtArgs>
+      fields: Prisma.SecurityLogFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.SecurityLogFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SecurityLogPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.SecurityLogFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SecurityLogPayload>
+        }
+        findFirst: {
+          args: Prisma.SecurityLogFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SecurityLogPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.SecurityLogFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SecurityLogPayload>
+        }
+        findMany: {
+          args: Prisma.SecurityLogFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SecurityLogPayload>[]
+        }
+        create: {
+          args: Prisma.SecurityLogCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SecurityLogPayload>
+        }
+        createMany: {
+          args: Prisma.SecurityLogCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.SecurityLogCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SecurityLogPayload>[]
+        }
+        delete: {
+          args: Prisma.SecurityLogDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SecurityLogPayload>
+        }
+        update: {
+          args: Prisma.SecurityLogUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SecurityLogPayload>
+        }
+        deleteMany: {
+          args: Prisma.SecurityLogDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.SecurityLogUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.SecurityLogUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SecurityLogPayload>[]
+        }
+        upsert: {
+          args: Prisma.SecurityLogUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SecurityLogPayload>
+        }
+        aggregate: {
+          args: Prisma.SecurityLogAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateSecurityLog>
+        }
+        groupBy: {
+          args: Prisma.SecurityLogGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.SecurityLogGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.SecurityLogCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.SecurityLogCountAggregateOutputType> | number
         }
       }
     }
@@ -1085,77 +1385,77 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
-    NfcScan: {
-      payload: Prisma.$NfcScanPayload<ExtArgs>
-      fields: Prisma.NfcScanFieldRefs
+    ProfileScan: {
+      payload: Prisma.$ProfileScanPayload<ExtArgs>
+      fields: Prisma.ProfileScanFieldRefs
       operations: {
         findUnique: {
-          args: Prisma.NfcScanFindUniqueArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$NfcScanPayload> | null
+          args: Prisma.ProfileScanFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProfileScanPayload> | null
         }
         findUniqueOrThrow: {
-          args: Prisma.NfcScanFindUniqueOrThrowArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$NfcScanPayload>
+          args: Prisma.ProfileScanFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProfileScanPayload>
         }
         findFirst: {
-          args: Prisma.NfcScanFindFirstArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$NfcScanPayload> | null
+          args: Prisma.ProfileScanFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProfileScanPayload> | null
         }
         findFirstOrThrow: {
-          args: Prisma.NfcScanFindFirstOrThrowArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$NfcScanPayload>
+          args: Prisma.ProfileScanFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProfileScanPayload>
         }
         findMany: {
-          args: Prisma.NfcScanFindManyArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$NfcScanPayload>[]
+          args: Prisma.ProfileScanFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProfileScanPayload>[]
         }
         create: {
-          args: Prisma.NfcScanCreateArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$NfcScanPayload>
+          args: Prisma.ProfileScanCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProfileScanPayload>
         }
         createMany: {
-          args: Prisma.NfcScanCreateManyArgs<ExtArgs>
+          args: Prisma.ProfileScanCreateManyArgs<ExtArgs>
           result: BatchPayload
         }
         createManyAndReturn: {
-          args: Prisma.NfcScanCreateManyAndReturnArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$NfcScanPayload>[]
+          args: Prisma.ProfileScanCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProfileScanPayload>[]
         }
         delete: {
-          args: Prisma.NfcScanDeleteArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$NfcScanPayload>
+          args: Prisma.ProfileScanDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProfileScanPayload>
         }
         update: {
-          args: Prisma.NfcScanUpdateArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$NfcScanPayload>
+          args: Prisma.ProfileScanUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProfileScanPayload>
         }
         deleteMany: {
-          args: Prisma.NfcScanDeleteManyArgs<ExtArgs>
+          args: Prisma.ProfileScanDeleteManyArgs<ExtArgs>
           result: BatchPayload
         }
         updateMany: {
-          args: Prisma.NfcScanUpdateManyArgs<ExtArgs>
+          args: Prisma.ProfileScanUpdateManyArgs<ExtArgs>
           result: BatchPayload
         }
         updateManyAndReturn: {
-          args: Prisma.NfcScanUpdateManyAndReturnArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$NfcScanPayload>[]
+          args: Prisma.ProfileScanUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProfileScanPayload>[]
         }
         upsert: {
-          args: Prisma.NfcScanUpsertArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$NfcScanPayload>
+          args: Prisma.ProfileScanUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProfileScanPayload>
         }
         aggregate: {
-          args: Prisma.NfcScanAggregateArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.AggregateNfcScan>
+          args: Prisma.ProfileScanAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateProfileScan>
         }
         groupBy: {
-          args: Prisma.NfcScanGroupByArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.NfcScanGroupByOutputType>[]
+          args: Prisma.ProfileScanGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ProfileScanGroupByOutputType>[]
         }
         count: {
-          args: Prisma.NfcScanCountArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.NfcScanCountAggregateOutputType> | number
+          args: Prisma.ProfileScanCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ProfileScanCountAggregateOutputType> | number
         }
       }
     }
@@ -1649,11 +1949,64 @@ export const UserScalarFieldEnum = {
   nfcTagId: 'nfcTagId',
   accountStatus: 'accountStatus',
   lastLogin: 'lastLogin',
+  pushToken: 'pushToken',
+  healthReportEnabled: 'healthReportEnabled',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
 
 export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
+
+
+export const UserDeviceScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  type: 'type',
+  identifier: 'identifier',
+  registeredAt: 'registeredAt'
+} as const
+
+export type UserDeviceScalarFieldEnum = (typeof UserDeviceScalarFieldEnum)[keyof typeof UserDeviceScalarFieldEnum]
+
+
+export const DeviceLoginCodeScalarFieldEnum = {
+  id: 'id',
+  codeHash: 'codeHash',
+  userId: 'userId',
+  expiresAt: 'expiresAt',
+  attempts: 'attempts',
+  createdAt: 'createdAt'
+} as const
+
+export type DeviceLoginCodeScalarFieldEnum = (typeof DeviceLoginCodeScalarFieldEnum)[keyof typeof DeviceLoginCodeScalarFieldEnum]
+
+
+export const DeviceSessionScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  deviceName: 'deviceName',
+  deviceModel: 'deviceModel',
+  osVersion: 'osVersion',
+  isActive: 'isActive',
+  lastActive: 'lastActive',
+  refreshToken: 'refreshToken',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type DeviceSessionScalarFieldEnum = (typeof DeviceSessionScalarFieldEnum)[keyof typeof DeviceSessionScalarFieldEnum]
+
+
+export const SecurityLogScalarFieldEnum = {
+  id: 'id',
+  eventType: 'eventType',
+  ipAddress: 'ipAddress',
+  details: 'details',
+  userId: 'userId',
+  createdAt: 'createdAt'
+} as const
+
+export type SecurityLogScalarFieldEnum = (typeof SecurityLogScalarFieldEnum)[keyof typeof SecurityLogScalarFieldEnum]
 
 
 export const PersonalInformationScalarFieldEnum = {
@@ -1782,9 +2135,10 @@ export const MedicalHistoryScalarFieldEnum = {
 export type MedicalHistoryScalarFieldEnum = (typeof MedicalHistoryScalarFieldEnum)[keyof typeof MedicalHistoryScalarFieldEnum]
 
 
-export const NfcScanScalarFieldEnum = {
+export const ProfileScanScalarFieldEnum = {
   id: 'id',
   userId: 'userId',
+  scanType: 'scanType',
   scanTimestamp: 'scanTimestamp',
   scannerIp: 'scannerIp',
   scannerDeviceInfo: 'scannerDeviceInfo',
@@ -1792,7 +2146,7 @@ export const NfcScanScalarFieldEnum = {
   createdAt: 'createdAt'
 } as const
 
-export type NfcScanScalarFieldEnum = (typeof NfcScanScalarFieldEnum)[keyof typeof NfcScanScalarFieldEnum]
+export type ProfileScanScalarFieldEnum = (typeof ProfileScanScalarFieldEnum)[keyof typeof ProfileScanScalarFieldEnum]
 
 
 export const EmergencyAlertScalarFieldEnum = {
@@ -1819,6 +2173,7 @@ export const PrivacySettingsScalarFieldEnum = {
   showMedications: 'showMedications',
   showAllergies: 'showAllergies',
   showEmergencyContacts: 'showEmergencyContacts',
+  showChronicConditions: 'showChronicConditions',
   requireAuthentication: 'requireAuthentication',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
@@ -1989,6 +2344,55 @@ export type ListDateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaM
 
 
 /**
+ * Reference to a field of type 'Boolean'
+ */
+export type BooleanFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Boolean'>
+    
+
+
+/**
+ * Reference to a field of type 'UserDeviceType'
+ */
+export type EnumUserDeviceTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'UserDeviceType'>
+    
+
+
+/**
+ * Reference to a field of type 'UserDeviceType[]'
+ */
+export type ListEnumUserDeviceTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'UserDeviceType[]'>
+    
+
+
+/**
+ * Reference to a field of type 'Int'
+ */
+export type IntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int'>
+    
+
+
+/**
+ * Reference to a field of type 'Int[]'
+ */
+export type ListIntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int[]'>
+    
+
+
+/**
+ * Reference to a field of type 'Json'
+ */
+export type JsonFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Json'>
+    
+
+
+/**
+ * Reference to a field of type 'QueryMode'
+ */
+export type EnumQueryModeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'QueryMode'>
+    
+
+
+/**
  * Reference to a field of type 'Gender'
  */
 export type EnumGenderFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Gender'>
@@ -2027,13 +2431,6 @@ export type DecimalFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel,
  * Reference to a field of type 'Decimal[]'
  */
 export type ListDecimalFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Decimal[]'>
-    
-
-
-/**
- * Reference to a field of type 'Boolean'
- */
-export type BooleanFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Boolean'>
     
 
 
@@ -2094,20 +2491,6 @@ export type ListEnumConditionStatusFieldRefInput<$PrismaModel> = FieldRefInputTy
 
 
 /**
- * Reference to a field of type 'Json'
- */
-export type JsonFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Json'>
-    
-
-
-/**
- * Reference to a field of type 'QueryMode'
- */
-export type EnumQueryModeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'QueryMode'>
-    
-
-
-/**
  * Reference to a field of type 'MedicationRoute'
  */
 export type EnumMedicationRouteFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'MedicationRoute'>
@@ -2122,20 +2505,6 @@ export type ListEnumMedicationRouteFieldRefInput<$PrismaModel> = FieldRefInputTy
 
 
 /**
- * Reference to a field of type 'Int'
- */
-export type IntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int'>
-    
-
-
-/**
- * Reference to a field of type 'Int[]'
- */
-export type ListIntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int[]'>
-    
-
-
-/**
  * Reference to a field of type 'MedicalHistoryEventType'
  */
 export type EnumMedicalHistoryEventTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'MedicalHistoryEventType'>
@@ -2146,6 +2515,20 @@ export type EnumMedicalHistoryEventTypeFieldRefInput<$PrismaModel> = FieldRefInp
  * Reference to a field of type 'MedicalHistoryEventType[]'
  */
 export type ListEnumMedicalHistoryEventTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'MedicalHistoryEventType[]'>
+    
+
+
+/**
+ * Reference to a field of type 'ScanType'
+ */
+export type EnumScanTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ScanType'>
+    
+
+
+/**
+ * Reference to a field of type 'ScanType[]'
+ */
+export type ListEnumScanTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ScanType[]'>
     
 
 
@@ -2357,6 +2740,10 @@ export type PrismaClientOptions = ({
 }
 export type GlobalOmitConfig = {
   user?: Prisma.UserOmit
+  userDevice?: Prisma.UserDeviceOmit
+  deviceLoginCode?: Prisma.DeviceLoginCodeOmit
+  deviceSession?: Prisma.DeviceSessionOmit
+  securityLog?: Prisma.SecurityLogOmit
   personalInformation?: Prisma.PersonalInformationOmit
   medicalProfile?: Prisma.MedicalProfileOmit
   allergy?: Prisma.AllergyOmit
@@ -2365,7 +2752,7 @@ export type GlobalOmitConfig = {
   userMedication?: Prisma.UserMedicationOmit
   emergencyContact?: Prisma.EmergencyContactOmit
   medicalHistory?: Prisma.MedicalHistoryOmit
-  nfcScan?: Prisma.NfcScanOmit
+  profileScan?: Prisma.ProfileScanOmit
   emergencyAlert?: Prisma.EmergencyAlertOmit
   privacySettings?: Prisma.PrivacySettingsOmit
   product?: Prisma.ProductOmit

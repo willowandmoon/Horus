@@ -26,29 +26,36 @@ export async function POST(request: Request) {
     const filename = file.name || undefined;
     const mimeType = file.type || undefined;
 
-    // 1. Se ejecuta la lógica para guardar en Firebase y extraer texto.
+    // 1. Upload to Cloudinary + save OCR text to Firebase
     const updatedRecord = await saveMedicalDocument(fileBuffer, userId, { filename, mimeType });
 
-    // 2. Se extrae el texto OCR de forma segura y tipada.
+    // 2. Extract OCR text from the saved document
     const latestDocument = updatedRecord.documents[updatedRecord.documents.length - 1];
-    const firebaseOcrText = latestDocument?.extractedText || '';
+    const ocrText = latestDocument?.extractedText || '';
 
-    if (firebaseOcrText && firebaseOcrText.trim() !== '') {
-      console.log(`[API Bridge] Documento subido con éxito. Enviando texto OCR al Scraper para el usuario: ${userId}`);
-      
-      // 3. El pipeline del scraper se ejecuta de forma segura.
+    let structuredData = null;
+    let normalizedMedications: Record<string, string> = {};
+
+    if (ocrText.trim() !== '') {
+      console.log(`[API] Extrayendo datos estructurados para revisión del usuario: ${userId}`);
       try {
         const scraper = new MedicalHistoryScraper();
-        await scraper.processFirebaseText(userId, firebaseOcrText);
+        const result = await scraper.extractStructuredData(ocrText);
+        structuredData = result.structuredData;
+        normalizedMedications = result.normalizedMedications;
       } catch (scraperError) {
-        console.error('[API Bridge] Error en el scraper al procesar la información médica con IA:', scraperError);
-        // No arrojamos el error para evitar que la subida del documento falle
+        console.error('[API] Error extrayendo datos con IA:', scraperError);
+        // Non-fatal — return the upload result without structured data
       }
     } else {
-      console.warn('[API Bridge] El documento se guardó pero no se detectó texto OCR para procesar.');
+      console.warn('[API] Documento guardado sin texto OCR detectable.');
     }
 
-    return NextResponse.json(updatedRecord, { status: 201 });
+    // 3. Return file record + AI-extracted data for user review (NOT saved to PostgreSQL yet)
+    return NextResponse.json(
+      { ...updatedRecord, structuredData, normalizedMedications },
+      { status: 201 },
+    );
   } catch (error: Omit<Error, never> | unknown) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     return NextResponse.json({ error: errorMessage }, { status: 400 });

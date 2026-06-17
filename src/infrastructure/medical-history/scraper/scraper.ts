@@ -1,6 +1,6 @@
 // 1. Tus imports actuales
 import { PrismaClient } from '@/src/generated/client';
-import { correctOcrTextWithGemini, structureMedicalTextWithGemini, normalizeMedicationNamesWithGemini, StructuredMedicalData } from '@/src/infrastructure/ai/gemini';
+import { correctOcrTextWithGemini, structureMedicalTextWithGemini, normalizeMedicationNamesWithGemini, StructuredMedicalData } from '@/src/infrastructure/ai/openai';
 
 // 2. IMPORTANTE: Necesitamos el driver de PostgreSQL/Neon que configuró tu equipo
 import { Pool } from 'pg'; 
@@ -14,32 +14,48 @@ const adapter = new PrismaPg(pool);
 const prisma = new PrismaClient({ adapter });
 
 export class MedicalHistoryScraper {
-  
+
   /**
-   * Pipeline: Corrige el texto de Firebase ➔ Lo estructura con IA ➔ Lo guarda en Postgres
+   * Phase 1 — Extract structured data from OCR text WITHOUT saving to PostgreSQL.
+   * Returns the structured JSON + normalized medication names for user review.
+   */
+  async extractStructuredData(ocrText: string): Promise<{
+    structuredData: StructuredMedicalData;
+    normalizedMedications: Record<string, string>;
+  }> {
+    const cleanText = await correctOcrTextWithGemini(ocrText);
+    const structuredData = await structureMedicalTextWithGemini(cleanText);
+
+    let normalizedMedications: Record<string, string> = {};
+    if (structuredData.medications && structuredData.medications.length > 0) {
+      const rawNames = structuredData.medications.map(m => m.customMedicationName).filter(Boolean) as string[];
+      if (rawNames.length > 0) {
+        normalizedMedications = await normalizeMedicationNamesWithGemini(rawNames);
+      }
+    }
+    return { structuredData, normalizedMedications };
+  }
+
+  /**
+   * Phase 2 — Save already-reviewed structured data to PostgreSQL (user has confirmed).
+   */
+  async saveStructuredData(
+    userId: string,
+    data: StructuredMedicalData,
+    normalizedMedications: Record<string, string> = {},
+  ): Promise<void> {
+    await this.saveToPostgres(userId, data, normalizedMedications);
+    console.log(`[Scraper] Datos médicos confirmados y guardados para el usuario: ${userId}`);
+  }
+
+  /**
+   * Full pipeline (kept for backward compatibility): extract + save in one shot.
    */
   async processFirebaseText(userId: string, firebaseOcrText: string): Promise<void> {
     try {
       console.log(`[Scraper] Iniciando pipeline para el usuario: ${userId}`);
-
-      // Sub-paso A: Corregir errores ortográficos del OCR usando la función existente
-      const cleanText = await correctOcrTextWithGemini(firebaseOcrText);
-
-      // Sub-paso B: Enviar el texto limpio a la nueva función para obtener el JSON estructurado
-      const structuredJson = await structureMedicalTextWithGemini(cleanText);
-      
-      // Sub-paso C: Normalizar nombres de medicamentos extraídos
-      let normalizedMedications: Record<string, string> = {};
-      if (structuredJson.medications && structuredJson.medications.length > 0) {
-        const rawNames = structuredJson.medications.map(m => m.customMedicationName).filter(Boolean) as string[];
-        if (rawNames.length > 0) {
-          normalizedMedications = await normalizeMedicationNamesWithGemini(rawNames);
-        }
-      }
-
-      // Sub-paso D: Guardar de forma transaccional en PostgreSQL con Prisma
-      await this.saveToPostgres(userId, structuredJson, normalizedMedications);
-
+      const { structuredData, normalizedMedications } = await this.extractStructuredData(firebaseOcrText);
+      await this.saveToPostgres(userId, structuredData, normalizedMedications);
       console.log(`[Scraper] Todo el historial clínico se ha sincronizado correctamente.`);
     } catch (error) {
       console.error(`[Scraper Error] Error en el pipeline del usuario ${userId}:`, error);
