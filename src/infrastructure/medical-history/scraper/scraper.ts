@@ -1,6 +1,6 @@
 // 1. Tus imports actuales
 import { PrismaClient } from '@/src/generated/client';
-import { correctOcrTextWithGemini, structureMedicalTextWithGemini, normalizeMedicationNamesWithGemini } from '@/src/infrastructure/ai/gemini';
+import { correctOcrTextWithGemini, structureMedicalTextWithGemini, normalizeMedicationNamesWithGemini, StructuredMedicalData } from '@/src/infrastructure/ai/gemini';
 
 // 2. IMPORTANTE: Necesitamos el driver de PostgreSQL/Neon que configuró tu equipo
 import { Pool } from 'pg'; 
@@ -31,7 +31,7 @@ export class MedicalHistoryScraper {
       // Sub-paso C: Normalizar nombres de medicamentos extraídos
       let normalizedMedications: Record<string, string> = {};
       if (structuredJson.medications && structuredJson.medications.length > 0) {
-        const rawNames = structuredJson.medications.map((m: any) => m.customMedicationName).filter(Boolean);
+        const rawNames = structuredJson.medications.map(m => m.customMedicationName).filter(Boolean) as string[];
         if (rawNames.length > 0) {
           normalizedMedications = await normalizeMedicationNamesWithGemini(rawNames);
         }
@@ -50,7 +50,7 @@ export class MedicalHistoryScraper {
   /**
    * Guarda el JSON estructurado respetando las relaciones del esquema de Prisma
    */
-  private async saveToPostgres(userId: string, data: any, normalizedMedications: Record<string, string>): Promise<void> {
+  private async saveToPostgres(userId: string, data: StructuredMedicalData, normalizedMedications: Record<string, string>): Promise<void> {
     const nowColombia = new Date(Date.now() - 5 * 60 * 60 * 1000);
 
     await prisma.$transaction(async (tx) => {
@@ -108,8 +108,8 @@ export class MedicalHistoryScraper {
               allergiesToInsert.push({
                 userId: userId,
                 allergenName: name,
-                allergyType: a.allergyType,
-                severity: a.severity,
+                allergyType: a.allergyType || 'OTHER',
+                severity: a.severity || 'MILD',
                 reactionDescription: a.reactionDescription || null,
                 createdAt: nowColombia,
                 updatedAt: nowColombia,
@@ -237,7 +237,7 @@ export class MedicalHistoryScraper {
             seenHistoryKeysInBatch.add(key);
             historyToInsert.push({
               userId: userId,
-              eventType: h.eventType,
+              eventType: h.eventType || 'OTHER',
               eventName: h.eventName,
               location: h.location || null,
               outcome: h.outcome || null,
