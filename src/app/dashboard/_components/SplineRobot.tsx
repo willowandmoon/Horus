@@ -13,7 +13,7 @@ export default function SplineRobot() {
 
         const hideBadge = () => {
             document.querySelectorAll("spline-viewer").forEach((el) => {
-                const root = (el as any).shadowRoot;
+                const root = (el as HTMLElement).shadowRoot;
                 if (root && !root.querySelector("#no-badge")) {
                     const style = document.createElement("style");
                     style.id = "no-badge";

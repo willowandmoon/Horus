@@ -2,18 +2,6 @@ import { NextResponse } from "next/server";
 import { getAuthCookies } from "@/src/shared/lib/cookie.lib";
 import { verifyAccessToken } from "@/src/shared/lib/jwt.lib";
 import { prisma } from "@/src/infrastructure/database/prisma/client";
-import fs from "fs/promises";
-import path from "path";
-
-const DB_PATH = path.join(process.cwd(), "data", "db.json");
-
-async function readDb() {
-    const raw = await fs.readFile(DB_PATH, "utf-8");
-    return JSON.parse(raw) as {
-        contacts: unknown[];
-        profileExtras: Record<string, { phone: string; location: string }>;
-    };
-}
 
 async function getSessionUserId(): Promise<string | null> {
     const { accessToken } = await getAuthCookies();
@@ -46,15 +34,14 @@ export async function GET() {
                     identificationNumber: true,
                     identificationType: true,
                     photoUrl: true,
+                    phone: true,
+                    location: true,
                 },
             },
         },
     });
 
     if (!user) return NextResponse.json({ error: "Usuario no encontrado" }, { status: 404 });
-
-    const db = await readDb();
-    const extras = db.profileExtras?.[userId] ?? { phone: "", location: "" };
 
     return NextResponse.json({
         id: user.id,
@@ -69,8 +56,8 @@ export async function GET() {
         identificationNumber: user.personalInfo?.identificationNumber ?? null,
         identificationType: user.personalInfo?.identificationType ?? null,
         photoUrl: user.personalInfo?.photoUrl ?? null,
-        phone: extras.phone,
-        location: extras.location,
+        phone: user.personalInfo?.phone ?? "",
+        location: user.personalInfo?.location ?? "",
     });
 }
 
@@ -101,6 +88,8 @@ export async function PUT(req: Request) {
             ...(body.bloodType !== undefined && { bloodType: body.bloodType as never }),
             ...(body.identificationNumber !== undefined && { identificationNumber: body.identificationNumber }),
             ...(body.identificationType !== undefined && { identificationType: body.identificationType }),
+            phone: body.phone ?? "",
+            location: body.location ?? "",
         },
         update: {
             ...(body.firstName !== undefined && { firstName: body.firstName }),
@@ -110,16 +99,10 @@ export async function PUT(req: Request) {
             ...(body.bloodType !== undefined && { bloodType: body.bloodType as never }),
             ...(body.identificationNumber !== undefined && { identificationNumber: body.identificationNumber }),
             ...(body.identificationType !== undefined && { identificationType: body.identificationType }),
+            ...(body.phone !== undefined && { phone: body.phone }),
+            ...(body.location !== undefined && { location: body.location }),
         },
     });
-
-    const db = await readDb();
-    db.profileExtras ??= {};
-    db.profileExtras[userId] = {
-        phone: body.phone ?? db.profileExtras[userId]?.phone ?? "",
-        location: body.location ?? db.profileExtras[userId]?.location ?? "",
-    };
-    await fs.writeFile(DB_PATH, JSON.stringify(db, null, 2));
 
     return NextResponse.json({ message: "Perfil actualizado" });
 }

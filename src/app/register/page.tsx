@@ -1,64 +1,76 @@
 import Link from "next/link";
 import RegisterForm from "./_components/RegisterForm";
-import SplineScene from "./_components/SplineScene";
-import EyeOfHorusIcon from "@/src/components/EyeOfHorusIcon";
-import VoiceGreeting from "@/src/components/VoiceGreeting";
+import AuthShapes from "@/src/components/AuthShapes";
 
 export const metadata = {
-    title: "Crear cuenta · Horus Braslet",
+    title: "Crear cuenta · Horus",
     description: "Únete a la red de protección inteligente con tecnología NFC.",
 };
 
 export default function RegisterPage() {
     return (
-        <div className="min-h-screen relative overflow-hidden bg-[#07080e]">
-            <VoiceGreeting message="Bienvenido a Horus Braslet. Crea tu cuenta y protege a los que más quieres." />
-
-            {/* ── Animación de fondo completa ───────────────────────────────── */}
-            <div className="absolute inset-0 z-0">
-                <SplineScene />
+        <div style={{
+            display: "flex",
+            height: "100vh",
+            overflow: "hidden",
+            background: "#F2F1EC",
+            position: "relative",
+        }}>
+            {/* ── Panel de figuras (fondo completo) ── */}
+            <div style={{ position: "absolute", inset: 0, zIndex: 0 }}>
+                <AuthShapes />
             </div>
 
-            {/* ── Overlay oscuro de izquierda a derecha ─────────────────────── */}
-            <div
-                className="absolute inset-0 z-[1] pointer-events-none"
-                style={{
-                    background: "linear-gradient(to right, rgba(7,8,14,0.58) 0%, rgba(7,8,14,0.38) 40%, rgba(7,8,14,0.08) 65%, rgba(7,8,14,0.0) 100%)",
-                }}
-            />
+            {/* ── Panel izquierdo ── */}
+            <div style={{
+                position: "relative",
+                zIndex: 10,
+                width: "480px",
+                minWidth: "480px",
+                height: "100vh",
+                /* Gradiente: de un solo color (amarillo pastel ultra claro) a transparente, alargado */
+                background: "linear-gradient(to right, #FFF8E7 0%, #FFF8E7 20%, rgba(255,248,231,0) 100%)",
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "center",
+                padding: "0 52px",
+                overflowY: "auto",
+            }}>
+                <div style={{ maxWidth: "360px", display: "flex", flexDirection: "column", gap: "20px" }}>
 
-            {/* ── Header ───────────────────────────────────────────────────── */}
-            <header className="relative z-10 flex items-center px-8 lg:px-14 py-6">
-                <div className="flex items-center gap-3">
-                    <EyeOfHorusIcon className="w-8 h-6" />
-                    <span className="text-white font-bold tracking-widest text-sm uppercase">
-                        Horus Braslet
-                    </span>
-                </div>
-            </header>
+                    {/* Logo */}
+                    <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                        <div style={{
+                            width: "38px", height: "38px",
+                            background: "#1A1512",
+                            borderRadius: "50%",
+                            display: "flex", alignItems: "center", justifyContent: "center",
+                        }}>
+                            <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="#FAD957" strokeWidth={2.5}>
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 0 1-1.043 3.296 3.745 3.745 0 0 1-3.296 1.043A3.745 3.745 0 0 1 12 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 0 1-3.296-1.043 3.745 3.745 0 0 1-1.043-3.296A3.745 3.745 0 0 1 3 12c0-1.268.63-2.39 1.593-3.068a3.745 3.745 0 0 1 1.043-3.296 3.746 3.746 0 0 1 3.296-1.043A3.746 3.746 0 0 1 12 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 0 1 3.296 1.043 3.746 3.746 0 0 1 1.043 3.296A3.745 3.745 0 0 1 21 12Z" />
+                            </svg>
+                        </div>
+                        <span style={{ fontWeight: 900, letterSpacing: "0.2em", fontSize: "15px", textTransform: "uppercase", color: "#1A1512" }}>
+                            Horus
+                        </span>
+                    </div>
 
-            {/* ── Formulario ────────────────────────────────────────────────── */}
-            <div className="relative z-10 flex items-center min-h-[calc(100vh-80px)]">
-                <div className="w-full lg:w-[46%] px-8 lg:px-14 xl:px-20 py-8 flex flex-col justify-center">
-                    <p className="text-[#EF233C] text-xs font-semibold uppercase tracking-[0.22em] mb-5">
-                        Registro
-                    </p>
-                    <h1 className="text-4xl lg:text-[3.25rem] font-bold text-white leading-[1.15] mb-3">
-                        Crea tu<br className="hidden sm:block" /> cuenta
-                    </h1>
-                    <p className="text-[#8D99AE] text-sm mb-9 leading-relaxed max-w-sm">
-                        Únete a la red de protección inteligente con tecnología NFC y GPS.
-                    </p>
+                    {/* Título */}
+                    <div>
+                        <h1 style={{ fontSize: "36px", fontWeight: 900, color: "#1A1512", lineHeight: 1.05, letterSpacing: "-1px", margin: 0 }}>
+                            Crea tu<br />cuenta
+                        </h1>
+                        <p style={{ fontSize: "14px", color: "#9B928A", fontWeight: 600, marginTop: "10px" }}>
+                            Empieza a cuidar tu salud en minutos.
+                        </p>
+                    </div>
 
                     <RegisterForm />
 
-                    <p className="text-center text-sm text-[#8D99AE] mt-7">
+                    <p style={{ fontSize: "13px", color: "#9B928A", fontWeight: 600 }}>
                         ¿Ya tienes cuenta?{" "}
-                        <Link
-                            href="/login"
-                            className="font-semibold text-[#EF233C] hover:text-[#D90429] transition-colors"
-                        >
-                            Inicia Sesión
+                        <Link href="/login" style={{ fontWeight: 800, color: "#1A1512", textDecoration: "underline", textUnderlineOffset: "3px" }}>
+                            Inicia sesión
                         </Link>
                     </p>
                 </div>

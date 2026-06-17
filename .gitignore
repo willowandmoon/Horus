@@ -64,3 +64,6 @@ out/
 .storybook/build/
 /src/generated/prisma
 /generated
+
+# Firebase service account (keep example file)
+src/config/*.json

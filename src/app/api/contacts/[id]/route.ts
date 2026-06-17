@@ -1,59 +1,85 @@
-// API de contactos — operaciones sobre un contacto específico (PUT, DELETE).
-// params es una Promise en Next.js 15+: debe awaitearse antes de leer el id.
 import { NextRequest, NextResponse } from "next/server";
-import { promises as fs } from "fs";
-import path from "path";
+import { getAuthCookies } from "@/src/shared/lib/cookie.lib";
+import { verifyAccessToken } from "@/src/shared/lib/jwt.lib";
+import { prisma } from "@/src/infrastructure/database/prisma/client";
 
 export const dynamic = "force-dynamic";
 
-const DB_PATH = path.join(process.cwd(), "data", "db.json");
-
-interface Contact {
-    id: string;
-    name: string;
-    relation: string;
-    phone: string;
-}
-
-interface Db {
-    contacts: Contact[];
-    profileExtras?: Record<string, unknown>;
-}
-
-async function readDb(): Promise<Db> {
-    const raw = await fs.readFile(DB_PATH, "utf-8");
-    return JSON.parse(raw) as Db;
-}
-
-async function writeDb(db: Db) {
-    await fs.writeFile(DB_PATH, JSON.stringify(db, null, 2), "utf-8");
+async function getSessionUserId(): Promise<string | null> {
+    const { accessToken } = await getAuthCookies();
+    if (!accessToken) return null;
+    try {
+        return verifyAccessToken(accessToken).sub;
+    } catch {
+        return null;
+    }
 }
 
 export async function PUT(
     req: NextRequest,
     { params }: { params: Promise<{ id: string }> }
 ) {
-    const { id } = await params;
-    const { name, relation, phone } = await req.json();
-    const db = await readDb();
-    const idx = db.contacts.findIndex((c) => c.id === id);
-    if (idx === -1) return NextResponse.json({ error: "No encontrado" }, { status: 404 });
+    const userId = await getSessionUserId();
+    if (!userId) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
 
-    db.contacts[idx] = { id, name: name.trim(), relation: relation?.trim() ?? "", phone: phone.trim() };
-    await writeDb(db);
-    return NextResponse.json(db.contacts[idx]);
+    try {
+        const { id } = await params;
+        const { name, relation, phone } = await req.json();
+
+        const existing = await prisma.emergencyContact.findUnique({
+            where: { id },
+        });
+
+        if (!existing || existing.userId !== userId) {
+            return NextResponse.json({ error: "No encontrado o no autorizado" }, { status: 404 });
+        }
+
+        const updated = await prisma.emergencyContact.update({
+            where: { id },
+            data: {
+                fullName: name.trim(),
+                relationship: relation?.trim() ?? "",
+                phonePrimary: phone.trim(),
+            },
+        });
+
+        return NextResponse.json({
+            id: updated.id,
+            name: updated.fullName,
+            relation: updated.relationship,
+            phone: updated.phonePrimary,
+        });
+    } catch (error) {
+        console.error("Error updating contact:", error);
+        return NextResponse.json({ error: "Error al actualizar contacto" }, { status: 500 });
+    }
 }
 
 export async function DELETE(
     _req: NextRequest,
     { params }: { params: Promise<{ id: string }> }
 ) {
-    const { id } = await params;
-    const db = await readDb();
-    const idx = db.contacts.findIndex((c) => c.id === id);
-    if (idx === -1) return NextResponse.json({ error: "No encontrado" }, { status: 404 });
+    const userId = await getSessionUserId();
+    if (!userId) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
 
-    db.contacts.splice(idx, 1);
-    await writeDb(db);
-    return NextResponse.json({ ok: true });
+    try {
+        const { id } = await params;
+
+        const existing = await prisma.emergencyContact.findUnique({
+            where: { id },
+        });
+
+        if (!existing || existing.userId !== userId) {
+            return NextResponse.json({ error: "No encontrado o no autorizado" }, { status: 404 });
+        }
+
+        await prisma.emergencyContact.delete({
+            where: { id },
+        });
+
+        return NextResponse.json({ ok: true });
+    } catch (error) {
+        console.error("Error deleting contact:", error);
+        return NextResponse.json({ error: "Error al eliminar contacto" }, { status: 500 });
+    }
 }

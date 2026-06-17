@@ -1,19 +1,30 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Space_Grotesk } from "next/font/google";
+import localFont from "next/font/local";
+import Script from "next/script";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const spaceGrotesk = Space_Grotesk({
+  variable: "--font-space-grotesk",
   subsets: ["latin"],
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
+const pliant = localFont({
+  src: [
+    {
+      path: "../../public/fonts/Pliant-Variable.ttf",
+      style: "normal",
+    },
+    {
+      path: "../../public/fonts/Pliant-Italic-Variable.ttf",
+      style: "italic",
+    }
+  ],
+  variable: "--font-pliant",
 });
 
 export const metadata: Metadata = {
-  title: "Horus Braslet",
+  title: "Horus",
   description: "Red de protección inteligente con tecnología NFC.",
   icons: {
     icon: "/ojo.png",
@@ -28,9 +39,19 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${pliant.variable} ${spaceGrotesk.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        {/* Desregistra service workers obsoletos que causan crashes en dev */}
+        <Script id="sw-cleanup" strategy="beforeInteractive">{`
+          if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.getRegistrations().then(function(regs) {
+              regs.forEach(function(reg) { reg.unregister(); });
+            });
+          }
+        `}</Script>
+        {children}
+      </body>
     </html>
   );
 }
