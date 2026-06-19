@@ -67,3 +67,6 @@ out/
 
 # Firebase service account (keep example file)
 src/config/*.json
+
+# Private setup file with real credentials
+PRIVATE_SETUP.md
