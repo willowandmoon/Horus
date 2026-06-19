@@ -87,7 +87,7 @@ async function chatWithRetry(
   throw new Error("[OpenAI] Todos los reintentos fallaron.");
 }
 
-export async function correctOcrTextWithGemini(text: string): Promise<string> {
+export async function correctOcrText(text: string): Promise<string> {
   if (process.env.USE_AI_CORRECTION === "false") {
     console.log("[OpenAI] Corrección por IA deshabilitada por config.");
     return text;
@@ -132,7 +132,7 @@ export async function correctOcrTextWithGemini(text: string): Promise<string> {
   }
 }
 
-export async function structureMedicalTextWithGemini(
+export async function structureMedicalText(
   cleanText: string
 ): Promise<StructuredMedicalData> {
   const apiKey = process.env.OPENAI_API_KEY;
@@ -187,7 +187,7 @@ REGLAS:
   return JSON.parse(jsonString);
 }
 
-export async function normalizeMedicationNamesWithGemini(
+export async function normalizeMedicationNames(
   medicationNames: string[]
 ): Promise<Record<string, string>> {
   if (!medicationNames || medicationNames.length === 0) return {};

@@ -1,6 +1,6 @@
 // 1. Tus imports actuales
 import { PrismaClient } from '@/src/generated/client';
-import { correctOcrTextWithGemini, structureMedicalTextWithGemini, normalizeMedicationNamesWithGemini, StructuredMedicalData as StructuredMedicalText } from '@/src/infrastructure/ai/openai';
+import { correctOcrText, structureMedicalText, normalizeMedicationNames, StructuredMedicalData as StructuredMedicalText } from '@/src/infrastructure/ai/openai';
 
 // 2. IMPORTANTE: Necesitamos el driver de PostgreSQL/Neon que configuró tu equipo
 import { Pool } from 'pg'; 
@@ -23,17 +23,17 @@ export class MedicalHistoryScraper {
       console.log(`[Scraper] Iniciando pipeline para el usuario: ${userId}`);
 
       // Sub-paso A: Corregir errores ortográficos del OCR usando la función existente
-      const cleanText = await correctOcrTextWithGemini(firebaseOcrText);
+      const cleanText = await correctOcrText(firebaseOcrText);
 
       // Sub-paso B: Enviar el texto limpio a la nueva función para obtener el JSON estructurado
-      const structuredJson = await structureMedicalTextWithGemini(cleanText);
+      const structuredJson = await structureMedicalText(cleanText);
       
       // Sub-paso C: Normalizar nombres de medicamentos extraídos
       let normalizedMedications: Record<string, string> = {};
       if (structuredJson.medications && structuredJson.medications.length > 0) {
         const rawNames = structuredJson.medications.map((m) => m.customMedicationName).filter(Boolean);
         if (rawNames.length > 0) {
-          normalizedMedications = await normalizeMedicationNamesWithGemini(rawNames);
+          normalizedMedications = await normalizeMedicationNames(rawNames);
         }
       }
 

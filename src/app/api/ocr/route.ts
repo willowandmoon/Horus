@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { extractTextFromImage } from "@/src/infrastructure/medical-history/ocr/tesseractOcr";
-import { correctOcrTextWithGemini } from "@/src/infrastructure/ai/openai";
+import { correctOcrText } from "@/src/infrastructure/ai/openai";
 
 export async function POST(req: NextRequest) {
   try {
@@ -21,8 +21,8 @@ export async function POST(req: NextRequest) {
     // Call al core OCR reutilizable (ahora con Sharp Pre-processing integrado en la infraestructura)
     const originalText = await extractTextFromImage(buffer);
     
-    // Etapa de IA: Corrección inteligente de errores OCR con Gemini
-    const correctedText = await correctOcrTextWithGemini(originalText);
+    // Etapa de IA: Corrección inteligente de errores OCR con OpenAI
+    const correctedText = await correctOcrText(originalText);
     
     // Devolver resultado con ambas versiones
     return NextResponse.json({ 

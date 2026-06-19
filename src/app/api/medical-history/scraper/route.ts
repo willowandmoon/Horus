@@ -21,7 +21,7 @@ export async function POST(request: Request) {
 
     console.log(`[API] Petición de scraping recibida para el usuario: ${userId}`);
     
-    // 3. Disparar tu pipeline mágico: Corrige con Gemini -> Estructura -> Guarda en Neon
+    // 3. Disparar tu pipeline mágico: Corrige con OpenAI -> Estructura -> Guarda en Neon
     await scraper.processFirebaseText(userId, firebaseOcrText);
 
     // 4. Responder con éxito si todo salió bien
