@@ -1,5 +1,6 @@
 generator client {
-  provider = "prisma-client-js"
+  provider = "prisma-client"
+  output   = "../src/generated"
 }
 
 datasource db {
@@ -7,29 +8,90 @@ datasource db {
 }
 
 model User {
-  id                String               @id @default(uuid()) @db.Uuid
-  email             String               @unique
-  passwordHash      String               @map("password_hash")
-  nfcTagId          String?              @unique @map("nfc_tag_id")
-  accountStatus     AccountStatus        @default(ACTIVE) @map("account_status")
-  lastLogin         DateTime?            @map("last_login")
-  createdAt         DateTime             @default(now()) @map("created_at")
-  updatedAt         DateTime             @updatedAt @map("updated_at")
-  allergies         Allergy[]
-  chronicConditions ChronicCondition[]
-  emergencyAlerts   EmergencyAlert[]
-  emergencyContacts EmergencyContact[]
-  medicalHistory    MedicalHistory[]
-  medicalProfile    MedicalProfile?
-  nfcScans          NfcScan[]
-  personalInfo      PersonalInformation?
-  privacySettings   PrivacySettings?
-  medications       UserMedication[]
-  orders            Order[]
-  payments          Payment[]
-  subscriptions     Subscription[]
+  id                    String               @id @default(uuid()) @db.Uuid
+  email                 String               @unique
+  passwordHash          String               @map("password_hash")
+  nfcTagId              String?              @unique @map("nfc_tag_id")
+  accountStatus         AccountStatus        @default(ACTIVE) @map("account_status")
+  lastLogin             DateTime?            @map("last_login")
+  pushToken             String?              @map("push_token")
+  healthReportEnabled   Boolean              @default(true) @map("health_report_enabled")
+  createdAt             DateTime             @default(now()) @map("created_at")
+  updatedAt             DateTime             @updatedAt @map("updated_at")
+  allergies             Allergy[]
+  chronicConditions     ChronicCondition[]
+  emergencyAlerts       EmergencyAlert[]
+  emergencyContacts     EmergencyContact[]
+  medicalHistory        MedicalHistory[]
+  medicalProfile        MedicalProfile?
+  profileScans          ProfileScan[]
+  personalInfo          PersonalInformation?
+  privacySettings       PrivacySettings?
+  medications           UserMedication[]
+  orders                Order[]
+  payments              Payment[]
+  subscriptions         Subscription[]
+  deviceLoginCodes      DeviceLoginCode[]
+  deviceSessions        DeviceSession[]
+  securityLogs          SecurityLog[]
+  userDevices           UserDevice[]
 
   @@map("users")
+}
+
+model UserDevice {
+  id           String         @id @default(uuid()) @db.Uuid
+  userId       String         @map("user_id") @db.Uuid
+  type         UserDeviceType
+  identifier   String?
+  registeredAt DateTime       @default(now()) @map("registered_at")
+  user         User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_devices")
+}
+
+model DeviceLoginCode {
+  id        String   @id @default(uuid()) @db.Uuid
+  codeHash  String   @map("code_hash")
+  userId    String   @map("user_id") @db.Uuid
+  expiresAt DateTime @map("expires_at")
+  attempts  Int      @default(0)
+  createdAt DateTime @default(now()) @map("created_at")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([expiresAt])
+  @@map("device_login_codes")
+}
+
+model DeviceSession {
+  id           String   @id @default(uuid()) @db.Uuid
+  userId       String   @map("user_id") @db.Uuid
+  deviceName   String?  @map("device_name")
+  deviceModel  String?  @map("device_model")
+  osVersion    String?  @map("os_version")
+  isActive     Boolean  @default(true) @map("is_active")
+  lastActive   DateTime @default(now()) @map("last_active")
+  refreshToken String?  @unique @map("refresh_token")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, isActive])
+  @@map("device_sessions")
+}
+
+model SecurityLog {
+  id        String   @id @default(uuid()) @db.Uuid
+  eventType String   @map("event_type")
+  ipAddress String?  @map("ip_address")
+  details   Json?
+  userId    String?  @map("user_id") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at")
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([createdAt])
+  @@map("security_logs")
 }
 
 model PersonalInformation {
@@ -101,10 +163,10 @@ model ChronicCondition {
 }
 
 model MedicationCatalog {
-  id            String           @id @default(uuid()) @db.Uuid
-  genericName   String           @unique @map("generic_name")
-  commonDosages Json?            @map("common_dosages")
-  createdAt     DateTime         @default(now()) @map("created_at")
+  id              String           @id @default(uuid()) @db.Uuid
+  genericName     String           @unique @map("generic_name")
+  commonDosages   Json?            @map("common_dosages")
+  createdAt       DateTime         @default(now()) @map("created_at")
   userMedications UserMedication[]
 
   @@index([genericName])
@@ -167,9 +229,15 @@ model MedicalHistory {
   @@map("medical_history")
 }
 
-model NfcScan {
+enum ScanType {
+  NFC
+  QR
+}
+
+model ProfileScan {
   id                String   @id @default(uuid()) @db.Uuid
   userId            String   @map("user_id") @db.Uuid
+  scanType          ScanType @default(NFC) @map("scan_type")
   scanTimestamp     DateTime @default(now()) @map("scan_timestamp")
   scannerIp         String?  @map("scanner_ip")
   scannerDeviceInfo Json?    @map("scanner_device_info")
@@ -178,7 +246,7 @@ model NfcScan {
   user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, scanTimestamp(sort: Desc)])
-  @@map("nfc_scans")
+  @@map("profile_scans")
 }
 
 model EmergencyAlert {
@@ -206,6 +274,7 @@ model PrivacySettings {
   showMedications       Boolean  @default(true) @map("show_medications")
   showAllergies         Boolean  @default(true) @map("show_allergies")
   showEmergencyContacts Boolean  @default(true) @map("show_emergency_contacts")
+  showChronicConditions Boolean  @default(true) @map("show_chronic_conditions")
   requireAuthentication Boolean  @default(false) @map("require_authentication")
   createdAt             DateTime @default(now()) @map("created_at")
   updatedAt             DateTime @updatedAt @map("updated_at")
@@ -215,38 +284,38 @@ model PrivacySettings {
 }
 
 model Product {
-  id           String      @id @default(uuid()) @db.Uuid
-  name         String      @unique
-  productType  ProductType @map("product_type")
-  description  String?     @db.Text
-  price        Decimal     @db.Decimal(10, 2)
-  currency     String      @default("COP")
-  isActive     Boolean     @default(true) @map("is_active")
-  billingCycle String      @default("ANNUAL") @map("billing_cycle")
-  createdAt    DateTime    @default(now()) @map("created_at")
-  updatedAt    DateTime    @updatedAt @map("updated_at")
-  orders       Order[]
+  id            String         @id @default(uuid()) @db.Uuid
+  name          String         @unique
+  productType   ProductType    @map("product_type")
+  description   String?        @db.Text
+  price         Decimal        @db.Decimal(10, 2)
+  currency      String         @default("COP")
+  isActive      Boolean        @default(true) @map("is_active")
+  billingCycle  String         @default("ANNUAL") @map("billing_cycle")
+  createdAt     DateTime       @default(now()) @map("created_at")
+  updatedAt     DateTime       @updatedAt @map("updated_at")
+  orders        Order[]
   subscriptions Subscription[]
 
   @@map("products")
 }
 
 model Order {
-  id                 String      @id @default(uuid()) @db.Uuid
-  userId             String      @map("user_id") @db.Uuid
-  productId          String      @map("product_id") @db.Uuid
-  reference          String      @unique
-  status             OrderStatus @default(PENDING)
-  totalAmount        Decimal     @map("total_amount") @db.Decimal(10, 2)
-  currency           String      @default("COP")
-  shippingStreet     String      @map("shipping_street")
-  shippingCity       String      @map("shipping_city")
-  shippingDepartment String      @map("shipping_department")
-  shippingZip        String?     @map("shipping_zip")
-  createdAt          DateTime    @default(now()) @map("created_at")
-  updatedAt          DateTime    @updatedAt @map("updated_at")
-  user               User        @relation(fields: [userId], references: [id])
-  product            Product     @relation(fields: [productId], references: [id])
+  id                 String        @id @default(uuid()) @db.Uuid
+  userId             String        @map("user_id") @db.Uuid
+  productId          String        @map("product_id") @db.Uuid
+  reference          String        @unique
+  status             OrderStatus   @default(PENDING)
+  totalAmount        Decimal       @map("total_amount") @db.Decimal(10, 2)
+  currency           String        @default("COP")
+  shippingStreet     String        @map("shipping_street")
+  shippingCity       String        @map("shipping_city")
+  shippingDepartment String        @map("shipping_department")
+  shippingZip        String?       @map("shipping_zip")
+  createdAt          DateTime      @default(now()) @map("created_at")
+  updatedAt          DateTime      @updatedAt @map("updated_at")
+  user               User          @relation(fields: [userId], references: [id])
+  product            Product       @relation(fields: [productId], references: [id])
   payment            Payment?
   subscription       Subscription?
 
@@ -376,6 +445,12 @@ enum AlertStatus {
 
 enum ProductType {
   BRACELET
+  CARD
+}
+
+enum UserDeviceType {
+  BRACELET
+  SMARTWATCH
   CARD
 }
 

@@ -10,6 +10,8 @@ import {
   MedicalHistoryEventType 
 } from "@/src/generated/client";
 
+export type StructuredMedicalData = StructuredMedicalText;
+
 export interface StructuredMedicalText {
   personalInfo?: {
     bloodType?: BloodType | null;

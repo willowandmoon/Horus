@@ -35,6 +35,8 @@ export type PersonalInformationMinAggregateOutputType = {
   identificationNumber: string | null
   identificationType: string | null
   photoUrl: string | null
+  phone: string | null
+  location: string | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -50,6 +52,8 @@ export type PersonalInformationMaxAggregateOutputType = {
   identificationNumber: string | null
   identificationType: string | null
   photoUrl: string | null
+  phone: string | null
+  location: string | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -65,6 +69,8 @@ export type PersonalInformationCountAggregateOutputType = {
   identificationNumber: number
   identificationType: number
   photoUrl: number
+  phone: number
+  location: number
   createdAt: number
   updatedAt: number
   _all: number
@@ -82,6 +88,8 @@ export type PersonalInformationMinAggregateInputType = {
   identificationNumber?: true
   identificationType?: true
   photoUrl?: true
+  phone?: true
+  location?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -97,6 +105,8 @@ export type PersonalInformationMaxAggregateInputType = {
   identificationNumber?: true
   identificationType?: true
   photoUrl?: true
+  phone?: true
+  location?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -112,6 +122,8 @@ export type PersonalInformationCountAggregateInputType = {
   identificationNumber?: true
   identificationType?: true
   photoUrl?: true
+  phone?: true
+  location?: true
   createdAt?: true
   updatedAt?: true
   _all?: true
@@ -200,6 +212,8 @@ export type PersonalInformationGroupByOutputType = {
   identificationNumber: string | null
   identificationType: string | null
   photoUrl: string | null
+  phone: string | null
+  location: string | null
   createdAt: Date
   updatedAt: Date
   _count: PersonalInformationCountAggregateOutputType | null
@@ -236,6 +250,8 @@ export type PersonalInformationWhereInput = {
   identificationNumber?: Prisma.StringNullableFilter<"PersonalInformation"> | string | null
   identificationType?: Prisma.StringNullableFilter<"PersonalInformation"> | string | null
   photoUrl?: Prisma.StringNullableFilter<"PersonalInformation"> | string | null
+  phone?: Prisma.StringNullableFilter<"PersonalInformation"> | string | null
+  location?: Prisma.StringNullableFilter<"PersonalInformation"> | string | null
   createdAt?: Prisma.DateTimeFilter<"PersonalInformation"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"PersonalInformation"> | Date | string
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
@@ -252,6 +268,8 @@ export type PersonalInformationOrderByWithRelationInput = {
   identificationNumber?: Prisma.SortOrderInput | Prisma.SortOrder
   identificationType?: Prisma.SortOrderInput | Prisma.SortOrder
   photoUrl?: Prisma.SortOrderInput | Prisma.SortOrder
+  phone?: Prisma.SortOrderInput | Prisma.SortOrder
+  location?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   user?: Prisma.UserOrderByWithRelationInput
@@ -271,6 +289,8 @@ export type PersonalInformationWhereUniqueInput = Prisma.AtLeast<{
   bloodType?: Prisma.EnumBloodTypeNullableFilter<"PersonalInformation"> | $Enums.BloodType | null
   identificationType?: Prisma.StringNullableFilter<"PersonalInformation"> | string | null
   photoUrl?: Prisma.StringNullableFilter<"PersonalInformation"> | string | null
+  phone?: Prisma.StringNullableFilter<"PersonalInformation"> | string | null
+  location?: Prisma.StringNullableFilter<"PersonalInformation"> | string | null
   createdAt?: Prisma.DateTimeFilter<"PersonalInformation"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"PersonalInformation"> | Date | string
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
@@ -287,6 +307,8 @@ export type PersonalInformationOrderByWithAggregationInput = {
   identificationNumber?: Prisma.SortOrderInput | Prisma.SortOrder
   identificationType?: Prisma.SortOrderInput | Prisma.SortOrder
   photoUrl?: Prisma.SortOrderInput | Prisma.SortOrder
+  phone?: Prisma.SortOrderInput | Prisma.SortOrder
+  location?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   _count?: Prisma.PersonalInformationCountOrderByAggregateInput
@@ -308,6 +330,8 @@ export type PersonalInformationScalarWhereWithAggregatesInput = {
   identificationNumber?: Prisma.StringNullableWithAggregatesFilter<"PersonalInformation"> | string | null
   identificationType?: Prisma.StringNullableWithAggregatesFilter<"PersonalInformation"> | string | null
   photoUrl?: Prisma.StringNullableWithAggregatesFilter<"PersonalInformation"> | string | null
+  phone?: Prisma.StringNullableWithAggregatesFilter<"PersonalInformation"> | string | null
+  location?: Prisma.StringNullableWithAggregatesFilter<"PersonalInformation"> | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"PersonalInformation"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"PersonalInformation"> | Date | string
 }
@@ -322,6 +346,8 @@ export type PersonalInformationCreateInput = {
   identificationNumber?: string | null
   identificationType?: string | null
   photoUrl?: string | null
+  phone?: string | null
+  location?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   user: Prisma.UserCreateNestedOneWithoutPersonalInfoInput
@@ -338,6 +364,8 @@ export type PersonalInformationUncheckedCreateInput = {
   identificationNumber?: string | null
   identificationType?: string | null
   photoUrl?: string | null
+  phone?: string | null
+  location?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -352,6 +380,8 @@ export type PersonalInformationUpdateInput = {
   identificationNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   identificationType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   photoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user?: Prisma.UserUpdateOneRequiredWithoutPersonalInfoNestedInput
@@ -368,6 +398,8 @@ export type PersonalInformationUncheckedUpdateInput = {
   identificationNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   identificationType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   photoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -383,6 +415,8 @@ export type PersonalInformationCreateManyInput = {
   identificationNumber?: string | null
   identificationType?: string | null
   photoUrl?: string | null
+  phone?: string | null
+  location?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -397,6 +431,8 @@ export type PersonalInformationUpdateManyMutationInput = {
   identificationNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   identificationType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   photoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -412,6 +448,8 @@ export type PersonalInformationUncheckedUpdateManyInput = {
   identificationNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   identificationType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   photoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -432,6 +470,8 @@ export type PersonalInformationCountOrderByAggregateInput = {
   identificationNumber?: Prisma.SortOrder
   identificationType?: Prisma.SortOrder
   photoUrl?: Prisma.SortOrder
+  phone?: Prisma.SortOrder
+  location?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -447,6 +487,8 @@ export type PersonalInformationMaxOrderByAggregateInput = {
   identificationNumber?: Prisma.SortOrder
   identificationType?: Prisma.SortOrder
   photoUrl?: Prisma.SortOrder
+  phone?: Prisma.SortOrder
+  location?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -462,6 +504,8 @@ export type PersonalInformationMinOrderByAggregateInput = {
   identificationNumber?: Prisma.SortOrder
   identificationType?: Prisma.SortOrder
   photoUrl?: Prisma.SortOrder
+  phone?: Prisma.SortOrder
+  location?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -516,6 +560,8 @@ export type PersonalInformationCreateWithoutUserInput = {
   identificationNumber?: string | null
   identificationType?: string | null
   photoUrl?: string | null
+  phone?: string | null
+  location?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -530,6 +576,8 @@ export type PersonalInformationUncheckedCreateWithoutUserInput = {
   identificationNumber?: string | null
   identificationType?: string | null
   photoUrl?: string | null
+  phone?: string | null
+  location?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -560,6 +608,8 @@ export type PersonalInformationUpdateWithoutUserInput = {
   identificationNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   identificationType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   photoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -574,6 +624,8 @@ export type PersonalInformationUncheckedUpdateWithoutUserInput = {
   identificationNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   identificationType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   photoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -591,6 +643,8 @@ export type PersonalInformationSelect<ExtArgs extends runtime.Types.Extensions.I
   identificationNumber?: boolean
   identificationType?: boolean
   photoUrl?: boolean
+  phone?: boolean
+  location?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
@@ -607,6 +661,8 @@ export type PersonalInformationSelectCreateManyAndReturn<ExtArgs extends runtime
   identificationNumber?: boolean
   identificationType?: boolean
   photoUrl?: boolean
+  phone?: boolean
+  location?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
@@ -623,6 +679,8 @@ export type PersonalInformationSelectUpdateManyAndReturn<ExtArgs extends runtime
   identificationNumber?: boolean
   identificationType?: boolean
   photoUrl?: boolean
+  phone?: boolean
+  location?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
@@ -639,11 +697,13 @@ export type PersonalInformationSelectScalar = {
   identificationNumber?: boolean
   identificationType?: boolean
   photoUrl?: boolean
+  phone?: boolean
+  location?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type PersonalInformationOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "firstName" | "lastName" | "dateOfBirth" | "gender" | "bloodType" | "identificationNumber" | "identificationType" | "photoUrl" | "createdAt" | "updatedAt", ExtArgs["result"]["personalInformation"]>
+export type PersonalInformationOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "firstName" | "lastName" | "dateOfBirth" | "gender" | "bloodType" | "identificationNumber" | "identificationType" | "photoUrl" | "phone" | "location" | "createdAt" | "updatedAt", ExtArgs["result"]["personalInformation"]>
 export type PersonalInformationInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
 }
@@ -670,6 +730,8 @@ export type $PersonalInformationPayload<ExtArgs extends runtime.Types.Extensions
     identificationNumber: string | null
     identificationType: string | null
     photoUrl: string | null
+    phone: string | null
+    location: string | null
     createdAt: Date
     updatedAt: Date
   }, ExtArgs["result"]["personalInformation"]>
@@ -1106,6 +1168,8 @@ export interface PersonalInformationFieldRefs {
   readonly identificationNumber: Prisma.FieldRef<"PersonalInformation", 'String'>
   readonly identificationType: Prisma.FieldRef<"PersonalInformation", 'String'>
   readonly photoUrl: Prisma.FieldRef<"PersonalInformation", 'String'>
+  readonly phone: Prisma.FieldRef<"PersonalInformation", 'String'>
+  readonly location: Prisma.FieldRef<"PersonalInformation", 'String'>
   readonly createdAt: Prisma.FieldRef<"PersonalInformation", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"PersonalInformation", 'DateTime'>
 }

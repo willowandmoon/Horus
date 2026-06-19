@@ -35,6 +35,7 @@ export type PrivacySettingsMinAggregateOutputType = {
   showMedications: boolean | null
   showAllergies: boolean | null
   showEmergencyContacts: boolean | null
+  showChronicConditions: boolean | null
   requireAuthentication: boolean | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -51,6 +52,7 @@ export type PrivacySettingsMaxAggregateOutputType = {
   showMedications: boolean | null
   showAllergies: boolean | null
   showEmergencyContacts: boolean | null
+  showChronicConditions: boolean | null
   requireAuthentication: boolean | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -67,6 +69,7 @@ export type PrivacySettingsCountAggregateOutputType = {
   showMedications: number
   showAllergies: number
   showEmergencyContacts: number
+  showChronicConditions: number
   requireAuthentication: number
   createdAt: number
   updatedAt: number
@@ -85,6 +88,7 @@ export type PrivacySettingsMinAggregateInputType = {
   showMedications?: true
   showAllergies?: true
   showEmergencyContacts?: true
+  showChronicConditions?: true
   requireAuthentication?: true
   createdAt?: true
   updatedAt?: true
@@ -101,6 +105,7 @@ export type PrivacySettingsMaxAggregateInputType = {
   showMedications?: true
   showAllergies?: true
   showEmergencyContacts?: true
+  showChronicConditions?: true
   requireAuthentication?: true
   createdAt?: true
   updatedAt?: true
@@ -117,6 +122,7 @@ export type PrivacySettingsCountAggregateInputType = {
   showMedications?: true
   showAllergies?: true
   showEmergencyContacts?: true
+  showChronicConditions?: true
   requireAuthentication?: true
   createdAt?: true
   updatedAt?: true
@@ -206,6 +212,7 @@ export type PrivacySettingsGroupByOutputType = {
   showMedications: boolean
   showAllergies: boolean
   showEmergencyContacts: boolean
+  showChronicConditions: boolean
   requireAuthentication: boolean
   createdAt: Date
   updatedAt: Date
@@ -243,6 +250,7 @@ export type PrivacySettingsWhereInput = {
   showMedications?: Prisma.BoolFilter<"PrivacySettings"> | boolean
   showAllergies?: Prisma.BoolFilter<"PrivacySettings"> | boolean
   showEmergencyContacts?: Prisma.BoolFilter<"PrivacySettings"> | boolean
+  showChronicConditions?: Prisma.BoolFilter<"PrivacySettings"> | boolean
   requireAuthentication?: Prisma.BoolFilter<"PrivacySettings"> | boolean
   createdAt?: Prisma.DateTimeFilter<"PrivacySettings"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"PrivacySettings"> | Date | string
@@ -260,6 +268,7 @@ export type PrivacySettingsOrderByWithRelationInput = {
   showMedications?: Prisma.SortOrder
   showAllergies?: Prisma.SortOrder
   showEmergencyContacts?: Prisma.SortOrder
+  showChronicConditions?: Prisma.SortOrder
   requireAuthentication?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -280,6 +289,7 @@ export type PrivacySettingsWhereUniqueInput = Prisma.AtLeast<{
   showMedications?: Prisma.BoolFilter<"PrivacySettings"> | boolean
   showAllergies?: Prisma.BoolFilter<"PrivacySettings"> | boolean
   showEmergencyContacts?: Prisma.BoolFilter<"PrivacySettings"> | boolean
+  showChronicConditions?: Prisma.BoolFilter<"PrivacySettings"> | boolean
   requireAuthentication?: Prisma.BoolFilter<"PrivacySettings"> | boolean
   createdAt?: Prisma.DateTimeFilter<"PrivacySettings"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"PrivacySettings"> | Date | string
@@ -297,6 +307,7 @@ export type PrivacySettingsOrderByWithAggregationInput = {
   showMedications?: Prisma.SortOrder
   showAllergies?: Prisma.SortOrder
   showEmergencyContacts?: Prisma.SortOrder
+  showChronicConditions?: Prisma.SortOrder
   requireAuthentication?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -319,6 +330,7 @@ export type PrivacySettingsScalarWhereWithAggregatesInput = {
   showMedications?: Prisma.BoolWithAggregatesFilter<"PrivacySettings"> | boolean
   showAllergies?: Prisma.BoolWithAggregatesFilter<"PrivacySettings"> | boolean
   showEmergencyContacts?: Prisma.BoolWithAggregatesFilter<"PrivacySettings"> | boolean
+  showChronicConditions?: Prisma.BoolWithAggregatesFilter<"PrivacySettings"> | boolean
   requireAuthentication?: Prisma.BoolWithAggregatesFilter<"PrivacySettings"> | boolean
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"PrivacySettings"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"PrivacySettings"> | Date | string
@@ -334,6 +346,7 @@ export type PrivacySettingsCreateInput = {
   showMedications?: boolean
   showAllergies?: boolean
   showEmergencyContacts?: boolean
+  showChronicConditions?: boolean
   requireAuthentication?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -351,6 +364,7 @@ export type PrivacySettingsUncheckedCreateInput = {
   showMedications?: boolean
   showAllergies?: boolean
   showEmergencyContacts?: boolean
+  showChronicConditions?: boolean
   requireAuthentication?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -366,6 +380,7 @@ export type PrivacySettingsUpdateInput = {
   showMedications?: Prisma.BoolFieldUpdateOperationsInput | boolean
   showAllergies?: Prisma.BoolFieldUpdateOperationsInput | boolean
   showEmergencyContacts?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  showChronicConditions?: Prisma.BoolFieldUpdateOperationsInput | boolean
   requireAuthentication?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -383,6 +398,7 @@ export type PrivacySettingsUncheckedUpdateInput = {
   showMedications?: Prisma.BoolFieldUpdateOperationsInput | boolean
   showAllergies?: Prisma.BoolFieldUpdateOperationsInput | boolean
   showEmergencyContacts?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  showChronicConditions?: Prisma.BoolFieldUpdateOperationsInput | boolean
   requireAuthentication?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -399,6 +415,7 @@ export type PrivacySettingsCreateManyInput = {
   showMedications?: boolean
   showAllergies?: boolean
   showEmergencyContacts?: boolean
+  showChronicConditions?: boolean
   requireAuthentication?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -414,6 +431,7 @@ export type PrivacySettingsUpdateManyMutationInput = {
   showMedications?: Prisma.BoolFieldUpdateOperationsInput | boolean
   showAllergies?: Prisma.BoolFieldUpdateOperationsInput | boolean
   showEmergencyContacts?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  showChronicConditions?: Prisma.BoolFieldUpdateOperationsInput | boolean
   requireAuthentication?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -430,6 +448,7 @@ export type PrivacySettingsUncheckedUpdateManyInput = {
   showMedications?: Prisma.BoolFieldUpdateOperationsInput | boolean
   showAllergies?: Prisma.BoolFieldUpdateOperationsInput | boolean
   showEmergencyContacts?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  showChronicConditions?: Prisma.BoolFieldUpdateOperationsInput | boolean
   requireAuthentication?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -451,6 +470,7 @@ export type PrivacySettingsCountOrderByAggregateInput = {
   showMedications?: Prisma.SortOrder
   showAllergies?: Prisma.SortOrder
   showEmergencyContacts?: Prisma.SortOrder
+  showChronicConditions?: Prisma.SortOrder
   requireAuthentication?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -467,6 +487,7 @@ export type PrivacySettingsMaxOrderByAggregateInput = {
   showMedications?: Prisma.SortOrder
   showAllergies?: Prisma.SortOrder
   showEmergencyContacts?: Prisma.SortOrder
+  showChronicConditions?: Prisma.SortOrder
   requireAuthentication?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -483,6 +504,7 @@ export type PrivacySettingsMinOrderByAggregateInput = {
   showMedications?: Prisma.SortOrder
   showAllergies?: Prisma.SortOrder
   showEmergencyContacts?: Prisma.SortOrder
+  showChronicConditions?: Prisma.SortOrder
   requireAuthentication?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -530,6 +552,7 @@ export type PrivacySettingsCreateWithoutUserInput = {
   showMedications?: boolean
   showAllergies?: boolean
   showEmergencyContacts?: boolean
+  showChronicConditions?: boolean
   requireAuthentication?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -545,6 +568,7 @@ export type PrivacySettingsUncheckedCreateWithoutUserInput = {
   showMedications?: boolean
   showAllergies?: boolean
   showEmergencyContacts?: boolean
+  showChronicConditions?: boolean
   requireAuthentication?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -576,6 +600,7 @@ export type PrivacySettingsUpdateWithoutUserInput = {
   showMedications?: Prisma.BoolFieldUpdateOperationsInput | boolean
   showAllergies?: Prisma.BoolFieldUpdateOperationsInput | boolean
   showEmergencyContacts?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  showChronicConditions?: Prisma.BoolFieldUpdateOperationsInput | boolean
   requireAuthentication?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -591,6 +616,7 @@ export type PrivacySettingsUncheckedUpdateWithoutUserInput = {
   showMedications?: Prisma.BoolFieldUpdateOperationsInput | boolean
   showAllergies?: Prisma.BoolFieldUpdateOperationsInput | boolean
   showEmergencyContacts?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  showChronicConditions?: Prisma.BoolFieldUpdateOperationsInput | boolean
   requireAuthentication?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -609,6 +635,7 @@ export type PrivacySettingsSelect<ExtArgs extends runtime.Types.Extensions.Inter
   showMedications?: boolean
   showAllergies?: boolean
   showEmergencyContacts?: boolean
+  showChronicConditions?: boolean
   requireAuthentication?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -626,6 +653,7 @@ export type PrivacySettingsSelectCreateManyAndReturn<ExtArgs extends runtime.Typ
   showMedications?: boolean
   showAllergies?: boolean
   showEmergencyContacts?: boolean
+  showChronicConditions?: boolean
   requireAuthentication?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -643,6 +671,7 @@ export type PrivacySettingsSelectUpdateManyAndReturn<ExtArgs extends runtime.Typ
   showMedications?: boolean
   showAllergies?: boolean
   showEmergencyContacts?: boolean
+  showChronicConditions?: boolean
   requireAuthentication?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -660,12 +689,13 @@ export type PrivacySettingsSelectScalar = {
   showMedications?: boolean
   showAllergies?: boolean
   showEmergencyContacts?: boolean
+  showChronicConditions?: boolean
   requireAuthentication?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type PrivacySettingsOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "showFullName" | "showPhoto" | "showAge" | "showBloodType" | "showMedicalHistory" | "showMedications" | "showAllergies" | "showEmergencyContacts" | "requireAuthentication" | "createdAt" | "updatedAt", ExtArgs["result"]["privacySettings"]>
+export type PrivacySettingsOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "showFullName" | "showPhoto" | "showAge" | "showBloodType" | "showMedicalHistory" | "showMedications" | "showAllergies" | "showEmergencyContacts" | "showChronicConditions" | "requireAuthentication" | "createdAt" | "updatedAt", ExtArgs["result"]["privacySettings"]>
 export type PrivacySettingsInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
 }
@@ -692,6 +722,7 @@ export type $PrivacySettingsPayload<ExtArgs extends runtime.Types.Extensions.Int
     showMedications: boolean
     showAllergies: boolean
     showEmergencyContacts: boolean
+    showChronicConditions: boolean
     requireAuthentication: boolean
     createdAt: Date
     updatedAt: Date
@@ -1129,6 +1160,7 @@ export interface PrivacySettingsFieldRefs {
   readonly showMedications: Prisma.FieldRef<"PrivacySettings", 'Boolean'>
   readonly showAllergies: Prisma.FieldRef<"PrivacySettings", 'Boolean'>
   readonly showEmergencyContacts: Prisma.FieldRef<"PrivacySettings", 'Boolean'>
+  readonly showChronicConditions: Prisma.FieldRef<"PrivacySettings", 'Boolean'>
   readonly requireAuthentication: Prisma.FieldRef<"PrivacySettings", 'Boolean'>
   readonly createdAt: Prisma.FieldRef<"PrivacySettings", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"PrivacySettings", 'DateTime'>

@@ -47,6 +47,26 @@ export { Prisma }
  */
 export type User = Prisma.UserModel
 /**
+ * Model UserDevice
+ * 
+ */
+export type UserDevice = Prisma.UserDeviceModel
+/**
+ * Model DeviceLoginCode
+ * 
+ */
+export type DeviceLoginCode = Prisma.DeviceLoginCodeModel
+/**
+ * Model DeviceSession
+ * 
+ */
+export type DeviceSession = Prisma.DeviceSessionModel
+/**
+ * Model SecurityLog
+ * 
+ */
+export type SecurityLog = Prisma.SecurityLogModel
+/**
  * Model PersonalInformation
  * 
  */
@@ -87,10 +107,10 @@ export type EmergencyContact = Prisma.EmergencyContactModel
  */
 export type MedicalHistory = Prisma.MedicalHistoryModel
 /**
- * Model NfcScan
+ * Model ProfileScan
  * 
  */
-export type NfcScan = Prisma.NfcScanModel
+export type ProfileScan = Prisma.ProfileScanModel
 /**
  * Model EmergencyAlert
  * 

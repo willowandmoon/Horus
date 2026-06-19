@@ -490,10 +490,6 @@ export type NullableDecimalFieldUpdateOperationsInput = {
   divide?: runtime.Decimal | runtime.DecimalJsLike | number | string
 }
 
-export type BoolFieldUpdateOperationsInput = {
-  set?: boolean
-}
-
 export type MedicalProfileCreateWithoutUserInput = {
   id?: string
   heightCm?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
