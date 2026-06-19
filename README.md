@@ -90,6 +90,40 @@ CLOUDINARY_URL=         # URL de conexión a Cloudinary
 
 ---
 
+## Pagos con Mercado Pago
+
+- Flujo principal: `/tienda` → `/checkout` → Mercado Pago → `/payment/*`.
+- Webhook: `/api/payments/webhook`.
+- Estado de orden: `/api/payments/status/[orderId]`.
+
+### Variables de entorno necesarias
+
+```
+NEXT_PUBLIC_APP_URL="http://localhost:3000"
+MP_ACCESS_TOKEN="..."
+MP_PUBLIC_KEY="..."
+
+# SMTP para correos con PDF
+EMAIL_HOST="smtp.gmail.com"
+EMAIL_PORT="465"
+EMAIL_SECURE="true"
+EMAIL_USER="tu-correo@gmail.com"
+EMAIL_PASS="APP_PASSWORD_GMAIL"
+EMAIL_FROM="tu-correo@gmail.com"
+EMAIL_TO="tu-correo@gmail.com"
+```
+
+> Para compras reales, `NEXT_PUBLIC_APP_URL` debe ser una URL publica HTTPS y el webhook debe ser accesible desde Mercado Pago.
+
+---
+
+## Email de confirmacion
+
+- Se envia al aprobar el pago en el webhook.
+- Incluye un PDF con resumen de la orden y direccion de envio.
+
+---
+
 ## Instalación y desarrollo
 
 ```bash
