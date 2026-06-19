@@ -1,65 +1,110 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import LogoutButton from "@/src/app/dashboard/_components/LogoutButton";
+import { usePathname, useRouter } from "next/navigation";
 
-interface NavItem { label: string; href: string; activeBg: string; activeFg: string; icon: React.ReactNode; }
+interface NavItem {
+    label: string;
+    href: string;
+    icon: React.ReactNode;
+}
+
+function IconDashboard() {
+    return (
+        <svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round">
+            <path d="M22 12h-2.48a2 2 0 0 0-1.93 1.46l-2.35 8.36a.25.25 0 0 1-.48 0L9.24 2.18a.25.25 0 0 0-.48 0l-2.35 8.36A2 2 0 0 1 4.49 12H2" />
+        </svg>
+    );
+}
+
+function IconProfile() {
+    return (
+        <svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round">
+            <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
+            <circle cx={12} cy={7} r={4} />
+        </svg>
+    );
+}
+
+function IconFiles() {
+    return (
+        <svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round">
+            <path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z" />
+            <path d="M2 10h20" />
+        </svg>
+    );
+}
+
+function IconLogout() {
+    return (
+        <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+            <polyline points="16 17 21 12 16 7" />
+            <line x1="21" y1="12" x2="9" y2="12" />
+        </svg>
+    );
+}
 
 export default function FloatingSidebar() {
     const pathname = usePathname();
-    const [isOpen, setIsOpen] = useState(false);
+    const router = useRouter();
 
     const items: NavItem[] = [
-        { label: "Dashboard", href: "/dashboard", activeBg: "bg-[#FDF2B2]", activeFg: "text-[#5C4D04]",
-          icon: <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6ZM3.75 15.75A2.25 2.25 0 0 1 6 13.5h2.25a2.25 2.25 0 0 1 2.25 2.25V18a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 18v-2.25ZM13.5 6a2.25 2.25 0 0 1 2.25-2.25H18A2.25 2.25 0 0 1 20.25 6v2.25A2.25 2.25 0 0 1 18 10.5h-2.25a2.25 2.25 0 0 1-2.25-2.25V6ZM13.5 15.75a2.25 2.25 0 0 1 2.25-2.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-2.25A2.25 2.25 0 0 1 13.5 18v-2.25Z" /></svg> },
-        { label: "Perfil", href: "/profile", activeBg: "bg-[#FCE7F3]", activeFg: "text-[#831843]",
-          icon: <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" /></svg> },
-        { label: "Archivos", href: "/archivos", activeBg: "bg-[#E3F2FD]", activeFg: "text-[#0D47A1]",
-          icon: <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" /></svg> },
+        { label: "Dashboard", href: "/dashboard", icon: <IconDashboard /> },
+        { label: "Perfil",    href: "/profile",   icon: <IconProfile /> },
+        { label: "Archivos",  href: "/archivos",  icon: <IconFiles /> },
     ];
 
-    const sidebarContent = (
-        <div className="flex flex-col h-full">
-            <div className="flex items-center gap-3 px-2 mb-8">
-                <img src="/gato.png" alt="Logo" className="w-9 h-9 object-contain" />
-                <span className="text-[#1C1917] font-black tracking-widest text-lg uppercase">Horus</span>
-            </div>
-            <nav className="flex flex-col gap-2 flex-1">
-                {items.map((item) => {
-                    const isActive = pathname === item.href || (item.href !== "/dashboard" && pathname.startsWith(item.href));
-                    return (
-                        <Link key={item.label} href={item.href} onClick={() => setIsOpen(false)}
-                            className={`flex items-center gap-3.5 px-4 py-3.5 rounded-[20px] text-sm font-bold tracking-wide transition-all duration-300 ${isActive ? `${item.activeBg} ${item.activeFg} shadow-sm` : "text-[#8D99AE] hover:text-[#1C1917] hover:bg-[#F2F1EC]/80"}`}>
-                            <span className="shrink-0">{item.icon}</span>{item.label}
-                        </Link>
-                    );
-                })}
-            </nav>
-            <div className="border-t border-[#E4E2DC] pt-4 mt-auto"><LogoutButton /></div>
-        </div>
-    );
+    async function handleLogout() {
+        await fetch("/api/auth/logout", { method: "POST" });
+        router.push("/login");
+    }
 
     return (
-        <>
-            <div className="lg:hidden fixed top-5 left-5 z-40">
-                <button onClick={() => setIsOpen(true)} className="w-12 h-12 bg-white border border-[#E4E2DC] rounded-2xl shadow-md flex items-center justify-center hover:scale-105 transition-transform outline-none cursor-pointer">
-                    <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" /></svg>
-                </button>
+        <aside className="fixed left-4 top-1/2 -translate-y-1/2 z-40 flex flex-col items-center gap-1 bg-[#191512] rounded-[28px] px-2 py-3 shadow-2xl">
+            {/* Logo */}
+            <div className="mb-2 flex items-center justify-center w-9 h-9">
+                <img src="/gato.png" alt="Horus" className="w-7 h-7 object-contain opacity-80" />
             </div>
-            <aside className="hidden lg:flex fixed left-5 top-5 bottom-5 w-64 bg-white border border-[#E4E2DC] rounded-[32px] p-6 shadow-xl z-30">{sidebarContent}</aside>
-            {isOpen && (
-                <div className="lg:hidden fixed inset-0 z-50 flex">
-                    <div className="fixed inset-0 bg-[#1C1917]/20 backdrop-blur-sm" onClick={() => setIsOpen(false)} />
-                    <div className="relative flex flex-col w-72 max-w-[80%] h-[95vh] bg-white border border-[#E4E2DC] rounded-[32px] m-auto ml-4 shadow-2xl p-6 z-50">
-                        <button onClick={() => setIsOpen(false)} className="absolute top-5 right-5 w-8 h-8 rounded-full bg-[#F2F1EC] flex items-center justify-center hover:bg-[#E4E2DC] transition-colors outline-none cursor-pointer">
-                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" /></svg>
-                        </button>
-                        {sidebarContent}
-                    </div>
-                </div>
-            )}
-        </>
+
+            <div className="w-5 h-px bg-white/10 mb-1" />
+
+            {/* Nav items */}
+            {items.map((item) => {
+                const isActive = pathname === item.href || (item.href !== "/dashboard" && pathname.startsWith(item.href));
+                return (
+                    <Link
+                        key={item.href}
+                        href={item.href}
+                        title={item.label}
+                        className={`relative group w-10 h-10 rounded-2xl flex items-center justify-center transition-all duration-200
+                            ${isActive
+                                ? "bg-[#FAD957] text-[#1A1512]"
+                                : "text-white/40 hover:text-white/80 hover:bg-white/8"
+                            }`}
+                    >
+                        {item.icon}
+                        {/* Tooltip */}
+                        <span className="pointer-events-none absolute left-full ml-3 px-2.5 py-1 rounded-lg bg-[#191512] border border-white/10 text-white text-xs font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-150 shadow-lg">
+                            {item.label}
+                        </span>
+                    </Link>
+                );
+            })}
+
+            <div className="w-5 h-px bg-white/10 mt-1 mb-1" />
+
+            {/* Logout */}
+            <button
+                onClick={handleLogout}
+                title="Cerrar sesión"
+                className="group relative w-10 h-10 rounded-2xl flex items-center justify-center text-white/30 hover:text-red-400 hover:bg-white/8 transition-all duration-200 cursor-pointer border-none bg-transparent"
+            >
+                <IconLogout />
+                <span className="pointer-events-none absolute left-full ml-3 px-2.5 py-1 rounded-lg bg-[#191512] border border-white/10 text-white text-xs font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-150 shadow-lg">
+                    Cerrar sesión
+                </span>
+            </button>
+        </aside>
     );
 }

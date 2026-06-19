@@ -203,7 +203,7 @@ export default function ArchivosPage() {
         <div className="min-h-screen bg-[#F2F1EC] text-[#1C1917]">
             <FloatingSidebar />
 
-            <main className="lg:pl-72 px-5 pt-8 pb-16 max-w-[1400px] mx-auto">
+            <main className="pl-20 px-5 pt-8 pb-16 max-w-[1400px] mx-auto">
                 {/* Header */}
                 <div className="mb-8 pl-0 lg:pl-2">
                     <h1 className="text-3xl font-black font-display text-[#1C1917] tracking-tight">Mis archivos</h1>
@@ -214,17 +214,21 @@ export default function ArchivosPage() {
                 {docs.length > 0 && (
                     <div className="flex flex-wrap gap-3 mb-8">
                         <div className="flex items-center gap-3 bg-white border border-[#E4E2DC] rounded-2xl px-5 py-3 shadow-sm">
-                            <span className="w-9 h-9 rounded-xl bg-[#FDF2B2] flex items-center justify-center text-lg">📁</span>
+                            <span className="w-9 h-9 rounded-xl bg-[#FDF2B2] flex items-center justify-center text-[#5C4D04]">
+                                <svg className="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round"><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z" /><path d="M2 10h20" /></svg>
+                            </span>
                             <div>
-                                <p className="text-[10px] font-black uppercase tracking-widest text-[#8D99AE]">Total</p>
-                                <p className="text-xl font-black text-[#1C1917] leading-none">{docs.length}</p>
+                                <p className="text-xs text-[#8D99AE] mb-0.5">Total</p>
+                                <p className="text-xl font-bold text-[#1C1917] leading-none">{docs.length}</p>
                             </div>
                         </div>
                         <div className="flex items-center gap-3 bg-white border border-[#E4E2DC] rounded-2xl px-5 py-3 shadow-sm">
-                            <span className="w-9 h-9 rounded-xl bg-[#E3F2FD] flex items-center justify-center text-lg">🗓️</span>
+                            <span className="w-9 h-9 rounded-xl bg-[#E3F2FD] flex items-center justify-center text-[#0D47A1]">
+                                <svg className="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" /><path d="M16 2v4M8 2v4M3 10h18" /></svg>
+                            </span>
                             <div>
-                                <p className="text-[10px] font-black uppercase tracking-widest text-[#8D99AE]">Último subido</p>
-                                <p className="text-sm font-black text-[#1C1917] leading-none">{safeDate(lastUploaded)}</p>
+                                <p className="text-xs text-[#8D99AE] mb-0.5">Último subido</p>
+                                <p className="text-sm font-semibold text-[#1C1917] leading-none">{safeDate(lastUploaded)}</p>
                             </div>
                         </div>
                     </div>
@@ -258,7 +262,7 @@ export default function ArchivosPage() {
                                     </svg>
                                 )}
                             </div>
-                            <p className="text-sm font-black text-[#1C1917] mb-1">
+                            <p className="text-sm font-semibold text-[#1C1917] mb-1">
                                 {uploading ? "Procesando documento..." : dragOver ? "Suelta aquí" : "Subir documento"}
                             </p>
                             <p className="text-xs text-[#8D99AE] font-semibold">
@@ -284,7 +288,7 @@ export default function ArchivosPage() {
 
                         {/* Tip card */}
                         <div className="bg-[#FDF2B2] border border-[#FAD957]/40 rounded-[24px] px-5 py-4">
-                            <p className="text-xs font-black text-[#5C4D04] uppercase tracking-widest mb-1">IA activa</p>
+                            <p className="text-xs font-semibold text-[#5C4D04] uppercase tracking-wider mb-1">IA activa</p>
                             <p className="text-sm font-semibold text-[#5C4D04] leading-relaxed">
                                 Cada archivo que subas es procesado automáticamente para extraer su contenido y hacerlo consultable desde el asistente médico.
                             </p>
@@ -293,7 +297,7 @@ export default function ArchivosPage() {
 
                     {/* Right: Document grid */}
                     <div className="xl:col-span-2">
-                        <h2 className="text-sm font-black uppercase tracking-widest text-[#8D99AE] mb-4 px-1">Documentos recientes</h2>
+                        <h2 className="text-xs font-semibold uppercase tracking-wider text-[#8D99AE] mb-4 px-1">Documentos recientes</h2>
 
                         {loading ? (
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -303,8 +307,10 @@ export default function ArchivosPage() {
                             </div>
                         ) : docs.length === 0 ? (
                             <div className="flex flex-col items-center justify-center text-center bg-white border border-[#E4E2DC] rounded-[28px] py-16 px-6">
-                                <span className="text-5xl mb-4">📂</span>
-                                <p className="text-base font-black text-[#1C1917] mb-1">Sin documentos aún</p>
+                                <span className="w-14 h-14 rounded-2xl bg-[#F2F1EC] border border-[#E4E2DC] flex items-center justify-center mb-4 text-[#8D99AE]">
+                                    <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z" /><path d="M2 10h20" /></svg>
+                                </span>
+                                <p className="text-base font-semibold text-[#1C1917] mb-1">Sin documentos aún</p>
                                 <p className="text-sm text-[#8D99AE] font-semibold max-w-xs">
                                     Sube tu primer documento médico usando el panel de la izquierda.
                                 </p>
@@ -327,14 +333,14 @@ export default function ArchivosPage() {
                                             {/* Content */}
                                             <div className="flex-1 min-w-0">
                                                 <div className="flex items-center gap-2 mb-0.5">
-                                                    <span className={`text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full ${meta.bg} ${meta.color} border ${meta.bg.replace("bg-", "border-")}`}>
+                                                    <span className={`text-xs px-2 py-0.5 rounded-full ${meta.bg} ${meta.color} border ${meta.bg.replace("bg-", "border-")}`}>
                                                         {meta.label}
                                                     </span>
                                                 </div>
-                                                <p className="text-sm font-bold text-[#1C1917] truncate leading-tight">{name}</p>
-                                                <p className="text-[11px] text-[#8D99AE] font-semibold mt-0.5">{safeDate(doc.uploadedAt)}</p>
+                                                <p className="text-sm font-semibold text-[#1C1917] truncate leading-tight">{name}</p>
+                                                <p className="text-xs text-[#8D99AE] mt-0.5">{safeDate(doc.uploadedAt)}</p>
                                                 {doc.extractedText && (
-                                                    <p className="text-[11px] text-[#8D99AE] mt-1 line-clamp-2 leading-relaxed">
+                                                    <p className="text-xs text-[#8D99AE] mt-1 line-clamp-2 leading-relaxed">
                                                         {doc.extractedText.slice(0, 120)}
                                                     </p>
                                                 )}
@@ -343,9 +349,7 @@ export default function ArchivosPage() {
                                             {/* Actions — visible on hover */}
                                             <div className="flex flex-col gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity duration-150 shrink-0">
                                                 <a
-                                                    href={doc.fileUrl}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
+                                                    href={`/api/files/download?id=${btoa(doc.publicId)}`}
                                                     title="Descargar"
                                                     className="w-8 h-8 rounded-xl bg-[#F2F1EC] hover:bg-[#E4E2DC] border border-[#E4E2DC] flex items-center justify-center text-[#1C1917] transition-colors"
                                                     onClick={(e) => e.stopPropagation()}
@@ -395,8 +399,8 @@ export default function ArchivosPage() {
                     >
                         <div className="flex items-center justify-between px-6 py-4 border-b border-[#E4E2DC]">
                             <div className="min-w-0">
-                                <p className="text-sm font-black text-[#1C1917] truncate">{getFilename(preview)}</p>
-                                <p className="text-xs text-[#8D99AE] font-semibold">{safeDate(preview.uploadedAt)}</p>
+                                <p className="text-sm font-semibold text-[#1C1917] truncate">{getFilename(preview)}</p>
+                                <p className="text-xs text-[#8D99AE]">{safeDate(preview.uploadedAt)}</p>
                             </div>
                             <button
                                 onClick={() => setPreview(null)}
@@ -410,16 +414,18 @@ export default function ArchivosPage() {
                         <div className="overflow-y-auto flex-1 p-6">
                             {preview.extractedText ? (
                                 <div className="bg-[#F2F1EC] rounded-[20px] p-5">
-                                    <p className="text-[11px] font-black uppercase tracking-widest text-[#8D99AE] mb-3">Texto extraído</p>
+                                    <p className="text-xs font-semibold uppercase tracking-wider text-[#8D99AE] mb-3">Texto extraído</p>
                                     <p className="text-sm text-[#1C1917] leading-relaxed whitespace-pre-wrap font-medium">
                                         {preview.extractedText}
                                     </p>
                                 </div>
                             ) : (
                                 <div className="flex flex-col items-center justify-center py-12 text-center">
-                                    <span className="text-4xl mb-3">📄</span>
-                                    <p className="text-sm font-bold text-[#1C1917]">Sin texto extraído</p>
-                                    <p className="text-xs text-[#8D99AE] font-semibold mt-1">Este archivo no contiene texto procesable.</p>
+                                    <span className="w-12 h-12 rounded-2xl bg-[#F2F1EC] border border-[#E4E2DC] flex items-center justify-center mb-3 text-[#8D99AE]">
+                                        <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z" /><path d="M14 2v4a2 2 0 0 0 2 2h4" /><path d="M10 9H8M16 13H8M16 17H8" /></svg>
+                                    </span>
+                                    <p className="text-sm font-semibold text-[#1C1917]">Sin texto extraído</p>
+                                    <p className="text-xs text-[#8D99AE] mt-1">Este archivo no contiene texto procesable.</p>
                                 </div>
                             )}
                         </div>

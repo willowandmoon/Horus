@@ -28,7 +28,7 @@
 | Tecnología | Uso |
 |---|---|
 | **Next.js API Routes** | Endpoints REST dentro del mismo proyecto (`/api/*`) |
-| **Groq API** | LLM gratuito — modelo `llama-3.3-70b-versatile` para el chat de primeros auxilios |
+| **OpenAI** (`gpt-4o-mini`) | LLM para corrección OCR, estructuración de texto médico y normalización de medicamentos |
 | **ElevenLabs** | Síntesis de voz (TTS) — modelo `eleven_flash_v2_5`, voz Matilda |
 | **Open-Meteo** | API de clima en tiempo real (gratuita, sin clave) |
 | **Nominatim / OpenStreetMap** | Geocodificación inversa — convierte coordenadas GPS a ciudad y país |
@@ -40,28 +40,20 @@
 | **bcryptjs** | Hash de contraseñas con salt |
 | **Zod** | Validación de esquemas en API Routes |
 
-### Base de datos
+### Base de datos y almacenamiento
 | Tecnología | Uso |
 |---|---|
-| **PostgreSQL** | Base de datos relacional principal |
-| **Supabase** | Plataforma que provee la instancia de PostgreSQL en la nube |
-| **Prisma ORM** (`@prisma/client`, `@prisma/adapter-pg`) | Modelado, migraciones y queries tipados contra la base de datos |
-| **Pinecone** | Base de datos vectorial para RAG — almacena embeddings del historial médico y documentos de primeros auxilios para enriquecer las respuestas del asistente IA |
-| **Cloudinary** | Almacenamiento y optimización de imágenes de perfil y documentos médicos del usuario |
+| **PostgreSQL** (Neon) | Base de datos relacional principal — usuarios, perfiles médicos, pagos |
+| **Prisma ORM** | Modelado, migraciones y queries tipados. Genera cliente en `src/generated/` |
+| **Firebase Firestore** | Historial de documentos médicos subidos (trazabilidad) |
+| **Cloudinary** | Almacenamiento de archivos médicos e imágenes de perfil — fuente de verdad para los archivos activos |
 
-### Hardware (pulsera física)
+### Pagos
 | Tecnología | Uso |
 |---|---|
-| **MicroPython** | Lenguaje de programación del microcontrolador embebido en la pulsera |
-| **NFC (Near Field Communication)** | Tag pasivo integrado en la pulsera — al ser escaneado redirige al perfil del usuario sin necesidad de batería |
-| **GPS / Geolocalización** | Módulo de localización en el hardware + Web Geolocation API en el navegador para mostrar la posición exacta del usuario |
-
-### APIs de dispositivo (Web APIs)
-| API | Uso |
-|---|---|
-| **Web Geolocation API** | Obtiene coordenadas GPS del dispositivo del usuario |
-| **Web Speech API** (`SpeechRecognition`) | Entrada de voz en el chat — reconocimiento en español colombiano (`es-CO`) |
-| **Web Audio API** | Reproducción del audio generado por ElevenLabs TTS |
+| **MercadoPago SDK v2** | Checkout Pro, webhook de confirmación, envío de recibo por email con PDF |
+| **Nodemailer** | SMTP Gmail — envío del email de confirmación de compra |
+| **PDFKit** | Generación del PDF de recibo adjunto al email |
 
 ---
 
@@ -70,70 +62,116 @@
 ```
 User → PersonalInformation, MedicalProfile, Allergy[], ChronicCondition[],
         UserMedication[], EmergencyContact[], MedicalHistory[],
-        NfcScan[], EmergencyAlert[], PrivacySettings
+        ProfileScan[], EmergencyAlert[], PrivacySettings,
+        UserDevice[], DeviceSession[], SecurityLog[]
+
+Product → Order → Payment → Subscription
 ```
 
 Cada usuario puede controlar qué información es visible públicamente mediante `PrivacySettings`.
 
 ---
 
-## Variables de entorno requeridas
+## Instalación y desarrollo
+
+### 1. Clonar e instalar dependencias
+
+```bash
+git clone <repo-url>
+cd horus-braslet
+npm install
+```
+
+### 2. Archivos que debes colocar manualmente
+
+Estos archivos están en `.gitignore` y **no se incluyen en el repositorio**. Debes crearlos/colocarlos antes de correr el proyecto:
+
+#### `.env` (raíz del proyecto)
 
 ```env
-DATABASE_URL=           # Cadena de conexión PostgreSQL (Supabase)
-JWT_SECRET=             # Secreto para firmar tokens JWT
-GROQ_API_KEY=           # API key de Groq (LLM gratuito)
-ELEVENLABS_API_KEY=     # API key de ElevenLabs (TTS)
-PINECONE_API_KEY=       # API key de Pinecone (RAG vectorial)
-CLOUDINARY_URL=         # URL de conexión a Cloudinary
-```
+# Base de datos PostgreSQL (Neon)
+DATABASE_URL="postgresql://..."
 
----
+# OpenAI
+OPENAI_API_KEY="sk-proj-..."
 
-## Pagos con Mercado Pago
+# Cloudinary
+CLOUDINARY_CLOUD_NAME="..."
+CLOUDINARY_API_KEY="..."
+CLOUDINARY_API_SECRET="..."
 
-- Flujo principal: `/tienda` → `/checkout` → Mercado Pago → `/payment/*`.
-- Webhook: `/api/payments/webhook`.
-- Estado de orden: `/api/payments/status/[orderId]`.
+# JWT
+JWT_ACCESS_SECRET="..."
+JWT_REFRESH_SECRET="..."
 
-### Variables de entorno necesarias
+# MercadoPago (TEST para desarrollo, producción sin TEST- prefix)
+MP_PUBLIC_KEY="TEST-..."
+MP_ACCESS_TOKEN="TEST-..."
+MP_WEBHOOK_SECRET="..."
 
-```
-NEXT_PUBLIC_APP_URL="http://localhost:3000"
-MP_ACCESS_TOKEN="..."
-MP_PUBLIC_KEY="..."
+# URL pública de la app (ngrok en dev, dominio real en prod)
+NEXT_PUBLIC_APP_URL="https://tu-dominio.ngrok-free.dev"
 
-# SMTP para correos con PDF
+# SMTP Gmail para emails de confirmación
 EMAIL_HOST="smtp.gmail.com"
 EMAIL_PORT="465"
 EMAIL_SECURE="true"
 EMAIL_USER="tu-correo@gmail.com"
-EMAIL_PASS="APP_PASSWORD_GMAIL"
+EMAIL_PASS="tu-app-password-gmail"
 EMAIL_FROM="tu-correo@gmail.com"
 EMAIL_TO="tu-correo@gmail.com"
+
+# OCR con IA (true para activar corrección con OpenAI)
+USE_AI_CORRECTION="true"
 ```
 
-> Para compras reales, `NEXT_PUBLIC_APP_URL` debe ser una URL publica HTTPS y el webhook debe ser accesible desde Mercado Pago.
+> **Gmail App Password**: ve a tu cuenta de Google → Seguridad → Verificación en dos pasos → Contraseñas de aplicaciones.
 
----
+#### `src/config/<nombre>-firebase-adminsdk-<id>.json`
 
-## Email de confirmacion
+Credenciales del Firebase Admin SDK. Para obtenerlo:
+1. Ve a [Firebase Console](https://console.firebase.google.com) → tu proyecto → Configuración del proyecto → Cuentas de servicio
+2. Haz clic en **"Generar nueva clave privada"**
+3. Guarda el archivo JSON descargado en `src/config/`
 
-- Se envia al aprobar el pago en el webhook.
-- Incluye un PDF con resumen de la orden y direccion de envio.
+El archivo tiene esta forma:
+```json
+{
+  "type": "service_account",
+  "project_id": "...",
+  "private_key_id": "...",
+  "private_key": "-----BEGIN RSA PRIVATE KEY-----\n...",
+  "client_email": "firebase-adminsdk-...@....iam.gserviceaccount.com",
+  "client_id": "...",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token"
+}
+```
 
----
-
-## Instalación y desarrollo
+### 3. Generar el cliente de Prisma
 
 ```bash
-npm install
 npx prisma generate
-npm run dev
 ```
 
-La aplicación queda disponible en `http://localhost:3000`.  
-Usuarios no autenticados son redirigidos a `/login`.
+> El cliente se genera en `src/generated/` (no en `node_modules`). Si ves errores de importación, asegúrate de haber corrido este comando.
+
+### 4. Descargar datos de Tesseract OCR (opcional)
+
+Solo necesario si vas a usar OCR local para imágenes:
+
+```bash
+npm run download:tessdata
+```
+
+### 5. Correr en desarrollo
+
+```bash
+npm run dev
+# Disponible en http://localhost:3002
+```
+
+> El proyecto corre en el **puerto 3002** (no 3000). Esto es intencional para coexistir con otros servicios del ecosistema Horus.
 
 ---
 
@@ -142,15 +180,50 @@ Usuarios no autenticados son redirigidos a `/login`.
 ```
 src/
 ├── app/
-│   ├── api/              # Endpoints: auth, chat, tts
-│   ├── dashboard/        # Panel principal del usuario
-│   │   └── _components/  # ChatModal, LocationMap, WeatherCard, SplineRobot...
-│   ├── login/
-│   └── register/
-├── shared/
-│   └── lib/              # JWT, cookies, Prisma client
+│   ├── api/
+│   │   ├── auth/              # Login, registro, logout, refresh
+│   │   ├── profile/           # Perfil de usuario y foto
+│   │   ├── medical-profile/   # Alergias, condiciones, medicamentos, historial
+│   │   ├── medical-history/   # Documentos médicos (Cloudinary + Firebase)
+│   │   ├── files/download/    # Proxy de descarga segura desde Cloudinary
+│   │   ├── payments/          # MercadoPago: create-order, webhook, status
+│   │   └── ocr/               # Endpoint de corrección OCR
+│   ├── dashboard/             # Panel principal con mapa, clima y chat IA
+│   ├── archivos/              # Documentos médicos del usuario
+│   ├── profile/               # Perfil personal + perfil médico (tabs)
+│   ├── login/ register/       # Autenticación
+│   └── layout.tsx             # Fuentes: Pliant (body) + Space Grotesk (headings)
+├── components/
+│   └── FloatingSidebar.tsx    # Sidebar flotante vertical (estilo mobile)
+├── infrastructure/
+│   ├── ai/openai.ts           # Corrección OCR, estructuración de texto médico
+│   ├── cloudinary/            # Upload y descarga de archivos
+│   ├── database/
+│   │   ├── prisma/client.ts   # Cliente Prisma (importa de src/generated/client)
+│   │   ├── firebase.ts        # Firebase Admin SDK
+│   │   └── medicalRecordsRepository.ts
+│   └── medical-history/       # Scraper, OCR, PDF extractor, Word extractor
+├── generated/                 # Cliente Prisma generado (no commitear, sí .gitignore)
+└── config/
+    └── *.json                 # Firebase service account (NO commitear)
 prisma/
-└── schema.prisma         # Esquema relacional completo
+└── schema.prisma              # Esquema relacional completo
+public/
+└── fonts/                     # Pliant-Variable.ttf, Pliant-Italic-Variable.ttf
+```
+
+---
+
+## Pagos con MercadoPago
+
+- Flujo: `/tienda` → `/checkout` → MercadoPago → `/payment/*`
+- Webhook: `POST /api/payments/webhook`
+- Estado: `GET /api/payments/status/[orderId]`
+
+Para desarrollo local con webhook, usa [ngrok](https://ngrok.com):
+```bash
+ngrok http 3002
+# Copia la URL HTTPS y úsala en NEXT_PUBLIC_APP_URL y en el webhook de MercadoPago
 ```
 
 ---

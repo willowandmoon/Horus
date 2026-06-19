@@ -186,16 +186,18 @@ function getInitials(firstName: string, lastName: string): string {
 
 function SectionTitle({ children }: { children: React.ReactNode }) {
     return (
-        <p className="text-[11px] font-black uppercase tracking-widest text-[#8D99AE] mb-3">{children}</p>
+        <p className="text-xs font-semibold uppercase tracking-wider text-[#8D99AE] mb-3">{children}</p>
     );
 }
 
-function EmptyState({ emoji, title, subtitle }: { emoji: string; title: string; subtitle: string }) {
+function EmptyState({ icon, title, subtitle }: { icon: React.ReactNode; title: string; subtitle: string }) {
     return (
         <div className="flex flex-col items-center justify-center py-10 text-center bg-[#F2F1EC] rounded-[20px]">
-            <span className="text-4xl mb-3">{emoji}</span>
-            <p className="text-sm font-black text-[#1C1917]">{title}</p>
-            <p className="text-xs text-[#8D99AE] font-semibold mt-1 max-w-xs">{subtitle}</p>
+            <span className="w-12 h-12 rounded-2xl bg-white border border-[#E4E2DC] flex items-center justify-center mb-3 text-[#8D99AE] shadow-sm">
+                {icon}
+            </span>
+            <p className="text-sm font-semibold text-[#1C1917]">{title}</p>
+            <p className="text-xs text-[#8D99AE] mt-1 max-w-xs">{subtitle}</p>
         </div>
     );
 }
@@ -207,8 +209,8 @@ function InfoCard({ icon, label, value }: { icon: React.ReactNode; label: string
                 {icon}
             </div>
             <div className="min-w-0">
-                <p className="text-[10px] font-black uppercase tracking-widest text-[#8D99AE]">{label}</p>
-                <p className="text-sm font-bold text-[#1C1917] truncate">{value || "—"}</p>
+                <p className="text-xs text-[#8D99AE] mb-0.5">{label}</p>
+                <p className="text-sm font-semibold text-[#1C1917] truncate">{value || "—"}</p>
             </div>
         </div>
     );
@@ -394,7 +396,7 @@ function PersonalTab({
                                 ] as const
                             ).map(({ label, name, type }) => (
                                 <div key={name}>
-                                    <label className="text-[10px] font-black uppercase tracking-widest text-[#8D99AE] block mb-1.5">{label}</label>
+                                    <label className="text-xs text-[#8D99AE] block mb-1.5">{label}</label>
                                     <input
                                         type={type}
                                         name={name}
@@ -406,7 +408,7 @@ function PersonalTab({
                             ))}
 
                             <div>
-                                <label className="text-[10px] font-black uppercase tracking-widest text-[#8D99AE] block mb-1.5">Tipo de sangre</label>
+                                <label className="text-xs text-[#8D99AE] block mb-1.5">Tipo de sangre</label>
                                 <select
                                     name="bloodType"
                                     value={form.bloodType}
@@ -421,7 +423,7 @@ function PersonalTab({
                             </div>
 
                             <div className="md:col-span-2">
-                                <label className="text-[10px] font-black uppercase tracking-widest text-[#8D99AE] block mb-1.5">Género</label>
+                                <label className="text-xs text-[#8D99AE] block mb-1.5">Género</label>
                                 <select
                                     name="gender"
                                     value={form.gender}
@@ -468,21 +470,21 @@ function MedicalTab({ data }: { data: MedicalData }) {
             <section>
                 <SectionTitle>Alergias</SectionTitle>
                 {data.allergies.length === 0 ? (
-                    <EmptyState emoji="🌿" title="Sin alergias registradas" subtitle="No hay alergias documentadas en tu perfil médico." />
+                    <EmptyState icon={<svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><path d="M12 22V12M12 12C12 7 7 4 2 6c2 4 5 6 10 6ZM12 12c0-5 5-8 10-6-2 4-5 6-10 6Z" /></svg>} title="Sin alergias registradas" subtitle="No hay alergias documentadas en tu perfil médico." />
                 ) : (
                     <div className="flex flex-wrap gap-2">
                         {data.allergies.map((a) => {
                             const sevClass = SEV_COLORS[a.severity] ?? SEV_COLORS.MILD;
                             return (
                                 <div key={a.id} className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl border ${sevClass} group relative cursor-default`}>
-                                    <span className="text-sm font-bold leading-none">{a.allergenName}</span>
+                                    <span className="text-sm font-semibold leading-none">{a.allergenName}</span>
                                     {a.allergyType && (
-                                        <span className="text-[10px] font-semibold opacity-70">
+                                        <span className="text-xs opacity-70">
                                             {ALLERGY_TYPE_LABELS[a.allergyType] ?? a.allergyType}
                                         </span>
                                     )}
                                     {a.reactionDescription && (
-                                        <div className="absolute bottom-full left-0 mb-2 z-10 hidden group-hover:flex w-56 bg-[#1C1917] text-white text-[11px] font-semibold rounded-xl px-3 py-2 shadow-xl pointer-events-none">
+                                        <div className="absolute bottom-full left-0 mb-2 z-10 hidden group-hover:flex w-56 bg-[#1C1917] text-white text-xs rounded-xl px-3 py-2 shadow-xl pointer-events-none">
                                             {a.reactionDescription}
                                         </div>
                                     )}
@@ -497,7 +499,7 @@ function MedicalTab({ data }: { data: MedicalData }) {
             <section>
                 <SectionTitle>Condiciones crónicas</SectionTitle>
                 {data.chronicConditions.length === 0 ? (
-                    <EmptyState emoji="💪" title="Sin condiciones registradas" subtitle="No hay condiciones crónicas documentadas en tu historial." />
+                    <EmptyState icon={<svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><path d="M4.5 6.375a4.125 4.125 0 1 1 8.25 0 4.125 4.125 0 0 1-8.25 0ZM14.25 8.625a3.375 3.375 0 1 1 6.75 0 3.375 3.375 0 0 1-6.75 0ZM1.5 19.125a7.125 7.125 0 0 1 14.25 0v.003l-.001.119a.75.75 0 0 1-.363.63 13.067 13.067 0 0 1-6.761 1.873c-2.472 0-4.786-.684-6.76-1.873a.75.75 0 0 1-.364-.63l-.001-.122ZM17.25 19.128l-.001.144a2.25 2.25 0 0 1-.233.96 10.088 10.088 0 0 0 5.06-1.01.75.75 0 0 0 .42-.643 4.875 4.875 0 0 0-6.957-4.611 8.586 8.586 0 0 1 1.71 5.157v.003Z" /></svg>} title="Sin condiciones registradas" subtitle="No hay condiciones crónicas documentadas en tu historial." />
                 ) : (
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         {data.chronicConditions.map((c) => {
@@ -506,13 +508,13 @@ function MedicalTab({ data }: { data: MedicalData }) {
                             return (
                                 <div key={c.id} className="bg-white rounded-[20px] border border-[#E4E2DC] shadow-sm p-5 space-y-2">
                                     <div className="flex items-start justify-between gap-2">
-                                        <p className="text-sm font-black text-[#1C1917] leading-tight">{c.conditionName}</p>
-                                        <span className={`text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full border shrink-0 ${statusClass}`}>
+                                        <p className="text-sm font-semibold text-[#1C1917] leading-tight">{c.conditionName}</p>
+                                        <span className={`text-xs font-medium px-2.5 py-1 rounded-full border shrink-0 ${statusClass}`}>
                                             {STATUS_LABELS[c.status] ?? c.status}
                                         </span>
                                     </div>
                                     {c.severity && (
-                                        <span className={`inline-block text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full border ${sevClass}`}>
+                                        <span className={`inline-block text-xs font-medium px-2.5 py-1 rounded-full border ${sevClass}`}>
                                             {c.severity === "MILD" ? "Leve"
                                                 : c.severity === "MODERATE" ? "Moderada"
                                                 : c.severity === "SEVERE" ? "Severa"
@@ -534,7 +536,7 @@ function MedicalTab({ data }: { data: MedicalData }) {
             <section>
                 <SectionTitle>Medicamentos</SectionTitle>
                 {data.medications.length === 0 ? (
-                    <EmptyState emoji="💊" title="Sin medicamentos registrados" subtitle="No hay medicamentos documentados en tu perfil." />
+                    <EmptyState icon={<svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><path d="m10.5 20.5 10-10a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7Z" /><path d="m8.5 8.5 7 7" /></svg>} title="Sin medicamentos registrados" subtitle="No hay medicamentos documentados en tu perfil." />
                 ) : (
                     <div className="flex gap-4 overflow-x-auto pb-2 -mx-1 px-1">
                         {data.medications.map((m) => (
@@ -543,24 +545,24 @@ function MedicalTab({ data }: { data: MedicalData }) {
                                 className="bg-white rounded-[20px] border border-[#E4E2DC] shadow-sm p-5 min-w-[220px] max-w-[260px] shrink-0 space-y-2.5"
                             >
                                 <div className="flex items-start justify-between gap-2">
-                                    <p className="text-sm font-black text-[#1C1917] leading-tight">{m.name}</p>
-                                    <span className={`text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full border shrink-0 ${m.isCurrent ? "bg-green-50 text-green-700 border-green-100" : "bg-gray-100 text-gray-500 border-gray-200"}`}>
+                                    <p className="text-sm font-semibold text-[#1C1917] leading-tight">{m.name}</p>
+                                    <span className={`text-xs font-medium px-2 py-0.5 rounded-full border shrink-0 ${m.isCurrent ? "bg-green-50 text-green-700 border-green-100" : "bg-gray-100 text-gray-500 border-gray-200"}`}>
                                         {m.isCurrent ? "Activo" : "Previo"}
                                     </span>
                                 </div>
                                 {m.dosage && (
-                                    <p className="text-xs font-bold text-[#1C1917]">{m.dosage}</p>
+                                    <p className="text-xs font-semibold text-[#1C1917]">{m.dosage}</p>
                                 )}
                                 {m.frequency && (
-                                    <p className="text-[11px] text-[#8D99AE] font-semibold">{m.frequency}</p>
+                                    <p className="text-xs text-[#8D99AE]">{m.frequency}</p>
                                 )}
                                 {m.route && (
-                                    <span className="inline-block text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-[#F2F1EC] text-[#8D99AE] border border-[#E4E2DC]">
+                                    <span className="inline-block text-xs px-2.5 py-1 rounded-full bg-[#F2F1EC] text-[#8D99AE] border border-[#E4E2DC]">
                                         {ROUTE_LABELS[m.route] ?? m.route}
                                     </span>
                                 )}
                                 {m.purpose && (
-                                    <p className="text-[11px] text-[#8D99AE] font-semibold leading-relaxed line-clamp-2">{m.purpose}</p>
+                                    <p className="text-xs text-[#8D99AE] leading-relaxed line-clamp-2">{m.purpose}</p>
                                 )}
                             </div>
                         ))}
@@ -572,14 +574,14 @@ function MedicalTab({ data }: { data: MedicalData }) {
             <section>
                 <SectionTitle>Historial médico</SectionTitle>
                 {data.medicalHistory.length === 0 ? (
-                    <EmptyState emoji="📋" title="Sin historial registrado" subtitle="Aún no hay eventos médicos registrados en tu historial." />
+                    <EmptyState icon={<svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2" /><rect x="9" y="3" width="6" height="4" rx="1" /><path d="M9 12h6M9 16h4" /></svg>} title="Sin historial registrado" subtitle="Aún no hay eventos médicos registrados en tu historial." />
                 ) : (
                     <div className="space-y-3">
                         {data.medicalHistory.map((h, idx) => (
                             <div key={h.id} className="flex gap-4 items-start">
                                 {/* Timeline dot */}
                                 <div className="flex flex-col items-center shrink-0 mt-1">
-                                    <div className="w-8 h-8 rounded-full bg-[#FDF2B2] border border-[#FAD957]/40 flex items-center justify-center text-[#5C4D04] font-black text-xs">
+                                    <div className="w-8 h-8 rounded-full bg-[#FDF2B2] border border-[#FAD957]/40 flex items-center justify-center text-[#5C4D04] font-bold text-xs">
                                         {idx + 1}
                                     </div>
                                     {idx < data.medicalHistory.length - 1 && (
@@ -589,12 +591,12 @@ function MedicalTab({ data }: { data: MedicalData }) {
 
                                 <div className="bg-white rounded-[20px] border border-[#E4E2DC] shadow-sm p-4 flex-1 space-y-1.5">
                                     <div className="flex items-start justify-between gap-2 flex-wrap">
-                                        <p className="text-sm font-black text-[#1C1917] leading-tight">{h.eventName}</p>
-                                        <span className="text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full bg-[#F2F1EC] text-[#8D99AE] border border-[#E4E2DC] shrink-0">
+                                        <p className="text-sm font-semibold text-[#1C1917] leading-tight">{h.eventName}</p>
+                                        <span className="text-xs px-2.5 py-1 rounded-full bg-[#F2F1EC] text-[#8D99AE] border border-[#E4E2DC] shrink-0">
                                             {EVENT_TYPE_LABELS[h.eventType] ?? h.eventType}
                                         </span>
                                     </div>
-                                    <p className="text-[11px] text-[#8D99AE] font-semibold">{formatDate(h.createdAt)}</p>
+                                    <p className="text-xs text-[#8D99AE]">{formatDate(h.createdAt)}</p>
                                     {h.location && (
                                         <p className="text-xs font-semibold text-[#1C1917] flex items-center gap-1">
                                             <svg className="w-3 h-3 text-[#8D99AE] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>

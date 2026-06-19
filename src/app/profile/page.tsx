@@ -29,7 +29,7 @@ export default async function ProfilePage() {
             <FloatingSidebar />
 
             {/* ── Main ── */}
-            <main className="flex-1 lg:pl-80 p-6 md:p-10 overflow-y-auto w-full max-w-[1400px] mx-auto">
+            <main className="flex-1 pl-20 p-6 md:p-10 overflow-y-auto w-full max-w-[1400px] mx-auto">
                 <div className="mb-8">
                     <h1 className="text-3xl font-black text-[#1C1917]">Mi Perfil</h1>
                     <p className="text-sm text-[#8D99AE] font-semibold mt-1">Configura tus datos de salud y contacto</p>

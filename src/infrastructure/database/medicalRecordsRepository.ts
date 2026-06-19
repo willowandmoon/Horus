@@ -35,7 +35,21 @@ export const medicalRecordsRepository = {
   async getDocumentsByUserId(userId: string): Promise<DocumentItem[]> {
     const record = await this.getUserRecord(userId);
     if (!record) return [];
-    return record.documents || [];
+    // Only return documents that haven't been deleted from Cloudinary
+    return (record.documents || []).filter((d) => !(d as DocumentItem & { deletedAt?: unknown }).deletedAt);
+  },
+
+  async markDocumentDeleted(userId: string, publicId: string): Promise<void> {
+    const userRef = db.collection(MEDICAL_RECORDS_COLLECTION).doc(userId);
+    await db.runTransaction(async (tx) => {
+      const userDoc = await tx.get(userRef);
+      if (!userDoc.exists) return;
+      const payload = userDoc.data() as { documents?: (DocumentItem & { deletedAt?: string })[] } | undefined;
+      const documents = (payload?.documents || []).map((d) =>
+        d.publicId === publicId ? { ...d, deletedAt: new Date().toISOString() } : d
+      );
+      tx.update(userRef, { documents });
+    });
   },
 
   async addDocumentToUser(userId: string, document: DocumentItem) {

@@ -68,7 +68,7 @@ export default async function DashboardPage() {
             <FloatingSidebar />
 
             {/* ── Main Content Area ── */}
-            <main className="flex-1 lg:pl-80 p-6 md:p-10 overflow-y-auto w-full max-w-[1400px] mx-auto">
+            <main className="flex-1 pl-20 p-6 md:p-10 overflow-y-auto w-full max-w-[1400px] mx-auto">
                 {/* Encabezado del Dashboard */}
                 <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 mb-8">
                     <div>
