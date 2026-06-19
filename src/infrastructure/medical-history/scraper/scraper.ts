@@ -1,6 +1,6 @@
 // 1. Tus imports actuales
 import { PrismaClient } from '@/src/generated/client';
-import { correctOcrTextWithGemini, structureMedicalTextWithGemini, normalizeMedicationNamesWithGemini, StructuredMedicalText } from '@/src/infrastructure/ai/gemini';
+import { correctOcrTextWithGemini, structureMedicalTextWithGemini, normalizeMedicationNamesWithGemini, StructuredMedicalData as StructuredMedicalText } from '@/src/infrastructure/ai/openai';
 
 // 2. IMPORTANTE: Necesitamos el driver de PostgreSQL/Neon que configuró tu equipo
 import { Pool } from 'pg'; 
