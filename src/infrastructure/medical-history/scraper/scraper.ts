@@ -48,6 +48,13 @@ export class MedicalHistoryScraper {
   }
 
   /**
+   * Guarda datos estructurados ya revisados por el usuario (llamado desde confirmExtraction).
+   */
+  async saveStructuredData(userId: string, data: StructuredMedicalText, normalizedMedications: Record<string, string>): Promise<void> {
+    return this.saveToPostgres(userId, data, normalizedMedications);
+  }
+
+  /**
    * Guarda el JSON estructurado respetando las relaciones del esquema de Prisma
    */
   private async saveToPostgres(userId: string, data: StructuredMedicalText, normalizedMedications: Record<string, string>): Promise<void> {
