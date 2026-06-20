@@ -1,787 +1,884 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import axios from "axios";
+import Image from "next/image";
 
-// ── Interfaces ────────────────────────────────────────────────────────────────
+// ── Fonts ─────────────────────────────────────────────────────────────────────
+// DISPLAY (Space Grotesk) → títulos de sección, modal, nombre usuario
+// SANS    (DM Sans)       → labels, valores, texto de cuerpo (igual que mobile)
+const DISPLAY = "var(--font-space-grotesk), system-ui, sans-serif";
+const SANS    = "var(--font-dm-sans), system-ui, sans-serif";
 
+// ── Design tokens ─────────────────────────────────────────────────────────────
+const C = {
+  bg:      "#F2F1EC",
+  card:    "#FFFFFF",
+  primary: "#1A1512",
+  muted:   "#8D99AE",
+  mutedBg: "#F0EBE3",
+  green:   "#22C55E",
+  red:     "#EF4444",
+  pink:    "#FAB2D3",
+};
+
+// ── Lookup labels ─────────────────────────────────────────────────────────────
+const BLOOD: Record<string, string> = {
+  A_POSITIVE:"A+", A_NEGATIVE:"A-", B_POSITIVE:"B+", B_NEGATIVE:"B-",
+  AB_POSITIVE:"AB+", AB_NEGATIVE:"AB-", O_POSITIVE:"O+", O_NEGATIVE:"O-",
+};
+const GENDER: Record<string, string> = {
+  MALE:"Masculino", FEMALE:"Femenino", OTHER:"Otro", PREFER_NOT_TO_SAY:"Prefiero no decir",
+};
+const IDTYPE: Record<string, string> = {
+  CC:"Cédula de ciudadanía", CE:"Cédula de extranjería",
+  PP:"Pasaporte", TI:"Tarjeta de identidad", PPE:"Permiso especial",
+};
+const ALLERGY_TYPES = [
+  { label:"Medicamento", value:"MEDICATION" }, { label:"Alimento",  value:"FOOD" },
+  { label:"Ambiental",   value:"ENVIRONMENTAL" }, { label:"Otro", value:"OTHER" },
+];
+const ALLERGY_SEV = [
+  { label:"Leve", value:"MILD" }, { label:"Moderada", value:"MODERATE" },
+  { label:"Severa", value:"SEVERE" }, { label:"Riesgo vital", value:"LIFE_THREATENING" },
+];
+const COND_SEV = [
+  { label:"Leve", value:"MILD" }, { label:"Moderada", value:"MODERATE" },
+  { label:"Severa", value:"SEVERE" },
+];
+const COND_STATUS = [
+  { label:"Activa", value:"ACTIVE" }, { label:"Controlada", value:"MANAGED" },
+  { label:"En remisión", value:"IN_REMISSION" }, { label:"Resuelta", value:"RESOLVED" },
+];
+const GENDERS = [
+  { label:"Masculino", value:"MALE" }, { label:"Femenino", value:"FEMALE" },
+  { label:"Otro", value:"OTHER" }, { label:"Prefiero no decir", value:"PREFER_NOT_TO_SAY" },
+];
+const ID_TYPES = [
+  { label:"Cédula de ciudadanía", value:"CC" }, { label:"Cédula de extranjería", value:"CE" },
+  { label:"Pasaporte", value:"PP" }, { label:"Tarjeta de identidad", value:"TI" },
+  { label:"Permiso especial", value:"PPE" },
+];
+const BLOOD_OPTS = [
+  { label:"A+", value:"A_POSITIVE" }, { label:"A-", value:"A_NEGATIVE" },
+  { label:"B+", value:"B_POSITIVE" }, { label:"B-", value:"B_NEGATIVE" },
+  { label:"AB+", value:"AB_POSITIVE" }, { label:"AB-", value:"AB_NEGATIVE" },
+  { label:"O+", value:"O_POSITIVE" }, { label:"O-", value:"O_NEGATIVE" },
+];
+
+// ── Types ────────────────────────────────────────────────────────────────────
 interface Profile {
-    id: string;
-    email: string;
-    nfcTagId: string | null;
-    createdAt: string;
-    firstName: string;
-    lastName: string;
-    dateOfBirth: string | null;
-    gender: string | null;
-    bloodType: string | null;
-    identificationNumber: string | null;
-    identificationType: string | null;
-    photoUrl: string | null;
-    phone: string;
-    location: string;
+  email: string; firstName: string; lastName: string;
+  dateOfBirth: string | null; gender: string | null; bloodType: string | null;
+  identificationNumber: string | null; identificationType: string | null;
+  photoUrl: string | null;
 }
-
-interface EditForm {
-    firstName: string;
-    lastName: string;
-    phone: string;
-    location: string;
-    dateOfBirth: string;
-    gender: string;
-    bloodType: string;
-    identificationNumber: string;
-    identificationType: string;
-}
-
-interface Allergy {
-    id: string;
-    allergenName: string;
-    allergyType: string;
-    severity: string;
-    reactionDescription: string | null;
-}
-
-interface ChronicCondition {
-    id: string;
-    conditionName: string;
-    severity: string | null;
-    status: string;
-    notes: string | null;
-}
-
-interface Medication {
-    id: string;
-    name: string;
-    dosage: string | null;
-    frequency: string | null;
-    route: string | null;
-    purpose: string | null;
-    isCurrent: boolean;
-}
-
-interface MedicalHistoryItem {
-    id: string;
-    eventType: string;
-    eventName: string;
-    location: string | null;
-    outcome: string | null;
-    createdAt: string;
-}
-
-interface MedicalData {
-    allergies: Allergy[];
-    chronicConditions: ChronicCondition[];
-    medications: Medication[];
-    medicalHistory: MedicalHistoryItem[];
-}
-
-// ── Lookup tables ─────────────────────────────────────────────────────────────
-
-const BLOOD_LABELS: Record<string, string> = {
-    A_POSITIVE: "A+", A_NEGATIVE: "A-",
-    B_POSITIVE: "B+", B_NEGATIVE: "B-",
-    AB_POSITIVE: "AB+", AB_NEGATIVE: "AB-",
-    O_POSITIVE: "O+", O_NEGATIVE: "O-",
-};
-
-const GENDER_LABELS: Record<string, string> = {
-    MALE: "Masculino",
-    FEMALE: "Femenino",
-    OTHER: "Otro",
-    PREFER_NOT_TO_SAY: "Prefiero no decir",
-};
-
-const SEV_COLORS: Record<string, string> = {
-    MILD: "bg-green-50 text-green-700 border-green-100",
-    MODERATE: "bg-amber-50 text-amber-700 border-amber-100",
-    SEVERE: "bg-orange-50 text-orange-700 border-orange-100",
-    LIFE_THREATENING: "bg-red-50 text-red-700 border-red-100",
-};
-
-const ALLERGY_TYPE_LABELS: Record<string, string> = {
-    FOOD: "Alimento",
-    DRUG: "Medicamento",
-    ENVIRONMENTAL: "Ambiental",
-    INSECT: "Insecto",
-    LATEX: "Látex",
-    PET: "Mascota",
-    OTHER: "Otro",
-};
-
-const EVENT_TYPE_LABELS: Record<string, string> = {
-    SURGERY: "Cirugía",
-    HOSPITALIZATION: "Hospitalización",
-    DIAGNOSIS: "Diagnóstico",
-    PROCEDURE: "Procedimiento",
-    EMERGENCY: "Emergencia",
-    VACCINATION: "Vacunación",
-    LAB_RESULT: "Laboratorio",
-    IMAGING: "Imagen diagnóstica",
-    CONSULTATION: "Consulta",
-    OTHER: "Otro",
-};
-
-const ROUTE_LABELS: Record<string, string> = {
-    ORAL: "Oral",
-    INTRAVENOUS: "Intravenosa",
-    INTRAMUSCULAR: "Intramuscular",
-    SUBCUTANEOUS: "Subcutánea",
-    TOPICAL: "Tópica",
-    INHALATION: "Inhalación",
-    SUBLINGUAL: "Sublingual",
-    RECTAL: "Rectal",
-    OPHTHALMIC: "Oftálmica",
-    OTIC: "Ótica",
-    NASAL: "Nasal",
-    OTHER: "Otro",
-};
-
-const STATUS_COLORS: Record<string, string> = {
-    ACTIVE: "bg-green-50 text-green-700 border-green-100",
-    MANAGED: "bg-blue-50 text-blue-700 border-blue-100",
-    IN_REMISSION: "bg-purple-50 text-purple-700 border-purple-100",
-    RESOLVED: "bg-gray-100 text-gray-600 border-gray-200",
-};
-
-const STATUS_LABELS: Record<string, string> = {
-    ACTIVE: "Activo",
-    MANAGED: "Controlado",
-    IN_REMISSION: "En remisión",
-    RESOLVED: "Resuelto",
-};
+interface MedProfile { heightCm: number | null; weightKg: number | null; organDonor: boolean; insuranceProvider: string | null }
+interface Allergy { id: string; allergenName: string; allergyType: string; severity: string; reactionDescription: string | null; isActive: boolean }
+interface Condition { id: string; conditionName: string; severity: string | null; status: string; notes: string | null }
+interface Medication { id: string; name: string; dosage: string | null; frequency: string | null; isCurrent: boolean }
+interface Contact { id: string; name: string; relation: string; phone: string; email?: string }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
-
-function formatDate(iso: string | null): string {
-    if (!iso) return "—";
-    const d = new Date(iso);
-    if (isNaN(d.getTime())) return "—";
-    return d.toLocaleDateString("es-CO", { day: "numeric", month: "long", year: "numeric" });
+function fmtDate(iso: string | null) {
+  if (!iso) return "—";
+  const parts = iso.split("T")[0].split("-");
+  if (parts.length !== 3) return "—";
+  const d = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
+  if (isNaN(d.getTime())) return "—";
+  const now = new Date();
+  let age = now.getFullYear() - d.getFullYear();
+  if (now.getMonth() < d.getMonth() || (now.getMonth() === d.getMonth() && now.getDate() < d.getDate())) age--;
+  const months = ["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
+  return `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()} · ${age} años`;
+}
+function lbl<T extends { label: string; value: string }>(opts: T[], v?: string | null) {
+  return v ? (opts.find(o => o.value === v)?.label ?? v) : "—";
+}
+function severityColor(s: string) {
+  return s === "LIFE_THREATENING" || s === "SEVERE" ? C.red : s === "MODERATE" ? "#F59E0B" : C.green;
+}
+function condColor(s: string) {
+  return s === "ACTIVE" ? C.red : s === "MANAGED" ? "#F59E0B" : C.green;
 }
 
-function getAgeString(dobStr: string | null): string {
-    if (!dobStr) return "";
-    const birthDate = new Date(dobStr);
-    if (isNaN(birthDate.getTime())) return "";
-    const ageDifMs = Date.now() - birthDate.getTime();
-    const ageDate = new Date(ageDifMs);
-    const age = Math.abs(ageDate.getUTCFullYear() - 1970);
-    return ` · ${age} años`;
+// ── SVG Icons ─────────────────────────────────────────────────────────────────
+const sw: React.SVGProps<SVGSVGElement> = {};
+function Icon({ children, size = 16 }: { children: React.ReactNode; size?: number }) {
+  return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...sw}>{children}</svg>;
+}
+function PencilIcon({ size = 14, color = "currentColor" }: { size?: number; color?: string }) {
+  return <Icon size={size}><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" stroke={color} /></Icon>;
+}
+function TrashIcon({ size = 14, color = "currentColor" }: { size?: number; color?: string }) {
+  return <Icon size={size}><path d="M3 6h18M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6M10 11v6M14 11v6M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" stroke={color} /></Icon>;
+}
+function PhoneIcon({ size = 14, color = "currentColor" }: { size?: number; color?: string }) {
+  return <Icon size={size}><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 1.2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.76a16 16 0 0 0 6.29 6.29l1.12-1.84a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7a2 2 0 0 1 1.72 2.02z" stroke={color} /></Icon>;
+}
+function PlusIcon({ size = 14, color = "currentColor" }: { size?: number; color?: string }) {
+  return <Icon size={size}><path d="M12 5v14M5 12h14" stroke={color} /></Icon>;
+}
+function XIcon({ size = 12, color = "currentColor" }: { size?: number; color?: string }) {
+  return <Icon size={size}><line x1="18" y1="6" x2="6" y2="18" stroke={color} /><line x1="6" y1="6" x2="18" y2="18" stroke={color} /></Icon>;
+}
+function ChevronRight({ size = 14, color = "currentColor" }: { size?: number; color?: string }) {
+  return <Icon size={size}><path d="m9 18 6-6-6-6" stroke={color} /></Icon>;
+}
+function UserIcon({ size = 16, color = "currentColor" }: { size?: number; color?: string }) {
+  return <Icon size={size}><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" stroke={color} /><circle cx="12" cy="7" r="4" stroke={color} /></Icon>;
+}
+function HeartIcon({ size = 16, color = "currentColor" }: { size?: number; color?: string }) {
+  return <Icon size={size}><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" stroke={color} /></Icon>;
+}
+function CameraIcon({ size = 14, color = "currentColor" }: { size?: number; color?: string }) {
+  return <Icon size={size}><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z" stroke={color} /><circle cx="12" cy="13" r="3" stroke={color} /></Icon>;
 }
 
-function toDateInput(iso: string | null): string {
-    if (!iso) return "";
-    const d = new Date(iso);
-    if (isNaN(d.getTime())) return "";
-    return d.toISOString().slice(0, 10);
+// ── InfoRow ───────────────────────────────────────────────────────────────────
+function InfoRow({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 10, paddingTop: 6, paddingBottom: 6 }}>
+      <div style={{ width: 30, height: 30, borderRadius: 8, background: C.mutedBg,
+        display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+        {icon}
+      </div>
+      <div style={{ flex: 1 }}>
+        <p style={{ margin: 0, fontSize: 11, fontFamily: SANS, color: C.muted }}>{label}</p>
+        <p style={{ margin: 0, fontSize: 14, fontFamily: SANS, fontWeight: 700, color: C.primary }}>{value || "—"}</p>
+      </div>
+    </div>
+  );
 }
 
-function getInitials(firstName: string, lastName: string): string {
-    const f = firstName?.[0] ?? "";
-    const l = lastName?.[0] ?? "";
-    return (f + l).toUpperCase() || "US";
+// ── Badge ─────────────────────────────────────────────────────────────────────
+function Badge({ label, color }: { label: string; color: string }) {
+  return (
+    <span style={{ background: color + "22", color, fontSize: 11, fontWeight: 700, fontFamily: SANS,
+      padding: "3px 8px", borderRadius: 8, whiteSpace: "nowrap" }}>{label}</span>
+  );
 }
 
-// ── Shared sub-components ─────────────────────────────────────────────────────
-
-function SectionTitle({ children }: { children: React.ReactNode }) {
-    return (
-        <p className="text-xs font-semibold uppercase tracking-wider text-[#8D99AE] mb-3">{children}</p>
-    );
-}
-
-function EmptyState({ icon, title, subtitle }: { icon: React.ReactNode; title: string; subtitle: string }) {
-    return (
-        <div className="flex flex-col items-center justify-center py-10 text-center bg-[#F2F1EC] rounded-[20px]">
-            <span className="w-12 h-12 rounded-2xl bg-white border border-[#E4E2DC] flex items-center justify-center mb-3 text-[#8D99AE] shadow-sm">
-                {icon}
-            </span>
-            <p className="text-sm font-semibold text-[#1C1917]">{title}</p>
-            <p className="text-xs text-[#8D99AE] mt-1 max-w-xs">{subtitle}</p>
-        </div>
-    );
-}
-
-function InfoCard({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
-    return (
-        <div className="flex items-center gap-4 bg-white rounded-[20px] px-5 py-4 border border-[#E4E2DC] shadow-sm hover:shadow-md transition-shadow">
-            <div className="w-10 h-10 rounded-full bg-[#F2F1EC] border border-[#E4E2DC] flex items-center justify-center shrink-0 text-[#1C1917]">
-                {icon}
-            </div>
-            <div className="min-w-0">
-                <p className="text-xs text-[#8D99AE] mb-0.5">{label}</p>
-                <p className="text-sm font-semibold text-[#1C1917] truncate">{value || "—"}</p>
-            </div>
-        </div>
-    );
-}
-
-// ── Icons ─────────────────────────────────────────────────────────────────────
-
-function IconMail() {
-    return (
-        <svg className="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" />
-        </svg>
-    );
-}
-
-function IconPhone() {
-    return (
-        <svg className="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 0 0 2.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 0 1-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 0 0-1.091-.852H4.5A2.25 2.25 0 0 0 2.25 4.5v2.25Z" />
-        </svg>
-    );
-}
-
-function IconLocation() {
-    return (
-        <svg className="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
-            <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" />
-        </svg>
-    );
-}
-
-function IconBlood() {
-    return (
-        <svg className="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M12 21.75c-3.176-2.584-6.75-6.75-6.75-10.125a6.75 6.75 0 0 1 13.5 0c0 3.375-3.574 7.541-6.75 10.125Z" />
-        </svg>
-    );
-}
-
-function IconCalendar() {
-    return (
-        <svg className="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
-        </svg>
-    );
-}
-
-function IconCamera() {
-    return (
-        <svg className="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M6.827 6.175A2.31 2.31 0 0 1 5.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 0 0-1.134-.175 2.31 2.31 0 0 1-1.64-1.055l-.822-1.316a2.192 2.192 0 0 0-1.736-1.039 48.774 48.774 0 0 0-5.232 0 2.192 2.192 0 0 0-1.736 1.039l-.821 1.316Z" />
-            <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 12.75a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0ZM18.75 10.5h.008v.008h-.008V10.5Z" />
-        </svg>
-    );
-}
-
-// ── Loading skeleton ───────────────────────────────────────────────────────────
-
-function LoadingSkeleton() {
-    return (
-        <div className="animate-pulse space-y-6 w-full">
-            <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-                <div className="bg-white rounded-[28px] h-64 border border-[#E4E2DC]" />
-                <div className="xl:col-span-2 space-y-4">
-                    <div className="bg-white rounded-[20px] h-16 border border-[#E4E2DC]" />
-                    <div className="bg-white rounded-[20px] h-16 border border-[#E4E2DC]" />
-                    <div className="bg-white rounded-[20px] h-16 border border-[#E4E2DC]" />
-                    <div className="bg-white rounded-[20px] h-16 border border-[#E4E2DC]" />
-                </div>
-            </div>
-        </div>
-    );
-}
-
-// ── Tab: Personal ─────────────────────────────────────────────────────────────
-
-function PersonalTab({
-    profile,
-    editing,
-    form,
-    saving,
-    uploadingPhoto,
-    onEditClick,
-    onCancelEdit,
-    onSave,
-    onChange,
-    onPhotoChange,
-    fileInputRef,
-}: {
-    profile: Profile;
-    editing: boolean;
-    form: EditForm;
-    saving: boolean;
-    uploadingPhoto: boolean;
-    onEditClick: () => void;
-    onCancelEdit: () => void;
-    onSave: () => void;
-    onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => void;
-    onPhotoChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-    fileInputRef: React.RefObject<HTMLInputElement | null>;
+// ── Accordion ─────────────────────────────────────────────────────────────────
+function Accordion({ title, icon, open, onToggle, badge, children }: {
+  title: string; icon: React.ReactNode; open: boolean; onToggle: () => void;
+  badge?: number; children: React.ReactNode;
 }) {
-    return (
-        <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 items-start w-full">
-            {/* Avatar card */}
-            <div className="xl:col-span-1">
-                <div className="bg-white rounded-[28px] border border-[#E4E2DC] shadow-sm p-8 flex flex-col items-center text-center">
-                    <div className="relative mb-5">
-                        <div className="w-24 h-24 rounded-full bg-[#FAB2D3] flex items-center justify-center text-3xl font-black text-[#391628] overflow-hidden border-4 border-white shadow-md">
-                            {profile.photoUrl ? (
-                                <img src={profile.photoUrl} alt="Foto de perfil" className="w-full h-full object-cover" />
-                            ) : (
-                                getInitials(profile.firstName, profile.lastName)
-                            )}
-                        </div>
-                        {uploadingPhoto && (
-                            <div className="absolute inset-0 rounded-full bg-black/40 flex items-center justify-center">
-                                <svg className="w-5 h-5 animate-spin text-white" viewBox="0 0 24 24" fill="none">
-                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
-                                </svg>
-                            </div>
-                        )}
-                        <button
-                            onClick={() => fileInputRef.current?.click()}
-                            disabled={uploadingPhoto}
-                            className="absolute bottom-0.5 right-0.5 w-7 h-7 rounded-full bg-[#1C1917] hover:bg-black border-2 border-white flex items-center justify-center shadow-md transition-colors cursor-pointer disabled:opacity-60"
-                            title="Cambiar foto"
-                        >
-                            <IconCamera />
-                        </button>
-                        <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={onPhotoChange} />
-                    </div>
-
-                    <h2 className="text-xl font-black font-display text-[#1C1917] leading-tight">
-                        {profile.firstName} {profile.lastName}
-                    </h2>
-                    <p className="text-xs text-[#8D99AE] font-semibold mt-1 mb-5">{profile.email}</p>
-
-                    {!editing && (
-                        <button
-                            onClick={onEditClick}
-                            className="flex items-center gap-2 bg-[#1C1917] hover:bg-black text-white text-sm font-bold px-6 py-3 rounded-full transition-all shadow active:scale-95 border-none cursor-pointer"
-                        >
-                            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.2}>
-                                <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125" />
-                            </svg>
-                            Editar perfil
-                        </button>
-                    )}
-                </div>
-            </div>
-
-            {/* Right column */}
-            <div className="xl:col-span-2">
-                {!editing ? (
-                    <div className="space-y-3">
-                        <SectionTitle>Información personal</SectionTitle>
-                        <InfoCard icon={<IconMail />} label="Email" value={profile.email} />
-                        <InfoCard icon={<IconPhone />} label="Teléfono" value={profile.phone} />
-                        <InfoCard icon={<IconLocation />} label="Ubicación" value={profile.location} />
-                        <InfoCard icon={<IconBlood />} label="Tipo de sangre" value={BLOOD_LABELS[profile.bloodType ?? ""] ?? "—"} />
-                        <InfoCard
-                            icon={<IconCalendar />}
-                            label="Fecha de nacimiento"
-                            value={profile.dateOfBirth
-                                ? `${formatDate(profile.dateOfBirth)}${getAgeString(profile.dateOfBirth)}`
-                                : "—"
-                            }
-                        />
-                    </div>
-                ) : (
-                    <div className="bg-white rounded-[28px] border border-[#E4E2DC] shadow-sm p-6 space-y-5">
-                        <SectionTitle>Editar información</SectionTitle>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            {(
-                                [
-                                    { label: "Nombre", name: "firstName", type: "text" },
-                                    { label: "Apellido", name: "lastName", type: "text" },
-                                    { label: "Teléfono", name: "phone", type: "tel" },
-                                    { label: "Ciudad / Ubicación", name: "location", type: "text" },
-                                    { label: "Fecha de nacimiento", name: "dateOfBirth", type: "date" },
-                                ] as const
-                            ).map(({ label, name, type }) => (
-                                <div key={name}>
-                                    <label className="text-xs text-[#8D99AE] block mb-1.5">{label}</label>
-                                    <input
-                                        type={type}
-                                        name={name}
-                                        value={form[name]}
-                                        onChange={onChange}
-                                        className="w-full bg-white border border-[#E4E2DC] focus:border-[#FAD957] rounded-xl px-4 py-3 text-sm text-[#1C1917] outline-none transition-colors"
-                                    />
-                                </div>
-                            ))}
-
-                            <div>
-                                <label className="text-xs text-[#8D99AE] block mb-1.5">Tipo de sangre</label>
-                                <select
-                                    name="bloodType"
-                                    value={form.bloodType}
-                                    onChange={onChange}
-                                    className="w-full bg-white border border-[#E4E2DC] focus:border-[#FAD957] rounded-xl px-4 py-3 text-sm text-[#1C1917] outline-none transition-colors"
-                                >
-                                    <option value="">Sin especificar</option>
-                                    {Object.entries(BLOOD_LABELS).map(([key, val]) => (
-                                        <option key={key} value={key}>{val}</option>
-                                    ))}
-                                </select>
-                            </div>
-
-                            <div className="md:col-span-2">
-                                <label className="text-xs text-[#8D99AE] block mb-1.5">Género</label>
-                                <select
-                                    name="gender"
-                                    value={form.gender}
-                                    onChange={onChange}
-                                    className="w-full bg-white border border-[#E4E2DC] focus:border-[#FAD957] rounded-xl px-4 py-3 text-sm text-[#1C1917] outline-none transition-colors"
-                                >
-                                    <option value="">Sin especificar</option>
-                                    {Object.entries(GENDER_LABELS).map(([key, val]) => (
-                                        <option key={key} value={key}>{val}</option>
-                                    ))}
-                                </select>
-                            </div>
-                        </div>
-
-                        <div className="flex gap-3 pt-1">
-                            <button
-                                onClick={onSave}
-                                disabled={saving}
-                                className="flex-1 bg-[#1C1917] hover:bg-black text-white text-sm font-bold py-3.5 rounded-full transition-all disabled:opacity-50 border-none cursor-pointer"
-                            >
-                                {saving ? "Guardando..." : "Guardar cambios"}
-                            </button>
-                            <button
-                                onClick={onCancelEdit}
-                                disabled={saving}
-                                className="flex-1 border border-[#E4E2DC] hover:bg-[#F2F1EC] text-[#8D99AE] text-sm font-bold py-3.5 rounded-full transition-all bg-white cursor-pointer"
-                            >
-                                Cancelar
-                            </button>
-                        </div>
-                    </div>
-                )}
-            </div>
+  return (
+    <div style={{ background: C.card, borderRadius: 20, overflow: "hidden", boxShadow: "0 1px 6px rgba(0,0,0,0.05)" }}>
+      <button onClick={onToggle}
+        style={{ width: "100%", display: "flex", alignItems: "center", gap: 12, padding: 16,
+          background: "transparent", border: "none", cursor: "pointer", textAlign: "left" }}>
+        <div style={{ width: 34, height: 34, borderRadius: 10, background: C.mutedBg,
+          display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+          {icon}
         </div>
-    );
+        <span style={{ flex: 1, fontSize: 15, fontFamily: DISPLAY, fontWeight: 700, color: C.primary }}>{title}</span>
+        {badge !== undefined && badge > 0 && (
+          <span style={{ background: C.primary, color: C.card, borderRadius: 10, minWidth: 20,
+            height: 20, display: "flex", alignItems: "center", justifyContent: "center",
+            fontSize: 11, fontWeight: 700, fontFamily: SANS, padding: "0 5px" }}>{badge}</span>
+        )}
+        <span style={{ color: C.muted, display: "inline-flex", transform: open ? "rotate(90deg)" : "none", transition: "transform 0.2s" }}>
+          <ChevronRight color={C.muted} size={16} />
+        </span>
+      </button>
+      {open && (
+        <div style={{ padding: "0 16px 16px", display: "flex", flexDirection: "column", gap: 0 }}>
+          {children}
+        </div>
+      )}
+    </div>
+  );
 }
 
-// ── Tab: Medical ──────────────────────────────────────────────────────────────
-
-function MedicalTab({ data }: { data: MedicalData }) {
-    return (
-        <div className="space-y-8 w-full">
-            {/* Allergies */}
-            <section>
-                <SectionTitle>Alergias</SectionTitle>
-                {data.allergies.length === 0 ? (
-                    <EmptyState icon={<svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><path d="M12 22V12M12 12C12 7 7 4 2 6c2 4 5 6 10 6ZM12 12c0-5 5-8 10-6-2 4-5 6-10 6Z" /></svg>} title="Sin alergias registradas" subtitle="No hay alergias documentadas en tu perfil médico." />
-                ) : (
-                    <div className="flex flex-wrap gap-2">
-                        {data.allergies.map((a) => {
-                            const sevClass = SEV_COLORS[a.severity] ?? SEV_COLORS.MILD;
-                            return (
-                                <div key={a.id} className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl border ${sevClass} group relative cursor-default`}>
-                                    <span className="text-sm font-semibold leading-none">{a.allergenName}</span>
-                                    {a.allergyType && (
-                                        <span className="text-xs opacity-70">
-                                            {ALLERGY_TYPE_LABELS[a.allergyType] ?? a.allergyType}
-                                        </span>
-                                    )}
-                                    {a.reactionDescription && (
-                                        <div className="absolute bottom-full left-0 mb-2 z-10 hidden group-hover:flex w-56 bg-[#1C1917] text-white text-xs rounded-xl px-3 py-2 shadow-xl pointer-events-none">
-                                            {a.reactionDescription}
-                                        </div>
-                                    )}
-                                </div>
-                            );
-                        })}
-                    </div>
-                )}
-            </section>
-
-            {/* Chronic conditions */}
-            <section>
-                <SectionTitle>Condiciones crónicas</SectionTitle>
-                {data.chronicConditions.length === 0 ? (
-                    <EmptyState icon={<svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><path d="M4.5 6.375a4.125 4.125 0 1 1 8.25 0 4.125 4.125 0 0 1-8.25 0ZM14.25 8.625a3.375 3.375 0 1 1 6.75 0 3.375 3.375 0 0 1-6.75 0ZM1.5 19.125a7.125 7.125 0 0 1 14.25 0v.003l-.001.119a.75.75 0 0 1-.363.63 13.067 13.067 0 0 1-6.761 1.873c-2.472 0-4.786-.684-6.76-1.873a.75.75 0 0 1-.364-.63l-.001-.122ZM17.25 19.128l-.001.144a2.25 2.25 0 0 1-.233.96 10.088 10.088 0 0 0 5.06-1.01.75.75 0 0 0 .42-.643 4.875 4.875 0 0 0-6.957-4.611 8.586 8.586 0 0 1 1.71 5.157v.003Z" /></svg>} title="Sin condiciones registradas" subtitle="No hay condiciones crónicas documentadas en tu historial." />
-                ) : (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        {data.chronicConditions.map((c) => {
-                            const statusClass = STATUS_COLORS[c.status] ?? STATUS_COLORS.ACTIVE;
-                            const sevClass = c.severity ? (SEV_COLORS[c.severity] ?? "") : "";
-                            return (
-                                <div key={c.id} className="bg-white rounded-[20px] border border-[#E4E2DC] shadow-sm p-5 space-y-2">
-                                    <div className="flex items-start justify-between gap-2">
-                                        <p className="text-sm font-semibold text-[#1C1917] leading-tight">{c.conditionName}</p>
-                                        <span className={`text-xs font-medium px-2.5 py-1 rounded-full border shrink-0 ${statusClass}`}>
-                                            {STATUS_LABELS[c.status] ?? c.status}
-                                        </span>
-                                    </div>
-                                    {c.severity && (
-                                        <span className={`inline-block text-xs font-medium px-2.5 py-1 rounded-full border ${sevClass}`}>
-                                            {c.severity === "MILD" ? "Leve"
-                                                : c.severity === "MODERATE" ? "Moderada"
-                                                : c.severity === "SEVERE" ? "Severa"
-                                                : c.severity === "LIFE_THREATENING" ? "Crítica"
-                                                : c.severity}
-                                        </span>
-                                    )}
-                                    {c.notes && (
-                                        <p className="text-xs text-[#8D99AE] font-semibold leading-relaxed">{c.notes}</p>
-                                    )}
-                                </div>
-                            );
-                        })}
-                    </div>
-                )}
-            </section>
-
-            {/* Medications */}
-            <section>
-                <SectionTitle>Medicamentos</SectionTitle>
-                {data.medications.length === 0 ? (
-                    <EmptyState icon={<svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><path d="m10.5 20.5 10-10a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7Z" /><path d="m8.5 8.5 7 7" /></svg>} title="Sin medicamentos registrados" subtitle="No hay medicamentos documentados en tu perfil." />
-                ) : (
-                    <div className="flex gap-4 overflow-x-auto pb-2 -mx-1 px-1">
-                        {data.medications.map((m) => (
-                            <div
-                                key={m.id}
-                                className="bg-white rounded-[20px] border border-[#E4E2DC] shadow-sm p-5 min-w-[220px] max-w-[260px] shrink-0 space-y-2.5"
-                            >
-                                <div className="flex items-start justify-between gap-2">
-                                    <p className="text-sm font-semibold text-[#1C1917] leading-tight">{m.name}</p>
-                                    <span className={`text-xs font-medium px-2 py-0.5 rounded-full border shrink-0 ${m.isCurrent ? "bg-green-50 text-green-700 border-green-100" : "bg-gray-100 text-gray-500 border-gray-200"}`}>
-                                        {m.isCurrent ? "Activo" : "Previo"}
-                                    </span>
-                                </div>
-                                {m.dosage && (
-                                    <p className="text-xs font-semibold text-[#1C1917]">{m.dosage}</p>
-                                )}
-                                {m.frequency && (
-                                    <p className="text-xs text-[#8D99AE]">{m.frequency}</p>
-                                )}
-                                {m.route && (
-                                    <span className="inline-block text-xs px-2.5 py-1 rounded-full bg-[#F2F1EC] text-[#8D99AE] border border-[#E4E2DC]">
-                                        {ROUTE_LABELS[m.route] ?? m.route}
-                                    </span>
-                                )}
-                                {m.purpose && (
-                                    <p className="text-xs text-[#8D99AE] leading-relaxed line-clamp-2">{m.purpose}</p>
-                                )}
-                            </div>
-                        ))}
-                    </div>
-                )}
-            </section>
-
-            {/* Medical history */}
-            <section>
-                <SectionTitle>Historial médico</SectionTitle>
-                {data.medicalHistory.length === 0 ? (
-                    <EmptyState icon={<svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2" /><rect x="9" y="3" width="6" height="4" rx="1" /><path d="M9 12h6M9 16h4" /></svg>} title="Sin historial registrado" subtitle="Aún no hay eventos médicos registrados en tu historial." />
-                ) : (
-                    <div className="space-y-3">
-                        {data.medicalHistory.map((h, idx) => (
-                            <div key={h.id} className="flex gap-4 items-start">
-                                {/* Timeline dot */}
-                                <div className="flex flex-col items-center shrink-0 mt-1">
-                                    <div className="w-8 h-8 rounded-full bg-[#FDF2B2] border border-[#FAD957]/40 flex items-center justify-center text-[#5C4D04] font-bold text-xs">
-                                        {idx + 1}
-                                    </div>
-                                    {idx < data.medicalHistory.length - 1 && (
-                                        <div className="w-0.5 h-5 bg-[#E4E2DC] mt-1" />
-                                    )}
-                                </div>
-
-                                <div className="bg-white rounded-[20px] border border-[#E4E2DC] shadow-sm p-4 flex-1 space-y-1.5">
-                                    <div className="flex items-start justify-between gap-2 flex-wrap">
-                                        <p className="text-sm font-semibold text-[#1C1917] leading-tight">{h.eventName}</p>
-                                        <span className="text-xs px-2.5 py-1 rounded-full bg-[#F2F1EC] text-[#8D99AE] border border-[#E4E2DC] shrink-0">
-                                            {EVENT_TYPE_LABELS[h.eventType] ?? h.eventType}
-                                        </span>
-                                    </div>
-                                    <p className="text-xs text-[#8D99AE]">{formatDate(h.createdAt)}</p>
-                                    {h.location && (
-                                        <p className="text-xs font-semibold text-[#1C1917] flex items-center gap-1">
-                                            <svg className="w-3 h-3 text-[#8D99AE] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                                <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
-                                                <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" />
-                                            </svg>
-                                            {h.location}
-                                        </p>
-                                    )}
-                                    {h.outcome && (
-                                        <p className="text-xs text-[#8D99AE] font-semibold leading-relaxed">{h.outcome}</p>
-                                    )}
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                )}
-            </section>
+// ── Modal ─────────────────────────────────────────────────────────────────────
+function Modal({ title, onClose, children, footer }: {
+  title: string; onClose: () => void; children: React.ReactNode; footer: React.ReactNode;
+}) {
+  return (
+    <div style={{ position: "fixed", inset: 0, background: "rgba(26,21,18,0.45)", zIndex: 100,
+      display: "flex", alignItems: "flex-end", justifyContent: "center" }}
+      onClick={onClose}>
+      <div style={{ background: C.bg, borderRadius: "28px 28px 0 0", padding: 24, width: "100%",
+        maxWidth: 560, maxHeight: "90vh", overflowY: "auto" }}
+        onClick={e => e.stopPropagation()}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
+          <h3 style={{ margin: 0, fontSize: 18, fontFamily: DISPLAY, fontWeight: 700, color: C.primary }}>{title}</h3>
+          <button onClick={onClose} style={{ background: C.mutedBg, border: "none", borderRadius: "50%",
+            width: 32, height: 32, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <XIcon color={C.primary} size={12} />
+          </button>
         </div>
-    );
+        <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 16 }}>{children}</div>
+        <div style={{ display: "flex", gap: 12 }}>{footer}</div>
+      </div>
+    </div>
+  );
 }
 
-// ── Main component ─────────────────────────────────────────────────────────────
+// ── Field ─────────────────────────────────────────────────────────────────────
+function Field({ label, value, onChange, type = "text", placeholder, locked }: {
+  label: string; value: string; onChange?: (v: string) => void; type?: string;
+  placeholder?: string; locked?: boolean;
+}) {
+  return (
+    <div style={{ background: C.card, borderRadius: 16, padding: "10px 16px 12px", opacity: locked ? 0.5 : 1 }}>
+      <p style={{ margin: "0 0 2px", fontSize: 11, fontFamily: SANS, color: C.muted }}>{label}</p>
+      <input type={type} value={value} onChange={e => onChange?.(e.target.value)} placeholder={placeholder ?? "—"}
+        disabled={locked}
+        style={{ display: "block", width: "100%", border: "none", background: "transparent",
+          color: C.primary, fontSize: 15, fontFamily: SANS, outline: "none", boxSizing: "border-box", padding: 0 }} />
+    </div>
+  );
+}
 
-export default function ProfileClient({ userId }: { userId: string }) {
-    const [profile, setProfile] = useState<Profile | null>(null);
-    const [medicalData, setMedicalData] = useState<MedicalData | null>(null);
-    const [loading, setLoading] = useState(true);
-    const [editing, setEditing] = useState(false);
-    const [form, setForm] = useState<EditForm>({
-        firstName: "", lastName: "", phone: "", location: "",
-        dateOfBirth: "", gender: "", bloodType: "",
-        identificationNumber: "", identificationType: "",
+// ── SelectField ───────────────────────────────────────────────────────────────
+function SelectField({ label, value, onChange, options, locked }: {
+  label: string; value: string; onChange?: (v: string) => void;
+  options: { label: string; value: string }[]; locked?: boolean;
+}) {
+  return (
+    <div style={{ background: C.card, borderRadius: 16, padding: "10px 16px 12px", opacity: locked ? 0.5 : 1 }}>
+      <p style={{ margin: "0 0 2px", fontSize: 11, fontFamily: SANS, color: C.muted }}>{label}</p>
+      <select value={value} onChange={e => onChange?.(e.target.value)} disabled={locked}
+        style={{ display: "block", width: "100%", border: "none", background: "transparent",
+          color: C.primary, fontSize: 15, fontFamily: SANS, outline: "none", appearance: "none", padding: 0 }}>
+        <option value="">Seleccionar</option>
+        {options.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+      </select>
+    </div>
+  );
+}
+
+// ── SectionLabel ──────────────────────────────────────────────────────────────
+function SectionLabel({ children }: { children: React.ReactNode }) {
+  return <p style={{ margin: "4px 0 0", fontSize: 12, fontFamily: SANS, fontWeight: 700, color: C.muted,
+    textTransform: "uppercase", letterSpacing: "0.6px" }}>{children}</p>;
+}
+
+// ── Sheet buttons ─────────────────────────────────────────────────────────────
+function SheetBtns({ onCancel, onSave, saving }: { onCancel: () => void; onSave: () => void; saving?: boolean }) {
+  return (
+    <>
+      <button onClick={onCancel} disabled={saving}
+        style={{ flex: 1, background: C.mutedBg, border: "none", borderRadius: 16, padding: "14px 0",
+          fontSize: 14, fontFamily: SANS, fontWeight: 700, color: C.primary, cursor: "pointer" }}>
+        Cancelar
+      </button>
+      <button onClick={onSave} disabled={saving}
+        style={{ flex: 1, background: C.primary, border: "none", borderRadius: 16, padding: "14px 0",
+          fontSize: 14, fontFamily: SANS, fontWeight: 700, color: "#fff", cursor: "pointer",
+          opacity: saving ? 0.7 : 1 }}>
+        {saving ? "Guardando…" : "Guardar"}
+      </button>
+    </>
+  );
+}
+
+// ── Add button ────────────────────────────────────────────────────────────────
+function AddBtn({ label, onClick }: { label: string; onClick: () => void }) {
+  return (
+    <button onClick={onClick}
+      style={{ display: "flex", alignItems: "center", gap: 8, background: C.mutedBg, border: "none",
+        borderRadius: 12, padding: "10px 14px", fontSize: 13, fontFamily: SANS, fontWeight: 700,
+        color: C.primary, cursor: "pointer", alignSelf: "flex-start", marginTop: 4 }}>
+      <PlusIcon color={C.primary} size={14} /> {label}
+    </button>
+  );
+}
+
+// ── Row action buttons ────────────────────────────────────────────────────────
+const iconBtnStyle: React.CSSProperties = {
+  width: 34, height: 34, borderRadius: 10, background: C.mutedBg, border: "none",
+  cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
+};
+
+// ── Divider ───────────────────────────────────────────────────────────────────
+const divider = <div style={{ height: 1, background: C.mutedBg, margin: "0 0" }} />;
+
+// ════════════════════════════════════════════════════════════════════════════════
+// Main component
+// ════════════════════════════════════════════════════════════════════════════════
+export default function ProfileClient() {
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  // ── Data ──────────────────────────────────────────────────────────────────
+  const [profile,    setProfile]    = useState<Profile | null>(null);
+  const [medProfile, setMedProfile] = useState<MedProfile>({ heightCm: null, weightKg: null, organDonor: false, insuranceProvider: null });
+  const [allergies,  setAllergies]  = useState<Allergy[]>([]);
+  const [conditions, setConditions] = useState<Condition[]>([]);
+  const [meds,       setMeds]       = useState<Medication[]>([]);
+  const [contacts,   setContacts]   = useState<Contact[]>([]);
+  const [loading,    setLoading]    = useState(true);
+
+  // ── Accordion ─────────────────────────────────────────────────────────────
+  const [open, setOpen] = useState({ personal: true, medical: false, allergies: false, conditions: false, meds: false, contacts: false });
+  const toggle = (k: keyof typeof open) => setOpen(p => ({ ...p, [k]: !p[k] }));
+
+  // ── Photo ──────────────────────────────────────────────────────────────────
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
+
+  // ── Edit personal modal ───────────────────────────────────────────────────
+  const [editOpen,   setEditOpen]   = useState(false);
+  const [saving,     setSaving]     = useState(false);
+  const [draft, setDraft] = useState({
+    firstName: "", lastName: "", email: "",
+    gender: "", identificationType: "", identificationNumber: "",
+    bloodType: "",
+    heightCm: "", weightKg: "", organDonor: false, insuranceProvider: "",
+  });
+  const idLocked = !!(profile?.identificationType && profile?.identificationNumber);
+
+  // ── Allergy ───────────────────────────────────────────────────────────────
+  const [addAllergyOpen,  setAddAllergyOpen]  = useState(false);
+  const [allergyDraft,    setAllergyDraft]    = useState({ allergenName: "", allergyType: "", severity: "", reactionDescription: "" });
+  const [savingAllergy,   setSavingAllergy]   = useState(false);
+  const [editAllergyItem, setEditAllergyItem] = useState<Allergy | null>(null);
+  const [editAllergyDraft, setEditAllergyDraft] = useState({ allergenName: "", allergyType: "", severity: "", reactionDescription: "" });
+
+  // ── Condition ─────────────────────────────────────────────────────────────
+  const [addCondOpen,    setAddCondOpen]    = useState(false);
+  const [condDraft,      setCondDraft]      = useState({ conditionName: "", severity: "", status: "ACTIVE", notes: "" });
+  const [savingCond,     setSavingCond]     = useState(false);
+  const [editCondItem,   setEditCondItem]   = useState<Condition | null>(null);
+  const [editCondDraft,  setEditCondDraft]  = useState({ conditionName: "", severity: "", status: "ACTIVE", notes: "" });
+
+  // ── Medication ────────────────────────────────────────────────────────────
+  const [addMedOpen,   setAddMedOpen]   = useState(false);
+  const [medDraft,     setMedDraft]     = useState({ name: "", dosage: "", frequency: "" });
+  const [savingMed,    setSavingMed]    = useState(false);
+  const [editMedItem,  setEditMedItem]  = useState<Medication | null>(null);
+  const [editMedDraft, setEditMedDraft] = useState({ name: "", dosage: "", frequency: "", isCurrent: true });
+
+  // ── Contact ───────────────────────────────────────────────────────────────
+  const [addContactOpen,    setAddContactOpen]    = useState(false);
+  const [contactDraft,      setContactDraft]      = useState({ name: "", phone: "", relation: "", email: "" });
+  const [savingContact,     setSavingContact]     = useState(false);
+  const [editContactItem,   setEditContactItem]   = useState<Contact | null>(null);
+  const [editContactDraft,  setEditContactDraft]  = useState({ name: "", phone: "", relation: "", email: "" });
+
+  // ── Load ──────────────────────────────────────────────────────────────────
+  useEffect(() => {
+    Promise.all([
+      axios.get<Profile>("/api/profile"),
+      axios.get<MedProfile>("/api/profile/medical"),
+      axios.get<{ allergies: Allergy[]; chronicConditions: Condition[]; medications: Medication[] }>("/api/medical-profile"),
+      axios.get<Contact[]>("/api/contacts"),
+    ]).then(([p, mp, med, c]) => {
+      setProfile(p.data);
+      setMedProfile(mp.data);
+      setAllergies(med.data.allergies);
+      setConditions(med.data.chronicConditions);
+      setMeds(med.data.medications);
+      setContacts(c.data);
+    }).catch(console.error).finally(() => setLoading(false));
+  }, []);
+
+  // ── Photo ──────────────────────────────────────────────────────────────────
+  const handlePhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingPhoto(true);
+    try {
+      const fd = new FormData();
+      fd.append("photo", file);
+      const { data } = await axios.post<{ photoUrl: string }>("/api/profile/photo", fd);
+      setProfile(p => p ? { ...p, photoUrl: data.photoUrl } : p);
+    } catch { alert("Error al subir foto"); }
+    finally { setUploadingPhoto(false); if (fileRef.current) fileRef.current.value = ""; }
+  };
+
+  // ── Open edit modal ───────────────────────────────────────────────────────
+  const openEdit = () => {
+    if (!profile) return;
+    setDraft({
+      firstName: profile.firstName, lastName: profile.lastName, email: profile.email,
+      gender: profile.gender ?? "", identificationType: profile.identificationType ?? "",
+      identificationNumber: profile.identificationNumber ?? "",
+      bloodType: profile.bloodType ?? "",
+      heightCm: medProfile.heightCm != null ? String(medProfile.heightCm) : "",
+      weightKg: medProfile.weightKg != null ? String(medProfile.weightKg) : "",
+      organDonor: medProfile.organDonor,
+      insuranceProvider: medProfile.insuranceProvider ?? "",
     });
-    const [saving, setSaving] = useState(false);
-    const [uploadingPhoto, setUploadingPhoto] = useState(false);
-    const [activeTab, setActiveTab] = useState<"personal" | "medical">("personal");
-    const fileInputRef = useRef<HTMLInputElement | null>(null);
+    setEditOpen(true);
+  };
 
-    void userId;
+  // ── Save profile ──────────────────────────────────────────────────────────
+  const handleSave = async () => {
+    if (!draft.firstName.trim() || !draft.lastName.trim()) { alert("Nombre y apellido son requeridos."); return; }
+    setSaving(true);
+    try {
+      await Promise.all([
+        axios.put("/api/profile", {
+          firstName: draft.firstName.trim(), lastName: draft.lastName.trim(),
+          gender: draft.gender || null,
+          ...(!idLocked && { identificationType: draft.identificationType || null, identificationNumber: draft.identificationNumber.trim() || null }),
+        }),
+        axios.put("/api/profile/medical", {
+          heightCm: draft.heightCm || null, weightKg: draft.weightKg || null,
+          organDonor: draft.organDonor, insuranceProvider: draft.insuranceProvider || null,
+        }),
+      ]);
+      setProfile(p => p ? { ...p, firstName: draft.firstName.trim(), lastName: draft.lastName.trim(),
+        gender: draft.gender || null,
+        ...(!idLocked && { identificationType: draft.identificationType || null, identificationNumber: draft.identificationNumber.trim() || null }),
+      } : p);
+      setMedProfile({ heightCm: draft.heightCm ? Number(draft.heightCm) : null,
+        weightKg: draft.weightKg ? Number(draft.weightKg) : null,
+        organDonor: draft.organDonor, insuranceProvider: draft.insuranceProvider || null });
+      setEditOpen(false);
+    } catch { alert("Error al guardar."); }
+    finally { setSaving(false); }
+  };
 
-    useEffect(() => {
-        Promise.all([
-            fetch("/api/profile").then((r) => r.json()),
-            fetch("/api/medical-profile").then((r) => r.json()),
-        ])
-            .then(([profileData, medData]) => {
-                const p = profileData as Profile;
-                setProfile(p);
-                setForm({
-                    firstName: p.firstName ?? "",
-                    lastName: p.lastName ?? "",
-                    phone: p.phone ?? "",
-                    location: p.location ?? "",
-                    dateOfBirth: toDateInput(p.dateOfBirth),
-                    gender: p.gender ?? "",
-                    bloodType: p.bloodType ?? "",
-                    identificationNumber: p.identificationNumber ?? "",
-                    identificationType: p.identificationType ?? "",
-                });
-                setMedicalData({
-                    allergies: medData.allergies ?? [],
-                    chronicConditions: medData.chronicConditions ?? [],
-                    medications: medData.medications ?? [],
-                    medicalHistory: medData.medicalHistory ?? [],
-                });
-            })
-            .catch(() => {})
-            .finally(() => setLoading(false));
-    }, []);
-
-    function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) {
-        const { name, value } = e.target;
-        setForm((prev) => ({ ...prev, [name]: value }));
+  // ── Allergy CRUD ──────────────────────────────────────────────────────────
+  const handleAddAllergy = async () => {
+    if (!allergyDraft.allergenName.trim() || !allergyDraft.allergyType || !allergyDraft.severity) {
+      alert("Nombre, tipo y severidad son obligatorios."); return;
     }
+    setSavingAllergy(true);
+    try {
+      const { data } = await axios.post<Allergy>("/api/medical-profile", {
+        type: "allergy", data: { allergenName: allergyDraft.allergenName.trim(),
+          allergyType: allergyDraft.allergyType, severity: allergyDraft.severity,
+          reactionDescription: allergyDraft.reactionDescription.trim() || null },
+      });
+      setAllergies(p => [data, ...p]);
+      setAllergyDraft({ allergenName: "", allergyType: "", severity: "", reactionDescription: "" });
+      setAddAllergyOpen(false);
+    } catch { alert("Error al guardar."); }
+    finally { setSavingAllergy(false); }
+  };
+  const handleSaveEditAllergy = async () => {
+    if (!editAllergyItem) return;
+    setSavingAllergy(true);
+    try {
+      const { data } = await axios.patch<Allergy>(`/api/medical-profile/${editAllergyItem.id}`, {
+        type: "allergy", data: { allergenName: editAllergyDraft.allergenName.trim(),
+          allergyType: editAllergyDraft.allergyType, severity: editAllergyDraft.severity,
+          reactionDescription: editAllergyDraft.reactionDescription.trim() || null },
+      });
+      setAllergies(p => p.map(a => a.id === editAllergyItem.id ? data : a));
+      setEditAllergyItem(null);
+    } catch { alert("Error al guardar."); }
+    finally { setSavingAllergy(false); }
+  };
+  const handleDeleteAllergy = async (id: string) => {
+    if (!confirm("¿Eliminar esta alergia?")) return;
+    await axios.delete(`/api/medical-profile/${id}?type=allergy`).catch(() => alert("Error"));
+    setAllergies(p => p.filter(a => a.id !== id));
+  };
 
-    async function handleSave() {
-        setSaving(true);
-        try {
-            await fetch("/api/profile", {
-                method: "PUT",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    ...form,
-                    dateOfBirth: form.dateOfBirth || null,
-                    gender: form.gender || null,
-                    bloodType: form.bloodType || null,
-                    identificationNumber: form.identificationNumber || null,
-                    identificationType: form.identificationType || null,
-                }),
-            });
-            setProfile((prev) =>
-                prev
-                    ? {
-                          ...prev,
-                          ...form,
-                          dateOfBirth: form.dateOfBirth || null,
-                          gender: form.gender || null,
-                          bloodType: form.bloodType || null,
-                          identificationNumber: form.identificationNumber || null,
-                          identificationType: form.identificationType || null,
-                      }
-                    : prev
-            );
-            setEditing(false);
-        } finally {
-            setSaving(false);
-        }
-    }
+  // ── Condition CRUD ────────────────────────────────────────────────────────
+  const handleAddCond = async () => {
+    if (!condDraft.conditionName.trim()) { alert("El nombre es obligatorio."); return; }
+    setSavingCond(true);
+    try {
+      const { data } = await axios.post<Condition>("/api/medical-profile", {
+        type: "condition", data: { conditionName: condDraft.conditionName.trim(),
+          severity: condDraft.severity || null, status: condDraft.status,
+          notes: condDraft.notes.trim() || null },
+      });
+      setConditions(p => [data, ...p]);
+      setCondDraft({ conditionName: "", severity: "", status: "ACTIVE", notes: "" });
+      setAddCondOpen(false);
+    } catch { alert("Error al guardar."); }
+    finally { setSavingCond(false); }
+  };
+  const handleSaveEditCond = async () => {
+    if (!editCondItem) return;
+    setSavingCond(true);
+    try {
+      const { data } = await axios.patch<Condition>(`/api/medical-profile/${editCondItem.id}`, {
+        type: "condition", data: { conditionName: editCondDraft.conditionName.trim(),
+          severity: editCondDraft.severity || null, status: editCondDraft.status,
+          notes: editCondDraft.notes.trim() || null },
+      });
+      setConditions(p => p.map(c => c.id === editCondItem.id ? data : c));
+      setEditCondItem(null);
+    } catch { alert("Error al guardar."); }
+    finally { setSavingCond(false); }
+  };
+  const handleDeleteCond = async (id: string) => {
+    if (!confirm("¿Eliminar esta condición?")) return;
+    await axios.delete(`/api/medical-profile/${id}?type=condition`).catch(() => alert("Error"));
+    setConditions(p => p.filter(c => c.id !== id));
+  };
 
-    async function handlePhotoChange(e: React.ChangeEvent<HTMLInputElement>) {
-        const file = e.target.files?.[0];
-        if (!file) return;
-        setUploadingPhoto(true);
-        const fd = new FormData();
-        fd.append("photo", file);
-        try {
-            const res = await fetch("/api/profile/photo", { method: "POST", body: fd });
-            const data = await res.json() as { photoUrl?: string };
-            if (data.photoUrl) {
-                setProfile((prev) => (prev ? { ...prev, photoUrl: data.photoUrl! } : prev));
+  // ── Medication CRUD ───────────────────────────────────────────────────────
+  const handleAddMed = async () => {
+    if (!medDraft.name.trim()) { alert("El nombre es obligatorio."); return; }
+    setSavingMed(true);
+    try {
+      const { data } = await axios.post<Medication>("/api/medical-profile", {
+        type: "medication", data: { customMedicationName: medDraft.name.trim(),
+          dosage: medDraft.dosage.trim() || null, frequency: medDraft.frequency.trim() || null },
+      });
+      setMeds(p => [data, ...p]);
+      setMedDraft({ name: "", dosage: "", frequency: "" });
+      setAddMedOpen(false);
+    } catch { alert("Error al guardar."); }
+    finally { setSavingMed(false); }
+  };
+  const handleSaveEditMed = async () => {
+    if (!editMedItem) return;
+    setSavingMed(true);
+    try {
+      const { data } = await axios.patch<Medication>(`/api/medical-profile/${editMedItem.id}`, {
+        type: "medication", data: { name: editMedDraft.name.trim(),
+          dosage: editMedDraft.dosage.trim() || null, frequency: editMedDraft.frequency.trim() || null,
+          isCurrent: editMedDraft.isCurrent },
+      });
+      setMeds(p => p.map(m => m.id === editMedItem.id ? data : m));
+      setEditMedItem(null);
+    } catch { alert("Error al guardar."); }
+    finally { setSavingMed(false); }
+  };
+  const handleDeleteMed = async (id: string) => {
+    if (!confirm("¿Eliminar este medicamento?")) return;
+    await axios.delete(`/api/medical-profile/${id}?type=medication`).catch(() => alert("Error"));
+    setMeds(p => p.filter(m => m.id !== id));
+  };
+
+  // ── Contact CRUD ──────────────────────────────────────────────────────────
+  const handleAddContact = async () => {
+    if (!contactDraft.name.trim() || !contactDraft.phone.trim()) { alert("Nombre y teléfono son obligatorios."); return; }
+    setSavingContact(true);
+    try {
+      const { data } = await axios.post<Contact>("/api/contacts", {
+        name: contactDraft.name.trim(), phone: contactDraft.phone.trim(),
+        relation: contactDraft.relation.trim() || "Contacto",
+        email: contactDraft.email.trim() || undefined,
+      });
+      setContacts(p => [...p, data]);
+      setContactDraft({ name: "", phone: "", relation: "", email: "" });
+      setAddContactOpen(false);
+    } catch { alert("Error al guardar."); }
+    finally { setSavingContact(false); }
+  };
+  const handleSaveEditContact = async () => {
+    if (!editContactItem) return;
+    setSavingContact(true);
+    try {
+      const { data } = await axios.put<Contact>(`/api/contacts/${editContactItem.id}`, {
+        name: editContactDraft.name.trim(), phone: editContactDraft.phone.trim(),
+        relation: editContactDraft.relation.trim() || "Contacto",
+        email: editContactDraft.email.trim() || undefined,
+      });
+      setContacts(p => p.map(c => c.id === editContactItem.id ? data : c));
+      setEditContactItem(null);
+    } catch { alert("Error al guardar."); }
+    finally { setSavingContact(false); }
+  };
+  const handleDeleteContact = async (id: string) => {
+    if (!confirm("¿Eliminar este contacto?")) return;
+    await axios.delete(`/api/contacts/${id}`).catch(() => alert("Error"));
+    setContacts(p => p.filter(c => c.id !== id));
+  };
+
+  // ── Derived ───────────────────────────────────────────────────────────────
+  const initials = profile ? `${profile.firstName?.[0] ?? ""}${profile.lastName?.[0] ?? ""}`.toUpperCase() : "?";
+  const activeAllergies  = allergies.filter(a => a.isActive).length;
+  const activeConditions = conditions.filter(c => c.status === "ACTIVE").length;
+
+  if (loading) return (
+    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "60vh" }}>
+      <p style={{ color: C.muted, fontFamily: SANS, fontSize: 15 }}>Cargando perfil…</p>
+    </div>
+  );
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 16, maxWidth: 680, margin: "0 auto", paddingBottom: 40 }}>
+
+      {/* ── Avatar card ─────────────────────────────────────────────────────── */}
+      <div style={{ background: C.card, borderRadius: 28, padding: "24px 20px",
+        display: "flex", flexDirection: "column", alignItems: "center", gap: 4,
+        boxShadow: "0 1px 8px rgba(0,0,0,0.05)" }}>
+        <div style={{ position: "relative", marginBottom: 4 }}>
+          <div style={{ width: 96, height: 96, borderRadius: "50%", background: C.pink,
+            display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
+            {profile?.photoUrl
+              ? <Image src={profile.photoUrl} alt="avatar" width={96} height={96} style={{ objectFit: "cover", borderRadius: "50%" }} />
+              : <span style={{ fontSize: 32, fontFamily: DISPLAY, fontWeight: 700, color: "#7A1A3A" }}>{initials}</span>
             }
-        } finally {
-            setUploadingPhoto(false);
-            e.target.value = "";
-        }
-    }
-
-    if (loading) return <LoadingSkeleton />;
-
-    if (!profile) {
-        return (
-            <p className="text-sm text-[#8D99AE] font-semibold">No se pudo cargar el perfil. Intenta recargar la página.</p>
-        );
-    }
-
-    return (
-        <div className="w-full space-y-6">
-            {/* Tab switcher */}
-            <div className="flex gap-2 bg-white border border-[#E4E2DC] rounded-2xl p-1.5 w-fit shadow-sm">
-                {(
-                    [
-                        { key: "personal", label: "Información personal" },
-                        { key: "medical", label: "Perfil médico" },
-                    ] as const
-                ).map((tab) => (
-                    <button
-                        key={tab.key}
-                        onClick={() => setActiveTab(tab.key)}
-                        className={`px-5 py-2.5 rounded-xl text-sm font-bold transition-all cursor-pointer border-none outline-none
-                            ${activeTab === tab.key
-                                ? "bg-[#1C1917] text-white shadow-sm"
-                                : "text-[#8D99AE] hover:text-[#1C1917] hover:bg-[#F2F1EC]"
-                            }`}
-                    >
-                        {tab.label}
-                    </button>
-                ))}
-            </div>
-
-            {/* Tab content */}
-            {activeTab === "personal" ? (
-                <PersonalTab
-                    profile={profile}
-                    editing={editing}
-                    form={form}
-                    saving={saving}
-                    uploadingPhoto={uploadingPhoto}
-                    onEditClick={() => setEditing(true)}
-                    onCancelEdit={() => setEditing(false)}
-                    onSave={handleSave}
-                    onChange={handleChange}
-                    onPhotoChange={handlePhotoChange}
-                    fileInputRef={fileInputRef}
-                />
-            ) : (
-                <MedicalTab
-                    data={medicalData ?? {
-                        allergies: [],
-                        chronicConditions: [],
-                        medications: [],
-                        medicalHistory: [],
-                    }}
-                />
-            )}
+          </div>
+          <input ref={fileRef} type="file" accept="image/*" onChange={handlePhotoChange} style={{ display: "none" }} />
+          <button onClick={() => fileRef.current?.click()} disabled={uploadingPhoto}
+            style={{ position: "absolute", bottom: 0, right: 0, width: 32, height: 32, borderRadius: "50%",
+              background: C.primary, border: `3px solid ${C.card}`, cursor: "pointer",
+              display: "flex", alignItems: "center", justifyContent: "center" }}>
+            {uploadingPhoto ? <span style={{ color: "#fff", fontSize: 10 }}>…</span> : <CameraIcon color="#fff" size={14} />}
+          </button>
         </div>
-    );
+        <p style={{ margin: "4px 0 0", fontSize: 20, fontFamily: DISPLAY, fontWeight: 700, color: C.primary, letterSpacing: "-0.4px" }}>
+          {profile?.firstName} {profile?.lastName}
+        </p>
+        <p style={{ margin: 0, fontSize: 13, fontFamily: SANS, color: C.muted }}>{profile?.email}</p>
+        <button onClick={openEdit}
+          style={{ display: "flex", alignItems: "center", gap: 8, background: C.primary, color: "#fff",
+            border: "none", borderRadius: 20, padding: "10px 18px", fontSize: 13,
+            fontFamily: SANS, fontWeight: 700, cursor: "pointer", marginTop: 4 }}>
+          <PencilIcon color="#fff" size={14} /> Editar perfil
+        </button>
+      </div>
+
+      {/* ── Datos personales ─────────────────────────────────────────────────── */}
+      <Accordion title="Datos personales" icon={<UserIcon color={C.muted} size={16} />}
+        open={open.personal} onToggle={() => toggle("personal")}>
+        <InfoRow icon={<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={C.muted} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>} label="Correo" value={profile?.email ?? "—"} />
+        {divider}
+        <InfoRow icon={<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={C.muted} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M8 2v4M16 2v4"/><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M3 10h18"/></svg>} label="Fecha de nacimiento" value={fmtDate(profile?.dateOfBirth ?? null)} />
+        {divider}
+        <InfoRow icon={<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={C.muted} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>} label="Género" value={GENDER[profile?.gender ?? ""] || "—"} />
+        {divider}
+        <InfoRow icon={<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={C.muted} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M16 10h2M16 14h2M6 10h.01M6 14h.01"/></svg>} label="Tipo de documento" value={IDTYPE[profile?.identificationType ?? ""] || "—"} />
+        {divider}
+        <InfoRow icon={<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={C.muted} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M16 10h2M16 14h2M6 10h.01M6 14h.01"/></svg>} label="Número de documento" value={profile?.identificationNumber ?? "—"} />
+      </Accordion>
+
+      {/* ── Datos médicos ─────────────────────────────────────────────────────── */}
+      <Accordion title="Datos médicos" icon={<HeartIcon color={C.muted} size={16} />}
+        open={open.medical} onToggle={() => toggle("medical")}>
+        <InfoRow icon={<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={C.muted} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z"/></svg>} label="Tipo de sangre" value={BLOOD[profile?.bloodType ?? ""] || "—"} />
+        {divider}
+        <InfoRow icon={<UserIcon color={C.muted} size={14} />} label="Altura" value={medProfile.heightCm != null ? `${medProfile.heightCm} cm` : "—"} />
+        {divider}
+        <InfoRow icon={<UserIcon color={C.muted} size={14} />} label="Peso" value={medProfile.weightKg != null ? `${medProfile.weightKg} kg` : "—"} />
+        {divider}
+        <InfoRow icon={<HeartIcon color={C.muted} size={14} />} label="Donante de órganos" value={medProfile.organDonor ? "Sí" : "No"} />
+        {medProfile.insuranceProvider && <>
+          {divider}
+          <InfoRow icon={<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={C.muted} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M16 10h2M16 14h2"/></svg>} label="Aseguradora" value={medProfile.insuranceProvider} />
+        </>}
+      </Accordion>
+
+      {/* ── Alergias ─────────────────────────────────────────────────────────── */}
+      <Accordion title="Alergias" icon={<HeartIcon color={C.muted} size={16} />}
+        badge={activeAllergies} open={open.allergies} onToggle={() => toggle("allergies")}>
+        {allergies.length === 0
+          ? <p style={{ color: C.muted, fontFamily: SANS, fontSize: 13, textAlign: "center", padding: "8px 0" }}>Sin alergias registradas</p>
+          : allergies.map((a, i) => (
+            <div key={a.id}>
+              <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 0", opacity: a.isActive ? 1 : 0.45 }}>
+                <div style={{ flex: 1 }}>
+                  <p style={{ margin: 0, fontSize: 14, fontFamily: SANS, fontWeight: 700, color: C.primary }}>{a.allergenName}</p>
+                  <p style={{ margin: 0, fontSize: 12, fontFamily: SANS, color: C.muted }}>{lbl(ALLERGY_TYPES, a.allergyType)}</p>
+                </div>
+                <Badge label={lbl(ALLERGY_SEV, a.severity)} color={severityColor(a.severity)} />
+                <button onClick={() => { setEditAllergyDraft({ allergenName: a.allergenName, allergyType: a.allergyType, severity: a.severity, reactionDescription: a.reactionDescription ?? "" }); setEditAllergyItem(a); }}
+                  style={iconBtnStyle}><PencilIcon color={C.primary} size={14} /></button>
+                <button onClick={() => handleDeleteAllergy(a.id)} style={{ ...iconBtnStyle, background: "#EF444422" }}><TrashIcon color={C.red} size={14} /></button>
+              </div>
+              {i < allergies.length - 1 && divider}
+            </div>
+          ))
+        }
+        <AddBtn label="Agregar alergia" onClick={() => setAddAllergyOpen(true)} />
+      </Accordion>
+
+      {/* ── Condiciones crónicas ─────────────────────────────────────────────── */}
+      <Accordion title="Condiciones crónicas" icon={<HeartIcon color={C.muted} size={16} />}
+        badge={activeConditions} open={open.conditions} onToggle={() => toggle("conditions")}>
+        {conditions.length === 0
+          ? <p style={{ color: C.muted, fontFamily: SANS, fontSize: 13, textAlign: "center", padding: "8px 0" }}>Sin condiciones registradas</p>
+          : conditions.map((c, i) => (
+            <div key={c.id}>
+              <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 0" }}>
+                <div style={{ flex: 1 }}>
+                  <p style={{ margin: 0, fontSize: 14, fontFamily: SANS, fontWeight: 700, color: C.primary }}>{c.conditionName}</p>
+                  {c.notes && <p style={{ margin: 0, fontSize: 12, fontFamily: SANS, color: C.muted }}>{c.notes}</p>}
+                </div>
+                <Badge label={lbl(COND_STATUS, c.status)} color={condColor(c.status)} />
+                <button onClick={() => { setEditCondDraft({ conditionName: c.conditionName, severity: c.severity ?? "", status: c.status, notes: c.notes ?? "" }); setEditCondItem(c); }}
+                  style={iconBtnStyle}><PencilIcon color={C.primary} size={14} /></button>
+                <button onClick={() => handleDeleteCond(c.id)} style={{ ...iconBtnStyle, background: "#EF444422" }}><TrashIcon color={C.red} size={14} /></button>
+              </div>
+              {i < conditions.length - 1 && divider}
+            </div>
+          ))
+        }
+        <AddBtn label="Agregar condición" onClick={() => setAddCondOpen(true)} />
+      </Accordion>
+
+      {/* ── Medicamentos ─────────────────────────────────────────────────────── */}
+      <Accordion title="Medicamentos" icon={<HeartIcon color={C.muted} size={16} />}
+        badge={meds.length} open={open.meds} onToggle={() => toggle("meds")}>
+        {meds.length === 0
+          ? <p style={{ color: C.muted, fontFamily: SANS, fontSize: 13, textAlign: "center", padding: "8px 0" }}>Sin medicamentos registrados</p>
+          : meds.map((m, i) => (
+            <div key={m.id}>
+              <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 0", opacity: m.isCurrent ? 1 : 0.45 }}>
+                <div style={{ flex: 1 }}>
+                  <p style={{ margin: 0, fontSize: 14, fontFamily: SANS, fontWeight: 700, color: C.primary }}>{m.name}</p>
+                  {(m.dosage || m.frequency) && (
+                    <p style={{ margin: 0, fontSize: 12, fontFamily: SANS, color: C.muted }}>{[m.dosage, m.frequency].filter(Boolean).join(" · ")}</p>
+                  )}
+                </div>
+                {!m.isCurrent && <Badge label="Inactivo" color={C.muted} />}
+                <button onClick={() => { setEditMedDraft({ name: m.name, dosage: m.dosage ?? "", frequency: m.frequency ?? "", isCurrent: m.isCurrent }); setEditMedItem(m); }}
+                  style={iconBtnStyle}><PencilIcon color={C.primary} size={14} /></button>
+                <button onClick={() => handleDeleteMed(m.id)} style={{ ...iconBtnStyle, background: "#EF444422" }}><TrashIcon color={C.red} size={14} /></button>
+              </div>
+              {i < meds.length - 1 && divider}
+            </div>
+          ))
+        }
+        <AddBtn label="Agregar medicamento" onClick={() => setAddMedOpen(true)} />
+      </Accordion>
+
+      {/* ── Contactos de emergencia ───────────────────────────────────────────── */}
+      <Accordion title="Contactos de emergencia" icon={<PhoneIcon color={C.muted} size={16} />}
+        badge={contacts.length} open={open.contacts} onToggle={() => toggle("contacts")}>
+        {contacts.length === 0
+          ? <p style={{ color: C.muted, fontFamily: SANS, fontSize: 13, textAlign: "center", padding: "8px 0" }}>Sin contactos registrados</p>
+          : contacts.map((c, i) => (
+            <div key={c.id}>
+              <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 0" }}>
+                <div style={{ flex: 1 }}>
+                  <p style={{ margin: 0, fontSize: 14, fontFamily: SANS, fontWeight: 700, color: C.primary }}>{c.name}</p>
+                  <p style={{ margin: 0, fontSize: 12, fontFamily: SANS, color: C.muted }}>{c.relation}{c.email ? ` · ${c.email}` : ""}</p>
+                </div>
+                <a href={`tel:${c.phone}`}
+                  style={{ width: 34, height: 34, borderRadius: 10, background: "#22C55E22",
+                    display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, textDecoration: "none" }}>
+                  <PhoneIcon color={C.green} size={16} />
+                </a>
+                <button onClick={() => { setEditContactDraft({ name: c.name, phone: c.phone, relation: c.relation, email: c.email ?? "" }); setEditContactItem(c); }}
+                  style={iconBtnStyle}><PencilIcon color={C.primary} size={14} /></button>
+                <button onClick={() => handleDeleteContact(c.id)} style={{ ...iconBtnStyle, background: "#EF444422" }}><TrashIcon color={C.red} size={14} /></button>
+              </div>
+              {i < contacts.length - 1 && divider}
+            </div>
+          ))
+        }
+        <AddBtn label="Agregar contacto" onClick={() => setAddContactOpen(true)} />
+      </Accordion>
+
+      {/* ══════════════════════════ MODALES ══════════════════════════════════════ */}
+
+      {/* ── Editar perfil ─────────────────────────────────────────────────────── */}
+      {editOpen && (
+        <Modal title="Editar perfil" onClose={() => !saving && setEditOpen(false)}
+          footer={<SheetBtns onCancel={() => setEditOpen(false)} onSave={handleSave} saving={saving} />}>
+          <SectionLabel>Datos básicos</SectionLabel>
+          <Field label="Nombre *" value={draft.firstName} onChange={v => setDraft(d => ({ ...d, firstName: v }))} />
+          <Field label="Apellido *" value={draft.lastName} onChange={v => setDraft(d => ({ ...d, lastName: v }))} />
+          <Field label="Correo electrónico" value={draft.email} locked />
+
+          <SectionLabel>Información personal</SectionLabel>
+          <SelectField label="Género" value={draft.gender} onChange={v => setDraft(d => ({ ...d, gender: v }))} options={GENDERS} />
+          <SectionLabel>Documento {idLocked && "(bloqueado — ya registrado)"}</SectionLabel>
+          <SelectField label="Tipo de documento" value={draft.identificationType} onChange={v => setDraft(d => ({ ...d, identificationType: v }))} options={ID_TYPES} locked={idLocked} />
+          <Field label="Número de documento" value={draft.identificationNumber} onChange={v => setDraft(d => ({ ...d, identificationNumber: v }))} locked={idLocked} />
+
+          <SectionLabel>Perfil médico</SectionLabel>
+          <SelectField label="Tipo de sangre" value={draft.bloodType} onChange={v => setDraft(d => ({ ...d, bloodType: v }))} options={BLOOD_OPTS} locked />
+          <div style={{ display: "flex", gap: 8 }}>
+            <div style={{ flex: 1 }}><Field label="Altura (cm)" value={draft.heightCm} onChange={v => setDraft(d => ({ ...d, heightCm: v }))} placeholder="170" /></div>
+            <div style={{ flex: 1 }}><Field label="Peso (kg)" value={draft.weightKg} onChange={v => setDraft(d => ({ ...d, weightKg: v }))} placeholder="65" /></div>
+          </div>
+          <div style={{ background: C.card, borderRadius: 16, padding: "10px 16px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <p style={{ margin: 0, fontSize: 14, fontFamily: SANS, color: C.primary }}>Donante de órganos</p>
+            <input type="checkbox" checked={draft.organDonor} onChange={e => setDraft(d => ({ ...d, organDonor: e.target.checked }))}
+              style={{ width: 18, height: 18, accentColor: C.primary, cursor: "pointer" }} />
+          </div>
+          <Field label="Aseguradora" value={draft.insuranceProvider} onChange={v => setDraft(d => ({ ...d, insuranceProvider: v }))} placeholder="Nombre de la EPS / seguro" />
+        </Modal>
+      )}
+
+      {/* ── Agregar alergia ───────────────────────────────────────────────────── */}
+      {addAllergyOpen && (
+        <Modal title="Agregar alergia" onClose={() => setAddAllergyOpen(false)}
+          footer={<SheetBtns onCancel={() => setAddAllergyOpen(false)} onSave={handleAddAllergy} saving={savingAllergy} />}>
+          <Field label="Nombre del alérgeno *" value={allergyDraft.allergenName} onChange={v => setAllergyDraft(d => ({ ...d, allergenName: v }))} placeholder="p. ej. Penicilina" />
+          <SelectField label="Tipo *" value={allergyDraft.allergyType} onChange={v => setAllergyDraft(d => ({ ...d, allergyType: v }))} options={ALLERGY_TYPES} />
+          <SelectField label="Severidad *" value={allergyDraft.severity} onChange={v => setAllergyDraft(d => ({ ...d, severity: v }))} options={ALLERGY_SEV} />
+          <Field label="Descripción de reacción (opcional)" value={allergyDraft.reactionDescription} onChange={v => setAllergyDraft(d => ({ ...d, reactionDescription: v }))} placeholder="p. ej. Urticaria, dificultad respiratoria" />
+        </Modal>
+      )}
+
+      {/* ── Editar alergia ────────────────────────────────────────────────────── */}
+      {editAllergyItem && (
+        <Modal title="Editar alergia" onClose={() => setEditAllergyItem(null)}
+          footer={<SheetBtns onCancel={() => setEditAllergyItem(null)} onSave={handleSaveEditAllergy} saving={savingAllergy} />}>
+          <Field label="Nombre del alérgeno *" value={editAllergyDraft.allergenName} onChange={v => setEditAllergyDraft(d => ({ ...d, allergenName: v }))} />
+          <SelectField label="Tipo *" value={editAllergyDraft.allergyType} onChange={v => setEditAllergyDraft(d => ({ ...d, allergyType: v }))} options={ALLERGY_TYPES} />
+          <SelectField label="Severidad *" value={editAllergyDraft.severity} onChange={v => setEditAllergyDraft(d => ({ ...d, severity: v }))} options={ALLERGY_SEV} />
+          <Field label="Descripción de reacción (opcional)" value={editAllergyDraft.reactionDescription} onChange={v => setEditAllergyDraft(d => ({ ...d, reactionDescription: v }))} />
+        </Modal>
+      )}
+
+      {/* ── Agregar condición ─────────────────────────────────────────────────── */}
+      {addCondOpen && (
+        <Modal title="Agregar condición" onClose={() => setAddCondOpen(false)}
+          footer={<SheetBtns onCancel={() => setAddCondOpen(false)} onSave={handleAddCond} saving={savingCond} />}>
+          <Field label="Nombre de la condición *" value={condDraft.conditionName} onChange={v => setCondDraft(d => ({ ...d, conditionName: v }))} placeholder="p. ej. Diabetes tipo 2" />
+          <SelectField label="Severidad" value={condDraft.severity} onChange={v => setCondDraft(d => ({ ...d, severity: v }))} options={COND_SEV} />
+          <SelectField label="Estado" value={condDraft.status} onChange={v => setCondDraft(d => ({ ...d, status: v }))} options={COND_STATUS} />
+          <Field label="Notas (opcional)" value={condDraft.notes} onChange={v => setCondDraft(d => ({ ...d, notes: v }))} placeholder="Información adicional" />
+        </Modal>
+      )}
+
+      {/* ── Editar condición ──────────────────────────────────────────────────── */}
+      {editCondItem && (
+        <Modal title="Editar condición" onClose={() => setEditCondItem(null)}
+          footer={<SheetBtns onCancel={() => setEditCondItem(null)} onSave={handleSaveEditCond} saving={savingCond} />}>
+          <Field label="Nombre de la condición *" value={editCondDraft.conditionName} onChange={v => setEditCondDraft(d => ({ ...d, conditionName: v }))} />
+          <SelectField label="Severidad" value={editCondDraft.severity} onChange={v => setEditCondDraft(d => ({ ...d, severity: v }))} options={COND_SEV} />
+          <SelectField label="Estado" value={editCondDraft.status} onChange={v => setEditCondDraft(d => ({ ...d, status: v }))} options={COND_STATUS} />
+          <Field label="Notas (opcional)" value={editCondDraft.notes} onChange={v => setEditCondDraft(d => ({ ...d, notes: v }))} />
+        </Modal>
+      )}
+
+      {/* ── Agregar medicamento ───────────────────────────────────────────────── */}
+      {addMedOpen && (
+        <Modal title="Agregar medicamento" onClose={() => setAddMedOpen(false)}
+          footer={<SheetBtns onCancel={() => setAddMedOpen(false)} onSave={handleAddMed} saving={savingMed} />}>
+          <Field label="Nombre del medicamento *" value={medDraft.name} onChange={v => setMedDraft(d => ({ ...d, name: v }))} placeholder="Ej: Metformina" />
+          <Field label="Dosis (opcional)" value={medDraft.dosage} onChange={v => setMedDraft(d => ({ ...d, dosage: v }))} placeholder="Ej: 500mg" />
+          <Field label="Frecuencia (opcional)" value={medDraft.frequency} onChange={v => setMedDraft(d => ({ ...d, frequency: v }))} placeholder="Ej: Cada 8 horas" />
+        </Modal>
+      )}
+
+      {/* ── Editar medicamento ────────────────────────────────────────────────── */}
+      {editMedItem && (
+        <Modal title="Editar medicamento" onClose={() => setEditMedItem(null)}
+          footer={<SheetBtns onCancel={() => setEditMedItem(null)} onSave={handleSaveEditMed} saving={savingMed} />}>
+          <Field label="Nombre del medicamento *" value={editMedDraft.name} onChange={v => setEditMedDraft(d => ({ ...d, name: v }))} />
+          <Field label="Dosis" value={editMedDraft.dosage} onChange={v => setEditMedDraft(d => ({ ...d, dosage: v }))} placeholder="Ej: 500mg" />
+          <Field label="Frecuencia" value={editMedDraft.frequency} onChange={v => setEditMedDraft(d => ({ ...d, frequency: v }))} placeholder="Ej: Cada 8 horas" />
+          <div style={{ background: C.card, borderRadius: 16, padding: "10px 16px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <p style={{ margin: 0, fontSize: 14, fontFamily: SANS, color: C.primary }}>Medicamento activo</p>
+            <input type="checkbox" checked={editMedDraft.isCurrent} onChange={e => setEditMedDraft(d => ({ ...d, isCurrent: e.target.checked }))}
+              style={{ width: 18, height: 18, accentColor: C.primary, cursor: "pointer" }} />
+          </div>
+        </Modal>
+      )}
+
+      {/* ── Agregar contacto ──────────────────────────────────────────────────── */}
+      {addContactOpen && (
+        <Modal title="Agregar contacto" onClose={() => setAddContactOpen(false)}
+          footer={<SheetBtns onCancel={() => setAddContactOpen(false)} onSave={handleAddContact} saving={savingContact} />}>
+          <Field label="Nombre completo *" value={contactDraft.name} onChange={v => setContactDraft(d => ({ ...d, name: v }))} placeholder="Ej: María García" />
+          <Field label="Teléfono *" value={contactDraft.phone} onChange={v => setContactDraft(d => ({ ...d, phone: v }))} placeholder="Ej: 3001234567" />
+          <Field label="Parentesco / relación" value={contactDraft.relation} onChange={v => setContactDraft(d => ({ ...d, relation: v }))} placeholder="Ej: Mamá, Esposo, Médico" />
+          <Field label="Correo (opcional)" value={contactDraft.email} onChange={v => setContactDraft(d => ({ ...d, email: v }))} placeholder="correo@ejemplo.com" />
+        </Modal>
+      )}
+
+      {/* ── Editar contacto ───────────────────────────────────────────────────── */}
+      {editContactItem && (
+        <Modal title="Editar contacto" onClose={() => setEditContactItem(null)}
+          footer={<SheetBtns onCancel={() => setEditContactItem(null)} onSave={handleSaveEditContact} saving={savingContact} />}>
+          <Field label="Nombre completo *" value={editContactDraft.name} onChange={v => setEditContactDraft(d => ({ ...d, name: v }))} />
+          <Field label="Teléfono *" value={editContactDraft.phone} onChange={v => setEditContactDraft(d => ({ ...d, phone: v }))} />
+          <Field label="Parentesco / relación" value={editContactDraft.relation} onChange={v => setEditContactDraft(d => ({ ...d, relation: v }))} placeholder="Ej: Mamá, Esposo, Médico" />
+          <Field label="Correo (opcional)" value={editContactDraft.email} onChange={v => setEditContactDraft(d => ({ ...d, email: v }))} placeholder="correo@ejemplo.com" />
+        </Modal>
+      )}
+
+    </div>
+  );
 }
