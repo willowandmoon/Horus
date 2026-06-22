@@ -793,6 +793,8 @@ export default function ArchivosPage() {
   const [reviewPayload, setReviewPayload] = useState<{
     structuredData: any;
     normalizedMedications: Record<string, string>;
+    publicId: string;
+    resourceType: string;
   } | null>(null);
   const [pendingFile, setPendingFile] = useState<File | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<DocumentItem | null>(null);
@@ -854,9 +856,13 @@ export default function ArchivosPage() {
       const data = await res.json();
       fetchDocs(userId);
       if (data?.structuredData && hasAnyData(data.structuredData)) {
+        // publicId lives in the last document of the updatedRecord spread
+        const lastDoc = Array.isArray(data.documents) ? data.documents[data.documents.length - 1] : null;
         setReviewPayload({
           structuredData: data.structuredData,
           normalizedMedications: data.normalizedMedications ?? {},
+          publicId: lastDoc?.publicId ?? "",
+          resourceType: lastDoc?.resourceType ?? "raw",
         });
       }
     } catch (err: unknown) {
@@ -1134,7 +1140,26 @@ export default function ArchivosPage() {
           structuredData={reviewPayload.structuredData}
           normalizedMedications={reviewPayload.normalizedMedications}
           userId={userId}
-          onClose={() => setReviewPayload(null)}
+          onClose={async () => {
+            // Delete the Cloudinary file since the user discarded the review
+            const { publicId, resourceType } = reviewPayload;
+            setReviewPayload(null);
+            if (publicId) {
+              // Remove from local list and ghost list immediately so it doesn't reappear on refetch
+              setDocs(prev => prev.filter(d => d.publicId !== publicId));
+              const ghosts: string[] = JSON.parse(sessionStorage.getItem("deletedDocIds") ?? "[]");
+              if (!ghosts.includes(publicId)) {
+                ghosts.push(publicId);
+                sessionStorage.setItem("deletedDocIds", JSON.stringify(ghosts));
+              }
+              try {
+                await fetch(
+                  `/api/medical-history?publicId=${encodeURIComponent(publicId)}&userId=${encodeURIComponent(userId)}&resourceType=${encodeURIComponent(resourceType || "raw")}`,
+                  { method: "DELETE" }
+                );
+              } catch {}
+            }
+          }}
           onSaved={() => setReviewPayload(null)}
         />
       )}
