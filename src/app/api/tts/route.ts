@@ -1,39 +1,32 @@
 import { NextRequest, NextResponse } from "next/server";
 
-// ElevenLabs voice — "Matilda" (warm, clear, multilingual)
-const VOICE_ID = "XrExE9yKIg1WjnnlVkGX";
+const AI_URL    = process.env.HORUS_AI_URL    ?? "http://localhost:3001";
+const AI_SECRET = process.env.HORUS_AI_SECRET ?? "";
 
 export async function POST(req: NextRequest) {
     try {
-        const { text } = await req.json();
+        const { text, voiceId } = await req.json();
+        if (!text) return NextResponse.json({ error: "text requerido" }, { status: 400 });
 
-        const res = await fetch(
-            `https://api.elevenlabs.io/v1/text-to-speech/${VOICE_ID}`,
-            {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "xi-api-key": process.env.ELEVENLABS_API_KEY ?? "",
-                },
-                body: JSON.stringify({
-                    text,
-                    model_id: "eleven_flash_v2_5",
-                    output_format: "mp3_22050_32",
-                    voice_settings: { stability: 0.5, similarity_boost: 0.75, speed: 1.1 },
-                }),
-            }
-        );
-
+        const res = await fetch(`${AI_URL}/chat/tts`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${AI_SECRET}`,
+            },
+            body: JSON.stringify({ text, voiceId }),
+        });
         if (!res.ok) {
             return NextResponse.json({ error: "TTS error" }, { status: 502 });
         }
-
-        const audio = await res.arrayBuffer();
-        return new NextResponse(audio, {
+        // ia-personalizada returns { audioBase64: string }
+        const { audioBase64 } = await res.json() as { audioBase64: string };
+        const buffer = Buffer.from(audioBase64, "base64");
+        return new NextResponse(buffer, {
             headers: { "Content-Type": "audio/mpeg" },
         });
-    } catch (error) {
-        console.error("tts error:", error);
+    } catch (e) {
+        console.error("tts proxy error:", e);
         return NextResponse.json({ error: "Error TTS" }, { status: 500 });
     }
 }

@@ -152,7 +152,7 @@ export default function NotificationsCard() {
                     </p>
                 </div>
             ) : (
-                <div className="space-y-0">
+                <div className="space-y-0 max-h-[280px] overflow-y-auto pr-1">
                     {notifs.map(n => {
                         const color = TYPE_COLORS[n.type];
                         return (

@@ -2,15 +2,6 @@
 import { useState } from "react";
 import ChatModal from "./ChatModal";
 
-const FEATURES = [
-    { label: "Chat IA",        emoji: "💬" },
-    { label: "Voz ElevenLabs", emoji: "🎙️" },
-    { label: "Historial",      emoji: "📋" },
-    { label: "Subir Foto",     emoji: "📷" },
-    { label: "Archivos",       emoji: "📄" },
-    { label: "OCR",            emoji: "🔍" },
-];
-
 export default function ChatButton({ userId }: { userId?: string }) {
     const [open, setOpen] = useState(false);
 
@@ -18,41 +9,31 @@ export default function ChatButton({ userId }: { userId?: string }) {
         <>
             <button
                 onClick={() => setOpen(true)}
-                className="w-full bg-[#1a1c2a] rounded-[28px] p-6 flex flex-col gap-5 shadow-md border border-white/5 hover:border-[#EF233C]/30 hover:shadow-xl transition-all duration-300 cursor-pointer text-left group"
+                className="w-full bg-white rounded-[28px] p-5 flex items-center gap-4 shadow-sm border border-[#E4E2DC] hover:shadow-md transition-all duration-200 cursor-pointer text-left group"
             >
-                {/* Status row */}
-                <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                        <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
-                        <p className="text-[11px] text-white/40 font-semibold uppercase tracking-widest">Asistente Horus · IA</p>
-                    </div>
-                    <span className="text-[11px] bg-[#EF233C]/20 text-[#EF233C] font-bold px-2.5 py-1 rounded-full">En línea</span>
+                {/* Avatar */}
+                <div className="w-14 h-14 rounded-full bg-[#F0EBE3] flex items-center justify-center shrink-0 overflow-hidden">
+                    <img src="/gato.png" alt="Horus" className="w-10 h-10 object-contain" />
                 </div>
 
-                {/* Title */}
-                <div>
-                    <h2 className="text-[1.75rem] font-black text-white leading-tight mb-1">Asistente IA</h2>
-                    <p className="text-sm text-white/35 leading-relaxed">
-                        Primeros auxilios, emergencias y consultas médicas guiadas por inteligencia artificial con voz
+                {/* Info */}
+                <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-0.5">
+                        <p className="text-base font-bold text-[#1A1512]">Horus · IA</p>
+                        <div className="flex items-center gap-1.5">
+                            <span className="w-1.5 h-1.5 rounded-full bg-[#22C55E] animate-pulse" />
+                            <span className="text-[11px] font-semibold text-[#22C55E]">En línea</span>
+                        </div>
+                    </div>
+                    <p className="text-sm text-[#8D99AE] leading-snug">
+                        Primeros auxilios, emergencias y consultas médicas
                     </p>
                 </div>
 
-                {/* Feature chips */}
-                <div className="flex flex-wrap gap-1.5">
-                    {FEATURES.map(f => (
-                        <span key={f.label}
-                            className="flex items-center gap-1.5 text-xs bg-white/[0.07] text-white/45 px-3 py-1 rounded-full border border-white/[0.08] group-hover:border-white/15 group-hover:text-white/60 transition-all">
-                            <span>{f.emoji}</span>
-                            <span>{f.label}</span>
-                        </span>
-                    ))}
-                </div>
-
-                {/* CTA */}
-                <div className="flex items-center gap-2 text-sm font-bold text-[#EF233C] group-hover:gap-3 transition-all mt-1">
-                    <span>Abrir Asistente</span>
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3"/>
+                {/* Chat icon */}
+                <div className="w-9 h-9 rounded-full bg-[#1A1512] flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                    <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 0 1-2.555-.337A5.972 5.972 0 0 1 5.41 20.97a5.969 5.969 0 0 1-.474-.065 4.48 4.48 0 0 0 .978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25Z"/>
                     </svg>
                 </div>
             </button>

@@ -3,7 +3,6 @@ import { authGuard } from "@/src/shared/lib/auth.guard";
 import { AuthRepositoryImpl } from "@/src/infrastructure/repositories/auth.repository.impl";
 import LogoutButton from "./_components/LogoutButton";
 import LocationMap from "./_components/LocationMap";
-import WeatherCard from "./_components/WeatherCard";
 import ChatButton from "./_components/ChatButton";
 import QrPermissionsCard from "./_components/QrPermissionsCard";
 import NotificationsCard from "./_components/NotificationsCard";
@@ -153,33 +152,6 @@ export default async function DashboardPage() {
 
                     {/* ── RIGHT (2 cols) ── */}
                     <div className="xl:col-span-2 flex flex-col gap-5">
-
-                        {/* Mini stats: Weather + Heart rate */}
-                        <div className="grid grid-cols-2 gap-4">
-                            <div className="min-h-[128px]">
-                                <WeatherCard />
-                            </div>
-                            <div className="bg-white rounded-[24px] p-4 shadow-sm border border-[#E4E2DC] flex flex-col justify-between min-h-[128px]">
-                                <div className="flex items-center gap-1.5">
-                                    <div className="w-6 h-6 rounded-lg bg-[#FFF0F0] flex items-center justify-center">
-                                        <svg className="w-3.5 h-3.5 text-[#E62B34]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                            <path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z"/>
-                                        </svg>
-                                    </div>
-                                    <p className="text-[9px] text-[#8D99AE] font-semibold uppercase tracking-wider">Salud</p>
-                                </div>
-                                <div>
-                                    <p className="text-2xl font-black text-[#1A1512]">
-                                        98 <span className="text-sm font-semibold text-[#8D99AE]">bpm</span>
-                                    </p>
-                                    <p className="text-[10px] text-[#8D99AE] mt-0.5">Frec. cardíaca</p>
-                                </div>
-                                <div className="flex items-center gap-1">
-                                    <span className="w-1.5 h-1.5 rounded-full bg-[#22C55E]" />
-                                    <span className="text-[10px] text-[#22C55E] font-semibold">Normal</span>
-                                </div>
-                            </div>
-                        </div>
 
                         <QrPermissionsCard userId={userId} />
                         <NotificationsCard />
