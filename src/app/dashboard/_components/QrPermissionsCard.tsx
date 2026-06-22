@@ -1,38 +1,67 @@
 "use client";
 import { useState, useEffect } from "react";
 
+// ── 6 medical privacy toggles — match horus-mobile qr-medico.tsx exactly ──────
 const PERMISSIONS = [
-    { key: "location",       label: "Ubicación en tiempo real"     },
-    { key: "notifications",  label: "Notificaciones de emergencia" },
-    { key: "data_sync",      label: "Sincronización de datos"      },
-    { key: "medical_access", label: "Acceso a historial médico"    },
-];
+    { key: "blood",      label: "Tipo de sangre",         apiField: "showBloodType"          },
+    { key: "allergies",  label: "Alergias",                apiField: "showAllergies"           },
+    { key: "meds",       label: "Medicamentos actuales",   apiField: "showMedications"         },
+    { key: "conditions", label: "Condiciones crónicas",    apiField: "showChronicConditions"   },
+    { key: "contacts",   label: "Contactos de emergencia", apiField: "showEmergencyContacts"   },
+    { key: "notes",      label: "Notas médicas",           apiField: "showMedicalHistory"      },
+] as const;
+
+type PermKey = typeof PERMISSIONS[number]["key"];
+type Perms = Record<PermKey, boolean>;
+
+const DEFAULTS: Perms = {
+    blood:      true,
+    allergies:  true,
+    meds:       true,
+    conditions: true,
+    contacts:   true,
+    notes:      false,
+};
+
+const STORAGE_KEY = "horus_qr_privacy";
 
 export default function QrPermissionsCard({ userId }: { userId: string }) {
-    const [perms, setPerms] = useState<Record<string, boolean>>({});
-    const [mounted, setMounted] = useState(false);
+    const [perms, setPerms]       = useState<Perms>(DEFAULTS);
+    const [mounted, setMounted]   = useState(false);
+    const [saving, setSaving]     = useState<PermKey | null>(null);
 
     useEffect(() => {
         try {
-            const stored = JSON.parse(localStorage.getItem("horus_permissions") ?? "{}");
-            const defaults = Object.fromEntries(PERMISSIONS.map(p => [p.key, true]));
-            setPerms({ ...defaults, ...stored });
-        } catch {
-            setPerms(Object.fromEntries(PERMISSIONS.map(p => [p.key, true])));
-        }
+            const stored = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? "{}");
+            setPerms(prev => ({ ...prev, ...stored }));
+        } catch {}
         setMounted(true);
     }, []);
 
-    const toggle = (key: string) => {
-        setPerms(prev => {
-            const next = { ...prev, [key]: !prev[key] };
-            try { localStorage.setItem("horus_permissions", JSON.stringify(next)); } catch {}
-            return next;
-        });
+    const toggle = async (key: PermKey) => {
+        const next = { ...perms, [key]: !perms[key] };
+        setPerms(next);
+        try { localStorage.setItem(STORAGE_KEY, JSON.stringify(next)); } catch {}
+
+        // Attempt real API sync (if backend proxy exists)
+        const perm = PERMISSIONS.find(p => p.key === key);
+        if (!perm) return;
+        setSaving(key);
+        try {
+            await fetch("/api/profile/privacy", {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ [perm.apiField]: next[key] }),
+            });
+        } catch {
+            // Silent — localStorage already saved the preference
+        } finally {
+            setSaving(null);
+        }
     };
 
     const qrData = encodeURIComponent(`https://horus.app/emergency/${userId}`);
-    const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${qrData}&color=1A1512&bgcolor=F2F1EC&margin=4`;
+    const qrUrl  = `https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${qrData}&color=1A1512&bgcolor=F2F1EC&margin=4`;
 
     return (
         <div className="bg-white rounded-[24px] p-5 shadow-sm border border-[#E4E2DC]">
@@ -66,26 +95,32 @@ export default function QrPermissionsCard({ userId }: { userId: string }) {
                 </div>
             </div>
 
-            {/* Divider + Permissions */}
+            {/* Privacy toggles */}
             <div className="border-t border-[#E4E2DC] pt-4">
-                <p className="text-[10px] font-extrabold text-[#8D99AE] uppercase tracking-wider mb-3">Permisos</p>
+                <p className="text-[10px] font-extrabold text-[#8D99AE] uppercase tracking-wider mb-3">
+                    Privacidad · Datos visibles en el QR
+                </p>
                 <div className="space-y-3">
-                    {PERMISSIONS.map(p => (
-                        <div key={p.key} className="flex items-center justify-between gap-3">
-                            <span className="text-xs text-[#1A1512] leading-tight">{p.label}</span>
-                            <button
-                                onClick={() => toggle(p.key)}
-                                aria-label={`Toggle ${p.label}`}
-                                className={`relative w-9 h-5 rounded-full transition-colors duration-200 shrink-0 ${
-                                    mounted && perms[p.key] ? "bg-[#22C55E]" : "bg-[#E4E2DC]"
-                                }`}
-                            >
-                                <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow-sm transition-all duration-200 ${
-                                    mounted && perms[p.key] ? "left-[18px]" : "left-0.5"
-                                }`} />
-                            </button>
-                        </div>
-                    ))}
+                    {PERMISSIONS.map(p => {
+                        const on = mounted ? perms[p.key] : DEFAULTS[p.key];
+                        return (
+                            <div key={p.key} className="flex items-center justify-between gap-3">
+                                <span className="text-xs text-[#1A1512] leading-tight">{p.label}</span>
+                                <button
+                                    onClick={() => toggle(p.key)}
+                                    disabled={saving === p.key}
+                                    aria-label={`Toggle ${p.label}`}
+                                    className={`relative w-9 h-5 rounded-full transition-colors duration-200 shrink-0 disabled:opacity-60 ${
+                                        on ? "bg-[#22C55E]" : "bg-[#E4E2DC]"
+                                    }`}
+                                >
+                                    <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow-sm transition-all duration-200 ${
+                                        on ? "left-[18px]" : "left-0.5"
+                                    }`} />
+                                </button>
+                            </div>
+                        );
+                    })}
                 </div>
             </div>
         </div>

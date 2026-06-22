@@ -2,8 +2,15 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import SplineRobot from "./SplineRobot";
 
-type Tab = "chat" | "voice" | "history" | "photo" | "file" | "ocr";
-type Message = { role: "user" | "assistant"; content: string };
+// ── Types ──────────────────────────────────────────────────────────────────────
+type VoiceState = "idle" | "listening" | "processing" | "speaking";
+
+interface ChatMsg {
+    id: string;
+    role: "user" | "assistant";
+    text: string;
+    media?: { uri: string; type: "image" | "pdf" | "docx"; name?: string };
+}
 
 interface SREvent { results: ArrayLike<ArrayLike<{ transcript: string }>>; }
 interface SR {
@@ -11,87 +18,407 @@ interface SR {
     onresult: ((e: SREvent) => void) | null;
     onend: (() => void) | null;
     onerror: (() => void) | null;
+    onstart: (() => void) | null;
     start(): void; stop(): void;
 }
-interface SpeechWindow extends Window {
+interface Win extends Window {
     SpeechRecognition?: new () => SR;
     webkitSpeechRecognition?: new () => SR;
 }
 
-const STORAGE_KEY = "horus_chat_history";
-function saveHistory(msgs: Message[]) { try { sessionStorage.setItem(STORAGE_KEY, JSON.stringify(msgs)); } catch {} }
-function loadHistory(): Message[] { try { return JSON.parse(sessionStorage.getItem(STORAGE_KEY) ?? "[]"); } catch { return []; } }
+// ── Design tokens (match mobile theme) ────────────────────────────────────────
+const BG      = "#F2F1EC";
+const CARD    = "#FFFFFF";
+const PRIMARY = "#1A1512";
+const MUTED   = "#8D99AE";
+const MBG     = "#F0EBE3";
+const BORDER  = "#E4E2DC";
+const GREEN   = "#22C55E";
 
-const INITIAL_MSG: Message = {
-    role: "assistant",
-    content: "¡Hola! Soy Horus, tu asistente de primeros auxilios. Estoy aquí para guiarte en emergencias médicas con instrucciones claras y seguras. ¿En qué puedo ayudarte?",
-};
+const sw = { strokeLinecap: "round" as const, strokeLinejoin: "round" as const };
 
-const TABS: { id: Tab; label: string; icon: React.ReactNode }[] = [
-    { id: "chat", label: "Chat", icon: <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}><path strokeLinecap="round" strokeLinejoin="round" d="M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 0 1-2.555-.337A5.972 5.972 0 0 1 5.41 20.97a5.969 5.969 0 0 1-.474-.065 4.48 4.48 0 0 0 .978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25Z"/></svg> },
-    { id: "voice", label: "Voz", icon: <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}><path strokeLinecap="round" strokeLinejoin="round" d="M12 18.75a6 6 0 0 0 6-6v-1.5m-6 7.5a6 6 0 0 1-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 0 1-3-3V4.5a3 3 0 1 1 6 0v8.25a3 3 0 0 1-3 3Z"/></svg> },
-    { id: "history", label: "Historial", icon: <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}><path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg> },
-    { id: "photo", label: "Foto", icon: <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}><path strokeLinecap="round" strokeLinejoin="round" d="M6.827 6.175A2.31 2.31 0 0 1 5.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 0 0-1.134-.175 2.31 2.31 0 0 1-1.64-1.055l-.822-1.316a2.192 2.192 0 0 0-1.736-1.039 48.774 48.774 0 0 0-5.232 0 2.192 2.192 0 0 0-1.736 1.039l-.821 1.316Z"/><path strokeLinecap="round" strokeLinejoin="round" d="M16.5 12.75a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0ZM18.75 10.5h.008v.008h-.008V10.5Z"/></svg> },
-    { id: "file", label: "Archivo", icon: <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}><path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m6.75 12-3-3m0 0-3 3m3-3v6m-1.5-15H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z"/></svg> },
-    { id: "ocr", label: "OCR", icon: <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}><path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607ZM10.5 7.5v6m3-3h-6"/></svg> },
+// ── Suggestion chips (welcome screen) ─────────────────────────────────────────
+const SUGGESTIONS = [
+    "¿Qué hago si alguien pierde el conocimiento?",
+    "¿Cómo tratar una quemadura leve?",
+    "Reporte de salud del día",
 ];
 
-export default function ChatModal({ onClose, userId }: { onClose: () => void; userId?: string }) {
-    const [activeTab, setActiveTab] = useState<Tab>("chat");
+// ── Welcome screen ─────────────────────────────────────────────────────────────
+function WelcomeScreen({ onSuggest }: { onSuggest: (t: string) => void }) {
+    return (
+        <div className="flex flex-col items-center justify-center h-full gap-5 py-8 px-4">
+            <div className="w-20 h-20 rounded-full flex items-center justify-center overflow-hidden"
+                style={{ background: MBG }}>
+                <img src="/gato.png" alt="Horus" className="w-14 h-14 object-contain" />
+            </div>
+            <div className="text-center">
+                <p className="text-base font-bold" style={{ color: PRIMARY }}>Hola, soy Horus</p>
+                <p className="text-sm mt-1 max-w-xs mx-auto" style={{ color: MUTED }}>
+                    Tu asistente de primeros auxilios y salud. ¿En qué puedo ayudarte?
+                </p>
+            </div>
+            <div className="flex flex-col gap-2 w-full max-w-xs">
+                {SUGGESTIONS.map(s => (
+                    <button key={s} onClick={() => onSuggest(s)}
+                        className="text-left text-sm px-4 py-2.5 rounded-2xl font-medium border transition-shadow hover:shadow-md"
+                        style={{ background: CARD, color: PRIMARY, borderColor: BORDER }}>
+                        {s}
+                    </button>
+                ))}
+            </div>
+        </div>
+    );
+}
 
-    // Chat state
-    const [messages, setMessages] = useState<Message[]>([INITIAL_MSG]);
-    const [input, setInput] = useState("");
-    const [loading, setLoading] = useState(false);
-    const [listening, setListening] = useState(false);
-    const [speaking, setSpeaking] = useState(false);
+// ── Message bubble ─────────────────────────────────────────────────────────────
+function MessageBubble({ msg }: { msg: ChatMsg }) {
+    const isUser = msg.role === "user";
+    return (
+        <div className={`flex ${isUser ? "justify-end" : "justify-start"}`}>
+            <div className="max-w-[82%]">
+                {msg.media?.type === "image" && (
+                    <img src={msg.media.uri} alt="Imagen"
+                        className={`rounded-2xl max-h-48 object-cover block mb-1.5 ${isUser ? "ml-auto" : ""}`} />
+                )}
+                {(msg.text || msg.media?.type === "pdf" || msg.media?.type === "docx") && (
+                    <div className={`rounded-2xl px-4 py-3 text-sm leading-relaxed ${isUser ? "rounded-br-sm" : "rounded-bl-sm"}`}
+                        style={{
+                            background: isUser ? PRIMARY : CARD,
+                            color: isUser ? "#FFF" : PRIMARY,
+                            boxShadow: isUser ? "none" : "0 1px 4px rgba(0,0,0,0.07)",
+                        }}>
+                        {(msg.media?.type === "pdf" || msg.media?.type === "docx") && (
+                            <div className="flex items-center gap-2 mb-2 opacity-80">
+                                <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8} {...sw}>
+                                    <path d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
+                                </svg>
+                                <span className="text-xs font-semibold truncate">{msg.media?.name ?? "Documento"}</span>
+                            </div>
+                        )}
+                        {msg.text && <p className="whitespace-pre-wrap">{msg.text}</p>}
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+}
 
-    // Voice tab state
-    const [voiceListening, setVoiceListening] = useState(false);
-    const [voiceTranscript, setVoiceTranscript] = useState("");
-    const [voiceResponse, setVoiceResponse] = useState("");
-    const [voiceLoading, setVoiceLoading] = useState(false);
+// ── Attach option button ───────────────────────────────────────────────────────
+function AttachOption({ label, iconPath, bgColor, onClick }: {
+    label: string; iconPath: React.ReactNode; bgColor: string; onClick: () => void;
+}) {
+    return (
+        <button onClick={onClick}
+            className="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-left transition-colors hover:opacity-80"
+            style={{ ["--hover-bg" as string]: MBG }}
+            onMouseEnter={e => (e.currentTarget.style.background = MBG)}
+            onMouseLeave={e => (e.currentTarget.style.background = "transparent")}>
+            <div className="w-9 h-9 rounded-full flex items-center justify-center shrink-0" style={{ background: bgColor + "22" }}>
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke={bgColor} strokeWidth={1.8} {...sw}>
+                    {iconPath}
+                </svg>
+            </div>
+            <span className="text-sm font-medium" style={{ color: PRIMARY }}>{label}</span>
+        </button>
+    );
+}
 
-    // Photo tab state
-    const [photoFile, setPhotoFile] = useState<File | null>(null);
-    const [photoPreview, setPhotoPreview] = useState<string | null>(null);
-    const [photoResult, setPhotoResult] = useState<string | null>(null);
-    const [photoLoading, setPhotoLoading] = useState(false);
-
-    // File tab state
-    const [uploadFile, setUploadFile] = useState<File | null>(null);
-    const [uploadResult, setUploadResult] = useState<"idle" | "loading" | "success" | "error">("idle");
-
-    // OCR tab state
-    const [ocrFile, setOcrFile] = useState<File | null>(null);
-    const [ocrResult, setOcrResult] = useState<string | null>(null);
-    const [ocrLoading, setOcrLoading] = useState(false);
-
-    const bottomRef = useRef<HTMLDivElement>(null);
-    const inputRef = useRef<HTMLInputElement>(null);
-    const recognitionRef = useRef<SR | null>(null);
-    const audioRef = useRef<HTMLAudioElement | null>(null);
-
-    useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages, loading]);
+// ── Voice mode overlay ─────────────────────────────────────────────────────────
+function VoiceModeOverlay({
+    onClose, externalAudioRef,
+}: {
+    onClose: () => void;
+    externalAudioRef: React.MutableRefObject<HTMLAudioElement | null>;
+}) {
+    const [state, setState] = useState<VoiceState>("idle");
+    const [msgs, setMsgs] = useState<{ role: "user" | "assistant"; text: string }[]>([]);
+    const recRef = useRef<SR | null>(null);
+    const scrollRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
-        if (activeTab === "chat") inputRef.current?.focus();
-        const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+        scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
+    }, [msgs]);
+
+    useEffect(() => {
+        const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") handleClose(); };
         window.addEventListener("keydown", onKey);
         return () => window.removeEventListener("keydown", onKey);
-    }, [onClose, activeTab]);
+    }, []);
 
-    const speakWithElevenLabs = useCallback(async (text: string) => {
+    const handleClose = () => {
+        recRef.current?.stop();
+        externalAudioRef.current?.pause();
+        externalAudioRef.current = null;
+        onClose();
+    };
+
+    const startListening = () => {
+        const w = window as Win;
+        const SR = w.SpeechRecognition || w.webkitSpeechRecognition;
+        if (!SR) return;
+        const rec = new SR();
+        rec.lang = "es-CO"; rec.continuous = false; rec.interimResults = false;
+        rec.onstart = () => setState("listening");
+        rec.onresult = async (e) => {
+            const transcript = e.results[0][0].transcript;
+            setMsgs(prev => [...prev, { role: "user", text: transcript }]);
+            setState("processing");
+
+            try {
+                const history = msgs.map(m => ({ role: m.role, content: m.text }));
+                history.push({ role: "user", content: transcript });
+
+                const res = await fetch("/api/chat", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ messages: history }),
+                });
+                const data = await res.json();
+                const reply = data.content ?? "Lo siento, hubo un error.";
+                setMsgs(prev => [...prev, { role: "assistant", text: reply }]);
+
+                setState("speaking");
+                const ttsRes = await fetch("/api/tts", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ text: reply }),
+                });
+                if (ttsRes.ok) {
+                    const blob = await ttsRes.blob();
+                    const url = URL.createObjectURL(blob);
+                    externalAudioRef.current?.pause();
+                    const audio = new Audio(url);
+                    externalAudioRef.current = audio;
+                    audio.onended = () => { URL.revokeObjectURL(url); setState("idle"); };
+                    audio.onerror = () => setState("idle");
+                    await audio.play();
+                } else {
+                    setState("idle");
+                }
+            } catch {
+                setState("idle");
+            }
+        };
+        rec.onend = () => { if (state === "listening") setState("idle"); };
+        rec.onerror = () => setState("idle");
+        recRef.current = rec;
+        rec.start();
+    };
+
+    const handleOrbPress = () => {
+        if (state === "idle") startListening();
+        else if (state === "listening") { recRef.current?.stop(); setState("idle"); }
+        else if (state === "speaking") {
+            externalAudioRef.current?.pause();
+            externalAudioRef.current = null;
+            setState("idle");
+        }
+    };
+
+    const statusText = {
+        idle: "Toca para hablar",
+        listening: "Escuchando...",
+        processing: "Procesando...",
+        speaking: "Hablando...",
+    }[state];
+
+    const orbAnim = {
+        idle: "orbIdle 2.5s ease-in-out infinite",
+        listening: "orbListen 0.7s ease-in-out infinite",
+        processing: "orbSpin 1.2s linear infinite",
+        speaking: "orbSpeak 0.9s ease-in-out infinite",
+    }[state];
+
+    return (
+        <div className="absolute inset-0 z-30 flex flex-col"
+            style={{ background: "rgba(13,14,26,0.97)", backdropFilter: "blur(8px)" }}>
+
+            {/* Close */}
+            <div className="flex justify-between items-center px-5 pt-5 pb-3 shrink-0">
+                <p className="text-xs font-bold tracking-widest uppercase" style={{ color: "rgba(255,255,255,0.3)" }}>
+                    Modo de Voz
+                </p>
+                <button onClick={handleClose}
+                    className="w-8 h-8 rounded-full flex items-center justify-center transition-opacity hover:opacity-70"
+                    style={{ background: "rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.6)" }}>
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} {...sw}>
+                        <path d="M6 18 18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+
+            {/* Messages */}
+            <div ref={scrollRef} className="flex-1 overflow-y-auto px-5 py-2 space-y-3">
+                {msgs.length === 0 && (
+                    <div className="flex items-center justify-center h-full">
+                        <p className="text-sm text-center" style={{ color: "rgba(255,255,255,0.25)" }}>
+                            Toca el orbe azul para comenzar
+                        </p>
+                    </div>
+                )}
+                {msgs.map((m, i) => (
+                    <div key={i} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
+                        <div className="max-w-[80%] rounded-2xl px-4 py-2.5 text-sm"
+                            style={{
+                                background: m.role === "user" ? "rgba(255,255,255,0.12)" : "rgba(59,130,246,0.18)",
+                                color: m.role === "user" ? "rgba(255,255,255,0.85)" : "rgba(147,197,253,0.95)",
+                                borderRadius: m.role === "user" ? "16px 16px 4px 16px" : "16px 16px 16px 4px",
+                            }}>
+                            {m.text}
+                        </div>
+                    </div>
+                ))}
+            </div>
+
+            {/* Orb + status */}
+            <div className="flex flex-col items-center gap-6 py-8 shrink-0">
+                <button onClick={handleOrbPress} disabled={state === "processing"}
+                    className="relative w-24 h-24 rounded-full flex items-center justify-center disabled:cursor-not-allowed"
+                    style={{
+                        background: state === "listening"
+                            ? "radial-gradient(circle, #60a5fa, #2563eb)"
+                            : state === "speaking"
+                            ? "radial-gradient(circle, #34d399, #059669)"
+                            : "radial-gradient(circle, #3b82f6, #1d4ed8)",
+                        animation: orbAnim,
+                        boxShadow: state === "idle"
+                            ? "0 0 30px rgba(59,130,246,0.35)"
+                            : state === "listening"
+                            ? "0 0 40px rgba(96,165,250,0.6)"
+                            : state === "speaking"
+                            ? "0 0 40px rgba(52,211,153,0.6)"
+                            : "0 0 30px rgba(59,130,246,0.4)",
+                    }}>
+                    {state === "processing" ? (
+                        <svg className="w-8 h-8" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth={1.8} {...sw}
+                            style={{ animation: "orbSpin 1.2s linear infinite" }}>
+                            <path d="M4 12a8 8 0 0 1 16 0" strokeLinecap="round" />
+                        </svg>
+                    ) : state === "speaking" ? (
+                        <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth={1.8} {...sw}>
+                            <path d="M19.114 5.636a9 9 0 0 1 0 12.728M16.463 8.288a5.25 5.25 0 0 1 0 7.424M6.75 8.25l4.72-4.72a.75.75 0 0 1 1.28.53v15.88a.75.75 0 0 1-1.28.53l-4.72-4.72H4.51c-.88 0-1.704-.507-1.938-1.354A9.009 9.009 0 0 1 2.25 12c0-.83.112-1.633.322-2.396C2.806 8.756 3.63 8.25 4.51 8.25H6.75Z" />
+                        </svg>
+                    ) : (
+                        <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth={1.8} {...sw}>
+                            <path d="M12 18.75a6 6 0 0 0 6-6v-1.5m-6 7.5a6 6 0 0 1-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 0 1-3-3V4.5a3 3 0 1 1 6 0v8.25a3 3 0 0 1-3 3Z" />
+                        </svg>
+                    )}
+                </button>
+
+                <p className="text-sm font-semibold" style={{ color: "rgba(255,255,255,0.55)" }}>{statusText}</p>
+            </div>
+
+            {/* CSS keyframes */}
+            <style>{`
+                @keyframes orbIdle   { 0%,100%{transform:scale(1);opacity:.85}50%{transform:scale(1.07);opacity:1} }
+                @keyframes orbListen { 0%,100%{transform:scale(1)}25%{transform:scale(1.14)}75%{transform:scale(.96)} }
+                @keyframes orbSpin   { from{transform:rotate(0deg)}to{transform:rotate(360deg)} }
+                @keyframes orbSpeak  { 0%,100%{transform:scale(1)}50%{transform:scale(1.1)} }
+            `}</style>
+        </div>
+    );
+}
+
+// ── History overlay ────────────────────────────────────────────────────────────
+function HistoryOverlay({ messages, onClose }: { messages: ChatMsg[]; onClose: () => void }) {
+    return (
+        <div className="absolute inset-0 z-30 flex flex-col" style={{ background: BG }}>
+            {/* Header */}
+            <div className="flex items-center gap-3 px-5 py-4 border-b shrink-0" style={{ background: CARD, borderColor: BORDER }}>
+                <svg className="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke={PRIMARY} strokeWidth={1.8} {...sw}>
+                    <path d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                </svg>
+                <p className="flex-1 text-base font-bold" style={{ color: PRIMARY }}>Historial de la sesión</p>
+                <button onClick={onClose}
+                    className="w-8 h-8 rounded-full flex items-center justify-center transition-opacity hover:opacity-70"
+                    style={{ background: MBG, color: MUTED }}>
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} {...sw}>
+                        <path d="M6 18 18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+
+            {/* Content */}
+            <div className="flex-1 overflow-y-auto p-5">
+                {messages.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center h-full gap-3 text-center">
+                        <svg className="w-12 h-12" fill="none" viewBox="0 0 24 24" stroke={MUTED} strokeWidth={1} {...sw}>
+                            <path d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                        </svg>
+                        <p className="font-semibold text-sm" style={{ color: PRIMARY }}>Sin conversaciones aún</p>
+                        <p className="text-xs" style={{ color: MUTED }}>Los mensajes de esta sesión aparecerán aquí</p>
+                    </div>
+                ) : (
+                    <div className="space-y-3">
+                        <p className="text-[10px] font-bold uppercase tracking-wider mb-4" style={{ color: MUTED }}>
+                            Sesión actual · {messages.length} mensajes
+                        </p>
+                        {messages.map(m => (
+                            <div key={m.id} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
+                                <div className="max-w-[85%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed"
+                                    style={{
+                                        background: m.role === "user" ? PRIMARY : CARD,
+                                        color: m.role === "user" ? "#FFF" : PRIMARY,
+                                        borderRadius: m.role === "user" ? "16px 16px 4px 16px" : "16px 16px 16px 4px",
+                                        boxShadow: m.role === "assistant" ? "0 1px 4px rgba(0,0,0,0.07)" : "none",
+                                    }}>
+                                    {m.text}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+}
+
+// ── Main ChatModal ─────────────────────────────────────────────────────────────
+export default function ChatModal({ onClose, userId }: { onClose: () => void; userId?: string }) {
+    const [messages, setMessages] = useState<ChatMsg[]>([]);
+    const [input, setInput]       = useState("");
+    const [typing, setTyping]     = useState(false);
+    const [speaking, setSpeaking] = useState(false);
+    const [pendingMedia, setPendingMedia] = useState<{
+        file: File; preview?: string; type: "image" | "pdf" | "docx";
+    } | null>(null);
+    const [showAttach, setShowAttach]     = useState(false);
+    const [voiceModeOn, setVoiceModeOn]   = useState(false);
+    const [historyOpen, setHistoryOpen]   = useState(false);
+
+    const bottomRef   = useRef<HTMLDivElement>(null);
+    const inputRef    = useRef<HTMLInputElement>(null);
+    const audioRef    = useRef<HTMLAudioElement | null>(null);
+    const cameraRef   = useRef<HTMLInputElement>(null);
+    const galleryRef  = useRef<HTMLInputElement>(null);
+    const docRef      = useRef<HTMLInputElement>(null);
+
+    useEffect(() => {
+        bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    }, [messages, typing]);
+
+    useEffect(() => {
+        if (!voiceModeOn && !historyOpen) inputRef.current?.focus();
+        const onKey = (e: KeyboardEvent) => {
+            if (e.key === "Escape" && !voiceModeOn && !historyOpen) onClose();
+        };
+        window.addEventListener("keydown", onKey);
+        return () => window.removeEventListener("keydown", onKey);
+    }, [onClose, voiceModeOn, historyOpen]);
+
+    // ── TTS ────────────────────────────────────────────────────────────────────
+    const speakText = useCallback(async (text: string) => {
         try {
             setSpeaking(true);
-            const res = await fetch("/api/voice", {
+            const res = await fetch("/api/tts", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ text }),
             });
-            if (!res.ok) throw new Error("voice api");
+            if (!res.ok) throw new Error("tts");
             const blob = await res.blob();
-            const url = URL.createObjectURL(blob);
+            const url  = URL.createObjectURL(blob);
             audioRef.current?.pause();
             const audio = new Audio(url);
             audioRef.current = audio;
@@ -100,479 +427,314 @@ export default function ChatModal({ onClose, userId }: { onClose: () => void; us
             await audio.play();
         } catch {
             setSpeaking(false);
-            if (window.speechSynthesis) {
-                const utt = new SpeechSynthesisUtterance(text);
-                utt.lang = "es-CO";
-                utt.onend = () => setSpeaking(false);
-                window.speechSynthesis.speak(utt);
-            }
         }
     }, []);
 
-    const stopSpeaking = () => {
-        audioRef.current?.pause();
-        audioRef.current = null;
-        window.speechSynthesis?.cancel();
-        setSpeaking(false);
-    };
+    // ── Send message ────────────────────────────────────────────────────────────
+    const sendMessage = useCallback(async (
+        text: string,
+        mediaFile?: File,
+        mediaType?: "image" | "pdf" | "docx",
+        mediaPreview?: string,
+    ) => {
+        if (!text.trim() && !mediaFile) return;
 
-    const sendMessage = useCallback(async (text: string) => {
-        if (!text.trim() || loading) return;
-        const next: Message[] = [...messages, { role: "user", content: text }];
-        setMessages(next);
-        setInput("");
-        setLoading(true);
-        try {
-            const res = await fetch("/api/chat", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ messages: next }),
-            });
-            const data = await res.json();
-            const reply = data.content ?? "Lo siento, hubo un error. Por favor intenta de nuevo.";
-            const updated: Message[] = [...next, { role: "assistant", content: reply }];
-            setMessages(updated);
-            saveHistory(updated);
-            speakWithElevenLabs(reply);
-        } catch {
-            setMessages(prev => [...prev, { role: "assistant", content: "Error de conexión. Por favor intenta de nuevo." }]);
-        } finally {
-            setLoading(false);
-        }
-    }, [loading, messages, speakWithElevenLabs]);
+        const displayText = text || (mediaType === "image" ? "Analiza esta imagen médica." : "Analiza este documento médico.");
 
-    const makeSR = () => {
-        const w = window as SpeechWindow;
-        return w.SpeechRecognition || w.webkitSpeechRecognition || null;
-    };
-
-    const toggleVoiceInput = () => {
-        const SR = makeSR();
-        if (!SR) return;
-        if (listening) { recognitionRef.current?.stop(); setListening(false); return; }
-        const rec = new SR();
-        rec.lang = "es-CO"; rec.continuous = false; rec.interimResults = false;
-        rec.onresult = (e: SREvent) => sendMessage(e.results[0][0].transcript);
-        rec.onend = () => setListening(false);
-        rec.onerror = () => setListening(false);
-        rec.start();
-        recognitionRef.current = rec;
-        setListening(true);
-    };
-
-    const startVoiceConversation = () => {
-        const SR = makeSR();
-        if (!SR) return;
-        const rec = new SR();
-        rec.lang = "es-CO"; rec.continuous = false; rec.interimResults = false;
-        rec.onresult = async (e: SREvent) => {
-            const transcript = e.results[0][0].transcript;
-            setVoiceTranscript(transcript);
-            setVoiceLoading(true);
-            try {
-                const res = await fetch("/api/chat", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ messages: [INITIAL_MSG, { role: "user", content: transcript }] }),
-                });
-                const data = await res.json();
-                const reply = data.content ?? "Lo siento, hubo un error.";
-                setVoiceResponse(reply);
-                await speakWithElevenLabs(reply);
-            } catch {
-                setVoiceResponse("Error de conexión.");
-            } finally {
-                setVoiceLoading(false);
-            }
+        const userMsg: ChatMsg = {
+            id: `${Date.now()}-u`,
+            role: "user",
+            text: displayText,
+            media: mediaFile ? {
+                uri: mediaPreview ?? URL.createObjectURL(mediaFile),
+                type: mediaType ?? "image",
+                name: mediaFile.name,
+            } : undefined,
         };
-        rec.onend = () => setVoiceListening(false);
-        rec.onerror = () => setVoiceListening(false);
-        rec.start();
-        setVoiceListening(true);
-        setVoiceTranscript("");
-        setVoiceResponse("");
-    };
 
-    const handlePhotoAnalyze = async () => {
-        if (!photoFile) return;
-        setPhotoLoading(true);
-        setPhotoResult(null);
+        setMessages(prev => [...prev, userMsg]);
+        setInput("");
+        setPendingMedia(null);
+        setTyping(true);
+
         try {
-            const form = new FormData();
-            form.append("image", photoFile);
-            const res = await fetch("/api/ocr", { method: "POST", body: form });
-            const data = await res.json();
-            const text = data.text || "No se detectó texto en la imagen.";
-            setPhotoResult(text);
-            const next: Message[] = [...messages, { role: "user", content: `Analiza este contenido extraído de una imagen:\n\n${text}` }];
-            setMessages(next);
-            setLoading(true);
-            const chatRes = await fetch("/api/chat", {
+            let msgText = displayText;
+
+            // OCR for images
+            if (mediaFile && mediaType === "image") {
+                try {
+                    const form = new FormData();
+                    form.append("image", mediaFile);
+                    const ocrRes  = await fetch("/api/ocr", { method: "POST", body: form });
+                    const ocrData = await ocrRes.json();
+                    if (ocrData.text) msgText += `\n\n[Texto extraído de imagen]: ${ocrData.text}`;
+                } catch {}
+            }
+
+            // Build message history for API
+            const history = messages.map(m => ({ role: m.role, content: m.text }));
+            history.push({ role: "user", content: msgText });
+
+            const res  = await fetch("/api/chat", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ messages: next }),
+                body: JSON.stringify({ messages: history }),
             });
-            const chatData = await chatRes.json();
-            const reply = chatData.content ?? "Texto procesado correctamente.";
-            setMessages([...next, { role: "assistant", content: reply }]);
+            const data  = await res.json();
+            const reply = data.content ?? "Lo siento, hubo un error.";
+
+            setMessages(prev => [...prev, { id: `${Date.now()}-a`, role: "assistant", text: reply }]);
+            speakText(reply);
         } catch {
-            setPhotoResult("Error al procesar la imagen.");
+            setMessages(prev => [...prev, { id: `${Date.now()}-e`, role: "assistant", text: "Error de conexión." }]);
         } finally {
-            setPhotoLoading(false);
-            setLoading(false);
+            setTyping(false);
+        }
+    }, [messages, speakText]);
+
+    const handleSendOrMic = () => {
+        if (input.trim() || pendingMedia) {
+            sendMessage(input, pendingMedia?.file, pendingMedia?.type, pendingMedia?.preview);
+        } else {
+            setVoiceModeOn(true);
         }
     };
 
-    const handleFileUpload = async () => {
-        if (!uploadFile || !userId) return;
-        setUploadResult("loading");
-        try {
-            const form = new FormData();
-            form.append("file", uploadFile);
-            form.append("userId", userId);
-            const res = await fetch("/api/medical-history/uploadDocuments", { method: "POST", body: form });
-            setUploadResult(res.ok ? "success" : "error");
-        } catch {
-            setUploadResult("error");
-        }
+    // ── File helpers ────────────────────────────────────────────────────────────
+    const handleImageFile = (file: File) => {
+        const reader = new FileReader();
+        reader.onload = e => setPendingMedia({ file, preview: e.target?.result as string, type: "image" });
+        reader.readAsDataURL(file);
+        setShowAttach(false);
     };
 
-    const handleOcr = async () => {
-        if (!ocrFile) return;
-        setOcrLoading(true);
-        setOcrResult(null);
-        try {
-            const form = new FormData();
-            form.append("image", ocrFile);
-            const res = await fetch("/api/ocr", { method: "POST", body: form });
-            const data = await res.json();
-            setOcrResult(data.text ?? "No se pudo extraer texto.");
-        } catch {
-            setOcrResult("Error al procesar la imagen.");
-        } finally {
-            setOcrLoading(false);
-        }
+    const handleDocFile = (file: File) => {
+        const ext  = file.name.split(".").pop()?.toLowerCase();
+        const type = ext === "pdf" ? "pdf" : "docx";
+        setPendingMedia({ file, type });
+        setShowAttach(false);
     };
 
-    const history = loadHistory();
-
-    const UploadZone = ({ file, accept, label, sublabel, onChange, icon }: {
-        file: File | null; accept: string; label: string; sublabel?: string;
-        onChange: (f: File) => void; icon: React.ReactNode;
-    }) => (
-        <label className="block w-full cursor-pointer">
-            <div className={`border-2 border-dashed rounded-2xl p-7 text-center transition-all ${
-                file ? "border-[#EF233C]/40 bg-[#EF233C]/5" : "border-white/20 hover:border-white/40"
-            }`}>
-                {file ? (
-                    <div className="flex flex-col items-center gap-2">
-                        <div className="text-[#EF233C]">{icon}</div>
-                        <p className="text-white/80 text-sm font-medium truncate max-w-full">{file.name}</p>
-                        <p className="text-white/40 text-xs">{(file.size / 1024).toFixed(1)} KB</p>
-                    </div>
-                ) : (
-                    <>
-                        <div className="text-white/30 flex justify-center mb-3">{icon}</div>
-                        <p className="text-white/50 text-sm">{label}</p>
-                        {sublabel && <p className="text-white/30 text-xs mt-1">{sublabel}</p>}
-                    </>
-                )}
-            </div>
-            <input type="file" accept={accept} className="hidden" onChange={e => { const f = e.target.files?.[0]; if (f) onChange(f); }} />
-        </label>
-    );
+    const hasSend = input.trim() || pendingMedia;
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            {/* Backdrop */}
             <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
 
+            {/* Modal container */}
             <div
-                className="relative z-10 w-full max-w-4xl h-[90vh] bg-[#1a1c2a] rounded-3xl overflow-hidden flex shadow-2xl"
+                className="relative z-10 w-full max-w-4xl h-[90vh] rounded-3xl overflow-hidden flex shadow-2xl"
                 onClick={e => e.stopPropagation()}
             >
-                {/* Left panel — Spline robot */}
-                <div className="hidden md:block w-[42%] shrink-0 bg-[#0d0e1a] relative">
-                    <div className="absolute inset-0 z-10">
-                        <SplineRobot />
-                    </div>
-                    <div className="absolute bottom-5 w-full flex flex-col items-center gap-2 z-20 pointer-events-none">
-                        {speaking && (
-                            <div className="flex gap-1 items-end h-5">
-                                {[6, 10, 14, 10, 6].map((h, i) => (
-                                    <span key={i} className="w-0.5 rounded-full bg-[#EF233C]"
-                                        style={{ height: `${h}px`, animation: "pulse 0.6s ease-in-out infinite alternate", animationDelay: `${i * 100}ms` }} />
+                {/* ── Left panel: Spline (dark) ── */}
+                <div className="hidden md:block w-[40%] shrink-0 bg-[#0d0e1a] relative">
+                    <div className="absolute inset-0 z-10"><SplineRobot /></div>
+                    {speaking && (
+                        <div className="absolute bottom-9 w-full flex justify-center pointer-events-none z-20">
+                            <div className="flex gap-1 items-end h-6">
+                                {[5, 9, 13, 9, 5].map((h, i) => (
+                                    <span key={i} className="w-0.5 rounded-full" style={{
+                                        height: `${h}px`, background: GREEN,
+                                        animation: `speakBar .6s ease-in-out infinite alternate`,
+                                        animationDelay: `${i * 100}ms`,
+                                    }} />
                                 ))}
                             </div>
-                        )}
-                        <p className="text-xs text-white/20 font-medium tracking-widest uppercase">Asistente Horus</p>
+                        </div>
+                    )}
+                    <div className="absolute bottom-4 w-full text-center pointer-events-none z-20">
+                        <p className="text-[10px] font-medium tracking-widest uppercase" style={{ color: "rgba(255,255,255,0.18)" }}>
+                            Asistente Horus
+                        </p>
                     </div>
                 </div>
 
-                {/* Right panel */}
-                <div className="flex-1 flex flex-col min-w-0">
+                {/* ── Right panel: Chat (light, matches mobile) ── */}
+                <div className="flex-1 flex flex-col min-w-0 relative" style={{ background: BG }}>
 
-                    {/* Tab bar */}
-                    <div className="flex items-center border-b border-white/10 shrink-0 px-3 pt-3 overflow-x-auto">
-                        <div className="flex gap-0.5 flex-1">
-                            {TABS.map(tab => (
-                                <button
-                                    key={tab.id}
-                                    onClick={() => setActiveTab(tab.id)}
-                                    className={`flex items-center gap-1.5 px-3 py-2 rounded-t-xl text-xs font-semibold whitespace-nowrap transition-all ${
-                                        activeTab === tab.id
-                                            ? "bg-white/10 text-white border-b-2 border-[#EF233C] -mb-px"
-                                            : "text-white/35 hover:text-white/60 hover:bg-white/5"
-                                    }`}
-                                >
-                                    {tab.icon}
-                                    <span className="hidden sm:inline">{tab.label}</span>
-                                </button>
-                            ))}
+                    {/* Header */}
+                    <div className="flex items-center gap-3 px-4 py-3.5 shrink-0 border-b"
+                        style={{ background: CARD, borderColor: BORDER }}>
+                        <div className="w-10 h-10 rounded-full flex items-center justify-center overflow-hidden shrink-0"
+                            style={{ background: MBG }}>
+                            <img src="/gato.png" alt="Horus" className="w-7 h-7 object-contain" />
                         </div>
-                        <div className="flex items-center gap-1 shrink-0 pl-2 pb-1">
-                            {speaking && (
-                                <button onClick={stopSpeaking}
-                                    className="flex items-center gap-1 text-xs text-[#EF233C] hover:text-red-400 px-2 py-1 rounded-lg hover:bg-white/5 transition-colors">
-                                    <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>
-                                    Detener
-                                </button>
-                            )}
-                            <button onClick={onClose} className="text-white/40 hover:text-white transition-colors p-1.5 rounded-lg hover:bg-white/10">
-                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12"/></svg>
-                            </button>
+                        <div className="flex-1 min-w-0">
+                            <p className="text-sm font-bold leading-tight" style={{ color: PRIMARY }}>Horus · IA</p>
+                            <div className="flex items-center gap-1.5 mt-0.5">
+                                <span className="w-1.5 h-1.5 rounded-full" style={{ background: GREEN }} />
+                                <span className="text-[11px] font-semibold" style={{ color: GREEN }}>En línea</span>
+                            </div>
                         </div>
+                        {/* History button */}
+                        <button onClick={() => setHistoryOpen(true)} title="Historial"
+                            className="w-8 h-8 rounded-full flex items-center justify-center transition-opacity hover:opacity-70"
+                            style={{ background: MBG, color: MUTED }}>
+                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8} {...sw}>
+                                <path d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                            </svg>
+                        </button>
+                        {/* Close */}
+                        <button onClick={onClose} title="Cerrar chat"
+                            className="w-8 h-8 rounded-full flex items-center justify-center transition-opacity hover:opacity-70"
+                            style={{ background: MBG, color: MUTED }}>
+                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} {...sw}>
+                                <path d="M6 18 18 6M6 6l12 12" />
+                            </svg>
+                        </button>
                     </div>
 
-                    {/* ── CHAT tab ── */}
-                    {activeTab === "chat" && (
-                        <>
-                            <div className="flex-1 overflow-y-auto px-5 py-4 space-y-3">
-                                {messages.map((m, i) => (
-                                    <div key={i} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
-                                        <div className={`max-w-[85%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed whitespace-pre-wrap ${
-                                            m.role === "user" ? "bg-[#EF233C] text-white rounded-br-sm" : "bg-white/10 text-white/90 rounded-bl-sm"
-                                        }`}>{m.content}</div>
-                                    </div>
-                                ))}
-                                {loading && (
-                                    <div className="flex justify-start">
-                                        <div className="bg-white/10 rounded-2xl rounded-bl-sm px-4 py-3.5 flex items-center gap-1">
-                                            {[0, 150, 300].map(d => <span key={d} className="w-1.5 h-1.5 rounded-full bg-white/50 animate-bounce" style={{ animationDelay: `${d}ms` }} />)}
-                                        </div>
-                                    </div>
-                                )}
-                                <div ref={bottomRef} />
-                            </div>
-                            <div className="px-5 py-2 bg-[#EF233C]/10 border-t border-[#EF233C]/20 shrink-0">
-                                <p className="text-xs text-[#EF233C]/80 text-center">⚠️ En emergencias graves llama al <strong>123</strong> (Colombia) · <strong>112</strong> (Europa)</p>
-                            </div>
-                            <div className="px-5 py-4 border-t border-white/10 flex gap-2 shrink-0">
-                                <button onClick={toggleVoiceInput} title={listening ? "Detener grabación" : "Hablar"}
-                                    className={`shrink-0 w-10 h-10 rounded-full flex items-center justify-center transition-all duration-200 ${
-                                        listening ? "bg-[#EF233C] text-white scale-110 shadow-lg shadow-[#EF233C]/30" : "bg-white/10 text-white/50 hover:bg-white/20 hover:text-white"
-                                    }`}>
-                                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}><path strokeLinecap="round" strokeLinejoin="round" d="M12 18.75a6 6 0 0 0 6-6v-1.5m-6 7.5a6 6 0 0 1-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 0 1-3-3V4.5a3 3 0 1 1 6 0v8.25a3 3 0 0 1-3 3Z"/></svg>
-                                </button>
-                                <input ref={inputRef} type="text" value={input}
-                                    onChange={e => setInput(e.target.value)}
-                                    onKeyDown={e => e.key === "Enter" && !e.shiftKey && sendMessage(input)}
-                                    placeholder="Describe la emergencia o tu pregunta..."
-                                    disabled={loading}
-                                    className="flex-1 bg-white/[0.08] text-white placeholder-white/30 rounded-full px-4 py-2 text-sm outline-none focus:bg-white/[0.12] border border-transparent focus:border-white/20 transition-all disabled:opacity-50"
-                                />
-                                <button onClick={() => sendMessage(input)} disabled={loading || !input.trim()}
-                                    className="shrink-0 w-10 h-10 rounded-full bg-[#EF233C] text-white flex items-center justify-center hover:bg-[#d91e36] transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
-                                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5"/></svg>
-                                </button>
-                            </div>
-                        </>
-                    )}
-
-                    {/* ── VOICE tab ── */}
-                    {activeTab === "voice" && (
-                        <div className="flex-1 flex flex-col items-center justify-center gap-6 px-6 py-8 overflow-y-auto">
-                            <div className="text-center">
-                                <h3 className="text-white font-bold text-lg mb-1">Conversación por Voz</h3>
-                                <p className="text-white/40 text-sm">Habla con Horus usando ElevenLabs AI</p>
-                            </div>
-                            <button onClick={startVoiceConversation} disabled={voiceListening || voiceLoading}
-                                className={`w-24 h-24 rounded-full flex items-center justify-center transition-all duration-300 ${
-                                    voiceListening ? "bg-[#EF233C] scale-110 shadow-2xl shadow-[#EF233C]/40 animate-pulse"
-                                        : voiceLoading ? "bg-white/10 cursor-not-allowed"
-                                        : "bg-white/10 hover:bg-[#EF233C]/20 hover:scale-105 cursor-pointer"
-                                }`}>
-                                {voiceLoading
-                                    ? <div className="w-8 h-8 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                                    : <svg className={`w-10 h-10 ${voiceListening ? "text-white" : "text-white/60"}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 18.75a6 6 0 0 0 6-6v-1.5m-6 7.5a6 6 0 0 1-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 0 1-3-3V4.5a3 3 0 1 1 6 0v8.25a3 3 0 0 1-3 3Z"/></svg>
-                                }
-                            </button>
-                            <p className="text-white/50 text-sm">
-                                {voiceListening ? "Escuchando..." : voiceLoading ? "Procesando..." : "Toca para hablar"}
-                            </p>
-                            {voiceTranscript && (
-                                <div className="w-full max-w-sm bg-white/5 rounded-2xl p-4 border border-white/10">
-                                    <p className="text-[10px] text-white/40 uppercase tracking-wide font-semibold mb-2">Tú dijiste</p>
-                                    <p className="text-white/80 text-sm">{voiceTranscript}</p>
-                                </div>
-                            )}
-                            {voiceResponse && (
-                                <div className="w-full max-w-sm bg-[#EF233C]/10 rounded-2xl p-4 border border-[#EF233C]/20">
-                                    <p className="text-[10px] text-[#EF233C]/60 uppercase tracking-wide font-semibold mb-2">Horus respondió</p>
-                                    <p className="text-white/80 text-sm">{voiceResponse}</p>
-                                    {speaking && (
-                                        <div className="flex gap-1 items-end h-4 mt-3">
-                                            {[4, 8, 12, 8, 4].map((h, i) => (
-                                                <span key={i} className="w-0.5 rounded-full bg-[#EF233C]"
-                                                    style={{ height: `${h}px`, animation: "pulse 0.5s ease-in-out infinite alternate", animationDelay: `${i * 80}ms` }} />
-                                            ))}
-                                        </div>
-                                    )}
-                                </div>
-                            )}
-                        </div>
-                    )}
-
-                    {/* ── HISTORY tab ── */}
-                    {activeTab === "history" && (
-                        <div className="flex-1 overflow-y-auto px-5 py-4">
-                            {history.length === 0 ? (
-                                <div className="flex flex-col items-center justify-center h-full gap-3 text-center">
-                                    <svg className="w-14 h-14 text-white/15" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}><path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
-                                    <p className="text-white/40 text-sm">Sin historial en esta sesión</p>
-                                    <p className="text-white/25 text-xs">Inicia una conversación en el Chat</p>
-                                </div>
-                            ) : (
-                                <div className="space-y-3">
-                                    <div className="flex items-center justify-between mb-4">
-                                        <p className="text-white/40 text-xs uppercase tracking-wide font-semibold">Sesión actual · {history.length} mensajes</p>
-                                        <button
-                                            onClick={() => { sessionStorage.removeItem(STORAGE_KEY); setMessages([INITIAL_MSG]); }}
-                                            className="text-xs text-[#EF233C]/60 hover:text-[#EF233C] transition-colors">
-                                            Limpiar
-                                        </button>
-                                    </div>
-                                    {history.map((m, i) => (
-                                        <div key={i} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
-                                            <div className={`max-w-[85%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed whitespace-pre-wrap ${
-                                                m.role === "user" ? "bg-[#EF233C]/40 text-white rounded-br-sm" : "bg-white/5 text-white/70 rounded-bl-sm"
-                                            }`}>{m.content}</div>
-                                        </div>
+                    {/* Messages list */}
+                    <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3">
+                        {messages.length === 0 && !typing && (
+                            <WelcomeScreen onSuggest={t => sendMessage(t)} />
+                        )}
+                        {messages.map(m => <MessageBubble key={m.id} msg={m} />)}
+                        {typing && (
+                            <div className="flex justify-start">
+                                <div className="rounded-2xl rounded-bl-sm px-4 py-3 shadow-sm flex items-center gap-1"
+                                    style={{ background: CARD }}>
+                                    {[0, 150, 300].map(d => (
+                                        <span key={d} className="w-2 h-2 rounded-full animate-bounce"
+                                            style={{ background: MUTED, animationDelay: `${d}ms` }} />
                                     ))}
                                 </div>
+                            </div>
+                        )}
+                        <div ref={bottomRef} />
+                    </div>
+
+                    {/* Pending media strip */}
+                    {pendingMedia && (
+                        <div className="mx-4 mb-2 flex items-center gap-2.5 rounded-2xl px-3 py-2"
+                            style={{ background: MBG }}>
+                            {pendingMedia.preview ? (
+                                <img src={pendingMedia.preview} className="w-12 h-12 rounded-xl object-cover shrink-0" />
+                            ) : (
+                                <div className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0"
+                                    style={{ background: BORDER }}>
+                                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke={MUTED} strokeWidth={1.8} {...sw}>
+                                        <path d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
+                                    </svg>
+                                </div>
                             )}
+                            <p className="flex-1 text-xs font-medium truncate" style={{ color: PRIMARY }}>
+                                {pendingMedia.file.name}
+                            </p>
+                            <button onClick={() => setPendingMedia(null)}
+                                className="transition-opacity hover:opacity-70" style={{ color: MUTED }}>
+                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} {...sw}>
+                                    <path d="M6 18 18 6M6 6l12 12" />
+                                </svg>
+                            </button>
                         </div>
                     )}
 
-                    {/* ── PHOTO tab ── */}
-                    {activeTab === "photo" && (
-                        <div className="flex-1 overflow-y-auto px-5 py-5 flex flex-col gap-4">
-                            <div className="text-center">
-                                <h3 className="text-white font-bold text-base mb-1">Analizar Foto</h3>
-                                <p className="text-white/40 text-sm">Sube una foto para que Horus la analice con OCR + IA</p>
-                            </div>
-                            {photoPreview ? (
-                                <div className="relative">
-                                    <img src={photoPreview} alt="Preview" className="w-full max-h-44 rounded-2xl object-contain bg-white/5" />
-                                    <button onClick={() => { setPhotoFile(null); setPhotoPreview(null); setPhotoResult(null); }}
-                                        className="absolute top-2 right-2 w-7 h-7 bg-black/60 text-white rounded-full flex items-center justify-center hover:bg-black/80 transition-colors text-xs">✕</button>
-                                </div>
-                            ) : (
-                                <UploadZone file={photoFile} accept="image/*" label="Toca para seleccionar foto" onChange={f => {
-                                    setPhotoFile(f); setPhotoResult(null);
-                                    const r = new FileReader(); r.onload = ev => setPhotoPreview(ev.target?.result as string); r.readAsDataURL(f);
-                                }}
-                                icon={<svg className="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.3}><path strokeLinecap="round" strokeLinejoin="round" d="M6.827 6.175A2.31 2.31 0 0 1 5.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 0 0-1.134-.175 2.31 2.31 0 0 1-1.64-1.055l-.822-1.316a2.192 2.192 0 0 0-1.736-1.039 48.774 48.774 0 0 0-5.232 0 2.192 2.192 0 0 0-1.736 1.039l-.821 1.316Z"/><path strokeLinecap="round" strokeLinejoin="round" d="M16.5 12.75a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0ZM18.75 10.5h.008v.008h-.008V10.5Z"/></svg>}
-                                />
-                            )}
-                            {photoFile && (
-                                <button onClick={handlePhotoAnalyze} disabled={photoLoading}
-                                    className="w-full py-3 rounded-2xl bg-[#EF233C] text-white font-semibold text-sm hover:bg-[#d91e36] transition-colors disabled:opacity-50">
-                                    {photoLoading ? "Analizando..." : "Analizar con OCR + IA"}
-                                </button>
-                            )}
-                            {photoResult && (
-                                <div className="bg-white/5 rounded-2xl p-4 border border-white/10">
-                                    <p className="text-[10px] text-white/40 uppercase tracking-wide font-semibold mb-2">Texto extraído</p>
-                                    <p className="text-white/80 text-sm leading-relaxed whitespace-pre-wrap">{photoResult}</p>
-                                    <p className="text-[10px] text-white/30 mt-2">La respuesta de Horus aparece en la pestaña Chat</p>
-                                </div>
-                            )}
-                        </div>
-                    )}
+                    {/* Input bar */}
+                    <div className="px-4 py-3 flex items-center gap-2 shrink-0 border-t"
+                        style={{ background: CARD, borderColor: BORDER }}>
 
-                    {/* ── FILE tab ── */}
-                    {activeTab === "file" && (
-                        <div className="flex-1 overflow-y-auto px-5 py-5 flex flex-col gap-4">
-                            <div className="text-center">
-                                <h3 className="text-white font-bold text-base mb-1">Subir Documento</h3>
-                                <p className="text-white/40 text-sm">Sube archivos a tu historial médico</p>
-                            </div>
-                            {!userId ? (
-                                <div className="bg-yellow-500/10 rounded-2xl p-4 border border-yellow-500/20 text-center">
-                                    <p className="text-yellow-400 text-sm">Inicia sesión para subir documentos</p>
-                                </div>
-                            ) : (
+                        {/* Hidden file inputs */}
+                        <input ref={cameraRef}  type="file" accept="image/*" capture="environment" className="hidden"
+                            onChange={e => { const f = e.target.files?.[0]; if (f) handleImageFile(f); e.target.value = ""; }} />
+                        <input ref={galleryRef} type="file" accept="image/*" className="hidden"
+                            onChange={e => { const f = e.target.files?.[0]; if (f) handleImageFile(f); e.target.value = ""; }} />
+                        <input ref={docRef}     type="file" accept=".pdf,.doc,.docx" className="hidden"
+                            onChange={e => { const f = e.target.files?.[0]; if (f) handleDocFile(f); e.target.value = ""; }} />
+
+                        {/* Attach (+ button) */}
+                        <div className="relative shrink-0">
+                            <button
+                                onClick={() => setShowAttach(v => !v)}
+                                className="w-9 h-9 rounded-full flex items-center justify-center transition-opacity hover:opacity-80"
+                                style={{ background: MBG, color: PRIMARY }}>
+                                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5} {...sw}>
+                                    <path d="M12 4.5v15m7.5-7.5h-15" />
+                                </svg>
+                            </button>
+
+                            {showAttach && (
                                 <>
-                                    <UploadZone file={uploadFile} accept="*" label="Toca para seleccionar archivo" sublabel="PDF, Word, imágenes y más"
-                                        onChange={f => { setUploadFile(f); setUploadResult("idle"); }}
-                                        icon={<svg className="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.3}><path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m6.75 12-3-3m0 0-3 3m3-3v6m-1.5-15H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z"/></svg>}
-                                    />
-                                    {uploadFile && uploadResult !== "success" && (
-                                        <button onClick={handleFileUpload} disabled={uploadResult === "loading"}
-                                            className="w-full py-3 rounded-2xl bg-[#EF233C] text-white font-semibold text-sm hover:bg-[#d91e36] transition-colors disabled:opacity-50">
-                                            {uploadResult === "loading" ? "Subiendo..." : "Subir al historial médico"}
-                                        </button>
-                                    )}
-                                    {uploadResult === "success" && (
-                                        <div className="bg-green-500/10 rounded-2xl p-4 border border-green-500/20 text-center">
-                                            <p className="text-green-400 font-semibold text-sm">Documento subido correctamente</p>
-                                            <button onClick={() => { setUploadFile(null); setUploadResult("idle"); }}
-                                                className="text-white/40 text-xs mt-2 hover:text-white/60 transition-colors block mx-auto">
-                                                Subir otro
-                                            </button>
-                                        </div>
-                                    )}
-                                    {uploadResult === "error" && (
-                                        <div className="bg-red-500/10 rounded-2xl p-4 border border-red-500/20 text-center">
-                                            <p className="text-red-400 text-sm">Error al subir. Inténtalo de nuevo.</p>
-                                        </div>
-                                    )}
+                                    <div className="fixed inset-0 z-10" onClick={() => setShowAttach(false)} />
+                                    <div className="absolute bottom-11 left-0 z-20 rounded-2xl shadow-xl p-2 min-w-[200px]"
+                                        style={{ background: CARD, border: `1px solid ${BORDER}` }}>
+                                        <AttachOption
+                                            label="Tomar foto" bgColor="#3B82F6"
+                                            iconPath={<path d="M6.827 6.175A2.31 2.31 0 0 1 5.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 0 0-1.134-.175 2.31 2.31 0 0 1-1.64-1.055l-.822-1.316a2.192 2.192 0 0 0-1.736-1.039 48.774 48.774 0 0 0-5.232 0 2.192 2.192 0 0 0-1.736 1.039l-.821 1.316Z" />}
+                                            onClick={() => { cameraRef.current?.click(); }}
+                                        />
+                                        <AttachOption
+                                            label="Elegir de galería" bgColor="#22C55E"
+                                            iconPath={<><path d="M2.25 15.75l5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Zm10.5-11.25h.008v.008h-.008V8.25Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" /></>}
+                                            onClick={() => { galleryRef.current?.click(); }}
+                                        />
+                                        <AttachOption
+                                            label="Adjuntar PDF o Word" bgColor={PRIMARY}
+                                            iconPath={<path d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m6.75 12-3-3m0 0-3 3m3-3v6m-1.5-15H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />}
+                                            onClick={() => { docRef.current?.click(); }}
+                                        />
+                                    </div>
                                 </>
                             )}
                         </div>
+
+                        {/* Text input pill */}
+                        <div className="flex-1 rounded-2xl px-4 py-2 flex items-center" style={{ background: BG }}>
+                            <input
+                                ref={inputRef}
+                                type="text"
+                                value={input}
+                                onChange={e => setInput(e.target.value)}
+                                onKeyDown={e => e.key === "Enter" && !e.shiftKey && handleSendOrMic()}
+                                placeholder="Escribe algo..."
+                                disabled={typing}
+                                className="flex-1 bg-transparent text-sm outline-none disabled:opacity-50 placeholder-[#8D99AE]"
+                                style={{ color: PRIMARY }}
+                            />
+                        </div>
+
+                        {/* Send / Mic button */}
+                        <button
+                            onClick={handleSendOrMic}
+                            disabled={typing}
+                            title={hasSend ? "Enviar" : "Modo de voz"}
+                            className="w-10 h-10 rounded-full flex items-center justify-center shrink-0 transition-all hover:opacity-80 disabled:opacity-40"
+                            style={{
+                                background: hasSend ? PRIMARY : MBG,
+                                color: hasSend ? "#FFF" : PRIMARY,
+                            }}>
+                            {hasSend ? (
+                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5} {...sw}>
+                                    <path d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5" />
+                                </svg>
+                            ) : (
+                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8} {...sw}>
+                                    <path d="M12 18.75a6 6 0 0 0 6-6v-1.5m-6 7.5a6 6 0 0 1-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 0 1-3-3V4.5a3 3 0 1 1 6 0v8.25a3 3 0 0 1-3 3Z" />
+                                </svg>
+                            )}
+                        </button>
+                    </div>
+
+                    {/* ── Voice Mode overlay (covers full modal) ── */}
+                    {voiceModeOn && (
+                        <VoiceModeOverlay
+                            onClose={() => setVoiceModeOn(false)}
+                            externalAudioRef={audioRef}
+                        />
                     )}
 
-                    {/* ── OCR tab ── */}
-                    {activeTab === "ocr" && (
-                        <div className="flex-1 overflow-y-auto px-5 py-5 flex flex-col gap-4">
-                            <div className="text-center">
-                                <h3 className="text-white font-bold text-base mb-1">Extracción de Texto (OCR)</h3>
-                                <p className="text-white/40 text-sm">Extrae texto de imágenes con IA</p>
-                            </div>
-                            <UploadZone file={ocrFile} accept="image/*" label="Selecciona una imagen con texto"
-                                onChange={f => { setOcrFile(f); setOcrResult(null); }}
-                                icon={<svg className="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.3}><path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607ZM10.5 7.5v6m3-3h-6"/></svg>}
-                            />
-                            {ocrFile && (
-                                <button onClick={handleOcr} disabled={ocrLoading}
-                                    className="w-full py-3 rounded-2xl bg-[#EF233C] text-white font-semibold text-sm hover:bg-[#d91e36] transition-colors disabled:opacity-50">
-                                    {ocrLoading ? "Extrayendo texto..." : "Extraer texto con OCR"}
-                                </button>
-                            )}
-                            {ocrResult && (
-                                <div className="bg-white/5 rounded-2xl p-4 border border-white/10">
-                                    <div className="flex items-center justify-between mb-2">
-                                        <p className="text-[10px] text-white/40 uppercase tracking-wide font-semibold">Texto extraído</p>
-                                        <button onClick={() => navigator.clipboard?.writeText(ocrResult ?? "")}
-                                            className="text-xs text-white/40 hover:text-white transition-colors">Copiar</button>
-                                    </div>
-                                    <p className="text-white/80 text-sm leading-relaxed whitespace-pre-wrap">{ocrResult}</p>
-                                </div>
-                            )}
-                        </div>
+                    {/* ── History overlay ── */}
+                    {historyOpen && (
+                        <HistoryOverlay messages={messages} onClose={() => setHistoryOpen(false)} />
                     )}
                 </div>
             </div>
+
+            {/* Global keyframe for speaking bars */}
+            <style>{`
+                @keyframes speakBar { from{transform:scaleY(.5)}to{transform:scaleY(1.2)} }
+            `}</style>
         </div>
     );
 }
