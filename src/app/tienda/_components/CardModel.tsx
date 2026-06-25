@@ -149,8 +149,6 @@ export default function CardModel({ frontUrl, backUrl }: { frontUrl: string, bac
         <OrbitControls 
           enableZoom={true} 
           enablePan={false} 
-          minPolarAngle={Math.PI / 4} 
-          maxPolarAngle={Math.PI / 1.5} 
         />
         <Environment preset="city" />
       </Canvas>

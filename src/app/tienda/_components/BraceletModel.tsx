@@ -156,8 +156,6 @@ export default function BraceletModel({ color, userData }: { color: string, user
         <OrbitControls 
           enableZoom={true} 
           enablePan={false} 
-          minPolarAngle={Math.PI / 4} 
-          maxPolarAngle={Math.PI / 1.5} 
         />
         <Environment preset="city" />
       </Canvas>
