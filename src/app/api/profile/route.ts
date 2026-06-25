@@ -15,7 +15,7 @@ async function getSessionUserId(): Promise<string | null> {
 
 export async function GET() {
     const userId = await getSessionUserId();
-    if (!userId) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+    if (!userId) return NextResponse.json({ error: "Tu sesión ha expirado o no has iniciado sesión. Por favor, vuelve a ingresar." }, { status: 401 });
 
     const user = await prisma.user.findUnique({
         where: { id: userId },
@@ -63,7 +63,7 @@ export async function GET() {
 
 export async function PUT(req: Request) {
     const userId = await getSessionUserId();
-    if (!userId) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+    if (!userId) return NextResponse.json({ error: "Tu sesión ha expirado o no has iniciado sesión. Por favor, vuelve a ingresar." }, { status: 401 });
 
     const body = await req.json() as {
         firstName?: string;
@@ -77,32 +77,43 @@ export async function PUT(req: Request) {
         location?: string;
     };
 
-    await prisma.personalInformation.upsert({
-        where: { userId },
-        create: {
-            userId,
-            firstName: body.firstName ?? "",
-            lastName: body.lastName ?? "",
-            ...(body.dateOfBirth !== undefined && { dateOfBirth: body.dateOfBirth ? new Date(body.dateOfBirth) : null }),
-            ...(body.gender !== undefined && { gender: body.gender as never }),
-            ...(body.bloodType !== undefined && { bloodType: body.bloodType as never }),
-            ...(body.identificationNumber !== undefined && { identificationNumber: body.identificationNumber }),
-            ...(body.identificationType !== undefined && { identificationType: body.identificationType }),
-            phone: body.phone ?? "",
-            location: body.location ?? "",
-        },
-        update: {
-            ...(body.firstName !== undefined && { firstName: body.firstName }),
-            ...(body.lastName !== undefined && { lastName: body.lastName }),
-            ...(body.dateOfBirth !== undefined && { dateOfBirth: body.dateOfBirth ? new Date(body.dateOfBirth) : null }),
-            ...(body.gender !== undefined && { gender: body.gender as never }),
-            ...(body.bloodType !== undefined && { bloodType: body.bloodType as never }),
-            ...(body.identificationNumber !== undefined && { identificationNumber: body.identificationNumber }),
-            ...(body.identificationType !== undefined && { identificationType: body.identificationType }),
-            ...(body.phone !== undefined && { phone: body.phone }),
-            ...(body.location !== undefined && { location: body.location }),
-        },
-    });
+    try {
+        await prisma.personalInformation.upsert({
+            where: { userId },
+            create: {
+                userId,
+                firstName: body.firstName ?? "",
+                lastName: body.lastName ?? "",
+                ...(body.dateOfBirth !== undefined && { dateOfBirth: body.dateOfBirth ? new Date(body.dateOfBirth) : null }),
+                ...(body.gender !== undefined && { gender: body.gender as never }),
+                ...(body.bloodType !== undefined && { bloodType: body.bloodType as never }),
+                ...(body.identificationNumber !== undefined && { identificationNumber: body.identificationNumber }),
+                ...(body.identificationType !== undefined && { identificationType: body.identificationType }),
+                phone: body.phone ?? "",
+                location: body.location ?? "",
+            },
+            update: {
+                ...(body.firstName !== undefined && { firstName: body.firstName }),
+                ...(body.lastName !== undefined && { lastName: body.lastName }),
+                ...(body.dateOfBirth !== undefined && { dateOfBirth: body.dateOfBirth ? new Date(body.dateOfBirth) : null }),
+                ...(body.gender !== undefined && { gender: body.gender as never }),
+                ...(body.bloodType !== undefined && { bloodType: body.bloodType as never }),
+                ...(body.identificationNumber !== undefined && { identificationNumber: body.identificationNumber }),
+                ...(body.identificationType !== undefined && { identificationType: body.identificationType }),
+                ...(body.phone !== undefined && { phone: body.phone }),
+                ...(body.location !== undefined && { location: body.location }),
+            },
+        });
+    } catch (error: any) {
+        if (error.code === 'P2002') {
+            return NextResponse.json(
+                { error: "El número de identificación ingresado ya se encuentra registrado." },
+                { status: 409 }
+            );
+        }
+        console.error("Error al actualizar perfil:", error);
+        return NextResponse.json({ error: "Ocurrió un error al actualizar el perfil" }, { status: 500 });
+    }
 
     return NextResponse.json({ message: "Perfil actualizado" });
 }

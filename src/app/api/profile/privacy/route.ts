@@ -16,7 +16,7 @@ const ALLOWED_FIELDS = [
 
 export async function PUT(req: Request) {
     const userId = await getUserId();
-    if (!userId) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+    if (!userId) return NextResponse.json({ error: "Tu sesión ha expirado o no has iniciado sesión. Por favor, vuelve a ingresar." }, { status: 401 });
 
     const body = await req.json() as Record<string, unknown>;
     const update: Partial<Record<typeof ALLOWED_FIELDS[number], boolean>> = {};

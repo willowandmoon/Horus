@@ -79,8 +79,9 @@ export default async function DashboardPage() {
             {/* ── Mobile top bar ── */}
             <header className="lg:hidden flex items-center justify-between bg-white border-b border-[#E4E2DC] px-6 py-4 shrink-0">
                 <div className="flex items-center gap-2.5 ml-14">
-                    <img src="/gato.png" alt="Logo" className="w-8 h-8 object-contain" />
-                    <span className="text-[#1C1917] font-black tracking-widest text-sm uppercase">Horus</span>
+                    <img src="/uploads/profiles/horus-modo-claro.svg" alt="Logo" className="w-9 h-9 object-contain dark:hidden" />
+                    <img src="/uploads/profiles/horus-modo-oscuro.svg" alt="Logo" className="hidden w-9 h-9 object-contain dark:block" />
+                    <span className="text-[#1C1917] font-black tracking-widest text-sm uppercase dark:text-white">Horus</span>
                 </div>
                 <div className="flex items-center gap-3">
                     <div className="flex items-center gap-1.5">
@@ -111,9 +112,6 @@ export default async function DashboardPage() {
                             <span className="w-2 h-2 rounded-full bg-[#96C979] animate-pulse" />
                             <span className="text-sm font-bold text-[#1C1917]">Manilla conectada</span>
                         </div>
-                        <div className="hidden lg:block">
-                            <LogoutButton />
-                        </div>
                     </div>
                 </div>
 
@@ -122,12 +120,13 @@ export default async function DashboardPage() {
                  * Columna izquierda (3/5): Asistente IA + Mapa GPS
                  * Columna derecha  (2/5): mini stats · QR · Notifs · Devices · Emergencias
                  */}
-                <div className="grid grid-cols-1 xl:grid-cols-5 gap-5">
+                <div className="grid grid-cols-1 xl:grid-cols-5 gap-5 items-start">
 
-                    {/* ── LEFT (3 cols) ── */}
+                    {/* ── Izquierda (3 cols): Chat → Notificaciones → Dispositivos → Mapa ── */}
                     <div className="xl:col-span-3 flex flex-col gap-5">
                         <ChatButton userId={userId} />
-
+                        <NotificationsCard />
+                        <DevicesCard />
                         <div className="bg-white rounded-[28px] p-6 shadow-sm border border-[#E4E2DC] flex flex-col">
                             <div className="flex items-center justify-between mb-4 shrink-0">
                                 <div className="flex items-center gap-2">
@@ -150,12 +149,9 @@ export default async function DashboardPage() {
                         </div>
                     </div>
 
-                    {/* ── RIGHT (2 cols) ── */}
+                    {/* ── Derecha (2 cols): QR → Líneas de emergencia ── */}
                     <div className="xl:col-span-2 flex flex-col gap-5">
-
                         <QrPermissionsCard userId={userId} />
-                        <NotificationsCard />
-                        <DevicesCard />
                         <EmergencyLines />
                     </div>
                 </div>

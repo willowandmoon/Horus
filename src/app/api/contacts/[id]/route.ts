@@ -20,7 +20,7 @@ export async function PUT(
     { params }: { params: Promise<{ id: string }> }
 ) {
     const userId = await getSessionUserId();
-    if (!userId) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+    if (!userId) return NextResponse.json({ error: "Tu sesión ha expirado o no has iniciado sesión. Por favor, vuelve a ingresar." }, { status: 401 });
 
     try {
         const { id } = await params;
@@ -31,7 +31,7 @@ export async function PUT(
         });
 
         if (!existing || existing.userId !== userId) {
-            return NextResponse.json({ error: "No encontrado o no autorizado" }, { status: 404 });
+            return NextResponse.json({ error: "El contacto no fue encontrado o no tienes permiso para acceder a él." }, { status: 404 });
         }
 
         const updated = await prisma.emergencyContact.update({
@@ -60,7 +60,7 @@ export async function DELETE(
     { params }: { params: Promise<{ id: string }> }
 ) {
     const userId = await getSessionUserId();
-    if (!userId) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+    if (!userId) return NextResponse.json({ error: "Tu sesión ha expirado o no has iniciado sesión. Por favor, vuelve a ingresar." }, { status: 401 });
 
     try {
         const { id } = await params;
@@ -70,7 +70,7 @@ export async function DELETE(
         });
 
         if (!existing || existing.userId !== userId) {
-            return NextResponse.json({ error: "No encontrado o no autorizado" }, { status: 404 });
+            return NextResponse.json({ error: "El contacto no fue encontrado o no tienes permiso para acceder a él." }, { status: 404 });
         }
 
         await prisma.emergencyContact.delete({

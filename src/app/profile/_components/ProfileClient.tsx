@@ -59,6 +59,23 @@ const ID_TYPES = [
   { label:"Pasaporte", value:"PP" }, { label:"Tarjeta de identidad", value:"TI" },
   { label:"Permiso especial", value:"PPE" },
 ];
+const EPS_OPTIONS = [
+  { label: "Ninguna / No especificada", value: "" },
+  { label: "Sura", value: "Sura" },
+  { label: "Sanitas", value: "Sanitas" },
+  { label: "Salud Total", value: "Salud Total" },
+  { label: "Nueva EPS", value: "Nueva EPS" },
+  { label: "Compensar", value: "Compensar" },
+  { label: "Famisanar", value: "Famisanar" },
+  { label: "Aliansalud", value: "Aliansalud" },
+  { label: "Mutual Ser", value: "Mutual Ser" },
+  { label: "Asmet Salud", value: "Asmet Salud" },
+  { label: "Savia Salud", value: "Savia Salud" },
+  { label: "Capital Salud", value: "Capital Salud" },
+  { label: "Cajacopi", value: "Cajacopi" },
+  { label: "Medimás", value: "Medimás" },
+  { label: "Otra aseguradora / Prepagada", value: "Otra" },
+];
 const BLOOD_OPTS = [
   { label:"A+", value:"A_POSITIVE" }, { label:"A-", value:"A_NEGATIVE" },
   { label:"B+", value:"B_POSITIVE" }, { label:"B-", value:"B_NEGATIVE" },
@@ -86,11 +103,8 @@ function fmtDate(iso: string | null) {
   if (parts.length !== 3) return "—";
   const d = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
   if (isNaN(d.getTime())) return "—";
-  const now = new Date();
-  let age = now.getFullYear() - d.getFullYear();
-  if (now.getMonth() < d.getMonth() || (now.getMonth() === d.getMonth() && now.getDate() < d.getDate())) age--;
   const months = ["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
-  return `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()} · ${age} años`;
+  return `${d.getDate()} de ${months[d.getMonth()]} de ${d.getFullYear()}`;
 }
 function lbl<T extends { label: string; value: string }>(opts: T[], v?: string | null) {
   return v ? (opts.find(o => o.value === v)?.label ?? v) : "—";
@@ -136,7 +150,7 @@ function CameraIcon({ size = 14, color = "currentColor" }: { size?: number; colo
 }
 
 // ── InfoRow ───────────────────────────────────────────────────────────────────
-function InfoRow({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
+function InfoRow({ icon, label, value }: { icon: React.ReactNode; label: string; value: React.ReactNode }) {
   return (
     <div style={{ display: "flex", alignItems: "center", gap: 10, paddingTop: 6, paddingBottom: 6 }}>
       <div style={{ width: 30, height: 30, borderRadius: 8, background: C.mutedBg,
@@ -198,20 +212,39 @@ function Modal({ title, onClose, children, footer }: {
 }) {
   return (
     <div style={{ position: "fixed", inset: 0, background: "rgba(26,21,18,0.45)", zIndex: 100,
-      display: "flex", alignItems: "flex-end", justifyContent: "center" }}
+      display: "flex", alignItems: "center", justifyContent: "center", padding: "16px" }}
       onClick={onClose}>
-      <div style={{ background: C.bg, borderRadius: "28px 28px 0 0", padding: 24, width: "100%",
-        maxWidth: 560, maxHeight: "90vh", overflowY: "auto" }}
+      <div style={{ background: C.bg, borderRadius: "28px", width: "100%",
+        maxWidth: 560, maxHeight: "90vh", display: "flex", flexDirection: "column",
+        boxShadow: "0 10px 40px rgba(0,0,0,0.15)", animation: "fadeInUp 0.2s ease-out", overflow: "hidden" }}
         onClick={e => e.stopPropagation()}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
-          <h3 style={{ margin: 0, fontSize: 18, fontFamily: DISPLAY, fontWeight: 700, color: C.primary }}>{title}</h3>
+        <style>
+          {`
+            @keyframes fadeInUp {
+              from { opacity: 0; transform: translateY(10px); }
+              to { opacity: 1; transform: translateY(0); }
+            }
+          `}
+        </style>
+        
+        {/* Header */}
+        <div style={{ padding: "24px 24px 20px", display: "flex", alignItems: "center", justifyContent: "space-between", flexShrink: 0 }}>
+          <h3 style={{ margin: 0, fontSize: 20, fontFamily: DISPLAY, fontWeight: 700, color: C.primary }}>{title}</h3>
           <button onClick={onClose} style={{ background: C.mutedBg, border: "none", borderRadius: "50%",
-            width: 32, height: 32, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <XIcon color={C.primary} size={12} />
+            width: 36, height: 36, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <XIcon color={C.primary} size={14} />
           </button>
         </div>
-        <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 16 }}>{children}</div>
-        <div style={{ display: "flex", gap: 12 }}>{footer}</div>
+
+        {/* Scrollable Body */}
+        <div style={{ padding: "0 24px", display: "flex", flexDirection: "column", gap: 12, overflowY: "auto", flex: 1 }}>
+          {children}
+        </div>
+
+        {/* Footer */}
+        <div style={{ padding: "24px", display: "flex", gap: 12, flexShrink: 0 }}>
+          {footer}
+        </div>
       </div>
     </div>
   );
@@ -238,15 +271,71 @@ function SelectField({ label, value, onChange, options, locked }: {
   label: string; value: string; onChange?: (v: string) => void;
   options: { label: string; value: string }[]; locked?: boolean;
 }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  const selected = options.find(o => o.value === value);
+
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [open]);
+
   return (
-    <div style={{ background: C.card, borderRadius: 16, padding: "10px 16px 12px", opacity: locked ? 0.5 : 1 }}>
-      <p style={{ margin: "0 0 2px", fontSize: 11, fontFamily: SANS, color: C.muted }}>{label}</p>
-      <select value={value} onChange={e => onChange?.(e.target.value)} disabled={locked}
-        style={{ display: "block", width: "100%", border: "none", background: "transparent",
-          color: C.primary, fontSize: 15, fontFamily: SANS, outline: "none", appearance: "none", padding: 0 }}>
-        <option value="">Seleccionar</option>
-        {options.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
-      </select>
+    <div ref={ref} style={{ position: "relative", opacity: locked ? 0.5 : 1 }}>
+      <div
+        onClick={() => !locked && setOpen(o => !o)}
+        style={{
+          background: C.card, borderRadius: 16, padding: "10px 16px 12px",
+          cursor: locked ? "default" : "pointer",
+          border: open ? `1.5px solid ${C.primary}` : "1.5px solid transparent",
+          transition: "border-color 0.15s",
+        }}
+      >
+        <p style={{ margin: "0 0 2px", fontSize: 11, fontFamily: SANS, color: C.muted }}>{label}</p>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <span style={{ fontSize: 15, fontFamily: SANS, color: selected ? C.primary : C.muted }}>
+            {selected ? selected.label : "Seleccionar"}
+          </span>
+          <svg
+            width="16" height="16" viewBox="0 0 24 24" fill="none"
+            stroke={C.muted} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+            style={{ transform: open ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s", flexShrink: 0 }}
+          >
+            <path d="m6 9 6 6 6-6"/>
+          </svg>
+        </div>
+      </div>
+      {open && (
+        <div style={{
+          position: "absolute", top: "calc(100% + 6px)", left: 0, right: 0, zIndex: 50,
+          background: C.card, borderRadius: 16, overflow: "hidden",
+          boxShadow: "0 8px 24px rgba(0,0,0,0.10)", border: `1px solid #E4E2DC`,
+        }}>
+          {options.map((o, i) => (
+            <div
+              key={o.value}
+              onClick={() => { onChange?.(o.value); setOpen(false); }}
+              style={{
+                padding: "12px 16px", fontSize: 14, fontFamily: SANS,
+                color: o.value === value ? C.primary : C.primary,
+                background: o.value === value ? C.mutedBg : "transparent",
+                fontWeight: o.value === value ? 600 : 400,
+                cursor: "pointer",
+                borderBottom: i < options.length - 1 ? `1px solid #F0EBE3` : "none",
+                transition: "background 0.1s",
+              }}
+              onMouseEnter={e => { if (o.value !== value) (e.currentTarget as HTMLDivElement).style.background = "#F8F7F4"; }}
+              onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.background = o.value === value ? C.mutedBg : "transparent"; }}
+            >
+              {o.label}
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -311,6 +400,8 @@ export default function ProfileClient() {
   const [meds,       setMeds]       = useState<Medication[]>([]);
   const [contacts,   setContacts]   = useState<Contact[]>([]);
   const [loading,    setLoading]    = useState(true);
+  const [toast, setToast] = useState<{ msg: string, type: "error" | "success" } | null>(null);
+  const showError = (msg: string) => { setToast({ msg, type: "error" }); setTimeout(() => setToast(null), 4500); };
 
   // ── Accordion ─────────────────────────────────────────────────────────────
   const [open, setOpen] = useState({ personal: true, medical: false, allergies: false, conditions: false, meds: false, contacts: false });
@@ -323,12 +414,14 @@ export default function ProfileClient() {
   const [editOpen,   setEditOpen]   = useState(false);
   const [saving,     setSaving]     = useState(false);
   const [draft, setDraft] = useState({
-    firstName: "", lastName: "", email: "",
+    firstName: "", lastName: "", email: "", dateOfBirth: "",
     gender: "", identificationType: "", identificationNumber: "",
     bloodType: "",
     heightCm: "", weightKg: "", organDonor: false, insuranceProvider: "",
+    customInsuranceProvider: "",
   });
   const idLocked = !!(profile?.identificationType && profile?.identificationNumber);
+  const bloodLocked = !!profile?.bloodType;
 
   // ── Allergy ───────────────────────────────────────────────────────────────
   const [addAllergyOpen,  setAddAllergyOpen]  = useState(false);
@@ -385,58 +478,70 @@ export default function ProfileClient() {
       fd.append("photo", file);
       const { data } = await axios.post<{ photoUrl: string }>("/api/profile/photo", fd);
       setProfile(p => p ? { ...p, photoUrl: data.photoUrl } : p);
-    } catch { alert("Error al subir foto"); }
+    } catch (err: any) { showError(err.response?.data?.error || "Error al subir la foto."); }
     finally { setUploadingPhoto(false); if (fileRef.current) fileRef.current.value = ""; }
   };
 
   // ── Open edit modal ───────────────────────────────────────────────────────
   const openEdit = () => {
     if (!profile) return;
+    const isKnownEps = EPS_OPTIONS.some(o => o.value === medProfile?.insuranceProvider) || !medProfile?.insuranceProvider;
     setDraft({
       firstName: profile.firstName, lastName: profile.lastName, email: profile.email,
+      dateOfBirth: profile.dateOfBirth ? new Date(profile.dateOfBirth).toISOString().split('T')[0] : "",
       gender: profile.gender ?? "", identificationType: profile.identificationType ?? "",
       identificationNumber: profile.identificationNumber ?? "",
       bloodType: profile.bloodType ?? "",
-      heightCm: medProfile.heightCm != null ? String(medProfile.heightCm) : "",
-      weightKg: medProfile.weightKg != null ? String(medProfile.weightKg) : "",
-      organDonor: medProfile.organDonor,
-      insuranceProvider: medProfile.insuranceProvider ?? "",
+      heightCm: medProfile?.heightCm != null ? String(medProfile.heightCm) : "",
+      weightKg: medProfile?.weightKg != null ? String(medProfile.weightKg) : "",
+      organDonor: medProfile?.organDonor || false,
+      insuranceProvider: isKnownEps ? (medProfile?.insuranceProvider ?? "") : "Otra",
+      customInsuranceProvider: isKnownEps ? "" : (medProfile?.insuranceProvider ?? ""),
     });
     setEditOpen(true);
   };
 
   // ── Save profile ──────────────────────────────────────────────────────────
   const handleSave = async () => {
-    if (!draft.firstName.trim() || !draft.lastName.trim()) { alert("Nombre y apellido son requeridos."); return; }
+    if (!draft.firstName.trim() || !draft.lastName.trim()) { showError("Nombre y apellido son requeridos."); return; }
     setSaving(true);
     try {
       await Promise.all([
         axios.put("/api/profile", {
           firstName: draft.firstName.trim(), lastName: draft.lastName.trim(),
+          dateOfBirth: draft.dateOfBirth || null,
           gender: draft.gender || null,
+          ...(!bloodLocked && { bloodType: draft.bloodType || null }),
           ...(!idLocked && { identificationType: draft.identificationType || null, identificationNumber: draft.identificationNumber.trim() || null }),
         }),
         axios.put("/api/profile/medical", {
           heightCm: draft.heightCm || null, weightKg: draft.weightKg || null,
-          organDonor: draft.organDonor, insuranceProvider: draft.insuranceProvider || null,
+          organDonor: draft.organDonor,
+          insuranceProvider: draft.insuranceProvider === "Otra" ? (draft.customInsuranceProvider || null) : (draft.insuranceProvider || null),
         }),
       ]);
       setProfile(p => p ? { ...p, firstName: draft.firstName.trim(), lastName: draft.lastName.trim(),
+        dateOfBirth: draft.dateOfBirth || null,
         gender: draft.gender || null,
+        ...(!bloodLocked && { bloodType: draft.bloodType || null }),
         ...(!idLocked && { identificationType: draft.identificationType || null, identificationNumber: draft.identificationNumber.trim() || null }),
       } : p);
       setMedProfile({ heightCm: draft.heightCm ? Number(draft.heightCm) : null,
         weightKg: draft.weightKg ? Number(draft.weightKg) : null,
-        organDonor: draft.organDonor, insuranceProvider: draft.insuranceProvider || null });
+        organDonor: draft.organDonor, 
+        insuranceProvider: draft.insuranceProvider === "Otra" ? (draft.customInsuranceProvider || null) : (draft.insuranceProvider || null)
+      });
       setEditOpen(false);
-    } catch { alert("Error al guardar."); }
+    } catch (err: any) { 
+      showError(err.response?.data?.error || "Error al guardar."); 
+    }
     finally { setSaving(false); }
   };
 
   // ── Allergy CRUD ──────────────────────────────────────────────────────────
   const handleAddAllergy = async () => {
     if (!allergyDraft.allergenName.trim() || !allergyDraft.allergyType || !allergyDraft.severity) {
-      alert("Nombre, tipo y severidad son obligatorios."); return;
+      showError("Nombre, tipo y severidad son obligatorios."); return;
     }
     setSavingAllergy(true);
     try {
@@ -448,7 +553,7 @@ export default function ProfileClient() {
       setAllergies(p => [data, ...p]);
       setAllergyDraft({ allergenName: "", allergyType: "", severity: "", reactionDescription: "" });
       setAddAllergyOpen(false);
-    } catch { alert("Error al guardar."); }
+    } catch (err: any) { showError(err.response?.data?.error || "Error al guardar."); }
     finally { setSavingAllergy(false); }
   };
   const handleSaveEditAllergy = async () => {
@@ -462,18 +567,18 @@ export default function ProfileClient() {
       });
       setAllergies(p => p.map(a => a.id === editAllergyItem.id ? data : a));
       setEditAllergyItem(null);
-    } catch { alert("Error al guardar."); }
+    } catch (err: any) { showError(err.response?.data?.error || "Error al guardar."); }
     finally { setSavingAllergy(false); }
   };
   const handleDeleteAllergy = async (id: string) => {
     if (!confirm("¿Eliminar esta alergia?")) return;
-    await axios.delete(`/api/medical-profile/${id}?type=allergy`).catch(() => alert("Error"));
+    await axios.delete(`/api/medical-profile/${id}?type=allergy`).catch(() => showError("Ocurrió un error al eliminar."));
     setAllergies(p => p.filter(a => a.id !== id));
   };
 
   // ── Condition CRUD ────────────────────────────────────────────────────────
   const handleAddCond = async () => {
-    if (!condDraft.conditionName.trim()) { alert("El nombre es obligatorio."); return; }
+    if (!condDraft.conditionName.trim()) { showError("El nombre es obligatorio."); return; }
     setSavingCond(true);
     try {
       const { data } = await axios.post<Condition>("/api/medical-profile", {
@@ -484,7 +589,7 @@ export default function ProfileClient() {
       setConditions(p => [data, ...p]);
       setCondDraft({ conditionName: "", severity: "", status: "ACTIVE", notes: "" });
       setAddCondOpen(false);
-    } catch { alert("Error al guardar."); }
+    } catch (err: any) { showError(err.response?.data?.error || "Error al guardar."); }
     finally { setSavingCond(false); }
   };
   const handleSaveEditCond = async () => {
@@ -498,18 +603,18 @@ export default function ProfileClient() {
       });
       setConditions(p => p.map(c => c.id === editCondItem.id ? data : c));
       setEditCondItem(null);
-    } catch { alert("Error al guardar."); }
+    } catch (err: any) { showError(err.response?.data?.error || "Error al guardar."); }
     finally { setSavingCond(false); }
   };
   const handleDeleteCond = async (id: string) => {
     if (!confirm("¿Eliminar esta condición?")) return;
-    await axios.delete(`/api/medical-profile/${id}?type=condition`).catch(() => alert("Error"));
+    await axios.delete(`/api/medical-profile/${id}?type=condition`).catch(() => showError("Ocurrió un error al eliminar."));
     setConditions(p => p.filter(c => c.id !== id));
   };
 
   // ── Medication CRUD ───────────────────────────────────────────────────────
   const handleAddMed = async () => {
-    if (!medDraft.name.trim()) { alert("El nombre es obligatorio."); return; }
+    if (!medDraft.name.trim()) { showError("El nombre es obligatorio."); return; }
     setSavingMed(true);
     try {
       const { data } = await axios.post<Medication>("/api/medical-profile", {
@@ -519,7 +624,7 @@ export default function ProfileClient() {
       setMeds(p => [data, ...p]);
       setMedDraft({ name: "", dosage: "", frequency: "" });
       setAddMedOpen(false);
-    } catch { alert("Error al guardar."); }
+    } catch (err: any) { showError(err.response?.data?.error || "Error al guardar."); }
     finally { setSavingMed(false); }
   };
   const handleSaveEditMed = async () => {
@@ -533,18 +638,18 @@ export default function ProfileClient() {
       });
       setMeds(p => p.map(m => m.id === editMedItem.id ? data : m));
       setEditMedItem(null);
-    } catch { alert("Error al guardar."); }
+    } catch (err: any) { showError(err.response?.data?.error || "Error al guardar."); }
     finally { setSavingMed(false); }
   };
   const handleDeleteMed = async (id: string) => {
     if (!confirm("¿Eliminar este medicamento?")) return;
-    await axios.delete(`/api/medical-profile/${id}?type=medication`).catch(() => alert("Error"));
+    await axios.delete(`/api/medical-profile/${id}?type=medication`).catch(() => showError("Ocurrió un error al eliminar."));
     setMeds(p => p.filter(m => m.id !== id));
   };
 
   // ── Contact CRUD ──────────────────────────────────────────────────────────
   const handleAddContact = async () => {
-    if (!contactDraft.name.trim() || !contactDraft.phone.trim()) { alert("Nombre y teléfono son obligatorios."); return; }
+    if (!contactDraft.name.trim() || !contactDraft.phone.trim()) { showError("Nombre y teléfono son obligatorios."); return; }
     setSavingContact(true);
     try {
       const { data } = await axios.post<Contact>("/api/contacts", {
@@ -555,7 +660,7 @@ export default function ProfileClient() {
       setContacts(p => [...p, data]);
       setContactDraft({ name: "", phone: "", relation: "", email: "" });
       setAddContactOpen(false);
-    } catch { alert("Error al guardar."); }
+    } catch (err: any) { showError(err.response?.data?.error || "Error al guardar."); }
     finally { setSavingContact(false); }
   };
   const handleSaveEditContact = async () => {
@@ -569,16 +674,33 @@ export default function ProfileClient() {
       });
       setContacts(p => p.map(c => c.id === editContactItem.id ? data : c));
       setEditContactItem(null);
-    } catch { alert("Error al guardar."); }
+    } catch (err: any) { showError(err.response?.data?.error || "Error al guardar."); }
     finally { setSavingContact(false); }
   };
   const handleDeleteContact = async (id: string) => {
     if (!confirm("¿Eliminar este contacto?")) return;
-    await axios.delete(`/api/contacts/${id}`).catch(() => alert("Error"));
+    await axios.delete(`/api/contacts/${id}`).catch(() => showError("Ocurrió un error al eliminar."));
     setContacts(p => p.filter(c => c.id !== id));
   };
 
   // ── Derived ───────────────────────────────────────────────────────────────
+  const calcAge = (dob: string | Date | null | undefined) => {
+    if (!dob) return null;
+    const birthDate = new Date(dob);
+    const today = new Date();
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const m = today.getMonth() - birthDate.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) age--;
+    return age;
+  };
+  const ageDisplay = profile?.dateOfBirth ? (
+    <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
+      {fmtDate(profile.dateOfBirth)}
+      <span style={{ background: C.mutedBg, color: C.primary, fontSize: 11, padding: "2px 8px", borderRadius: 10, fontWeight: 700 }}>
+        {calcAge(profile.dateOfBirth)} años
+      </span>
+    </span>
+  ) : "—";
   const initials = profile ? `${profile.firstName?.[0] ?? ""}${profile.lastName?.[0] ?? ""}`.toUpperCase() : "?";
   const activeAllergies  = allergies.filter(a => a.isActive).length;
   const activeConditions = conditions.filter(c => c.status === "ACTIVE").length;
@@ -600,7 +722,7 @@ export default function ProfileClient() {
           <div style={{ width: 96, height: 96, borderRadius: "50%", background: C.pink,
             display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
             {profile?.photoUrl
-              ? <Image src={profile.photoUrl} alt="avatar" width={96} height={96} style={{ objectFit: "cover", borderRadius: "50%" }} />
+              ? <Image src={profile.photoUrl} alt="avatar" width={96} height={96} style={{ objectFit: "cover", borderRadius: "50%" }} unoptimized />
               : <span style={{ fontSize: 32, fontFamily: DISPLAY, fontWeight: 700, color: "#7A1A3A" }}>{initials}</span>
             }
           </div>
@@ -629,7 +751,7 @@ export default function ProfileClient() {
         open={open.personal} onToggle={() => toggle("personal")}>
         <InfoRow icon={<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={C.muted} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>} label="Correo" value={profile?.email ?? "—"} />
         {divider}
-        <InfoRow icon={<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={C.muted} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M8 2v4M16 2v4"/><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M3 10h18"/></svg>} label="Fecha de nacimiento" value={fmtDate(profile?.dateOfBirth ?? null)} />
+        <InfoRow icon={<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={C.muted} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M8 2v4M16 2v4"/><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M3 10h18"/></svg>} label="Fecha de nacimiento" value={ageDisplay} />
         {divider}
         <InfoRow icon={<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={C.muted} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>} label="Género" value={GENDER[profile?.gender ?? ""] || "—"} />
         {divider}
@@ -768,13 +890,14 @@ export default function ProfileClient() {
           <Field label="Correo electrónico" value={draft.email} locked />
 
           <SectionLabel>Información personal</SectionLabel>
+          <Field type="date" label="Fecha de nacimiento" value={draft.dateOfBirth} onChange={v => setDraft(d => ({ ...d, dateOfBirth: v }))} />
           <SelectField label="Género" value={draft.gender} onChange={v => setDraft(d => ({ ...d, gender: v }))} options={GENDERS} />
           <SectionLabel>Documento {idLocked && "(bloqueado — ya registrado)"}</SectionLabel>
           <SelectField label="Tipo de documento" value={draft.identificationType} onChange={v => setDraft(d => ({ ...d, identificationType: v }))} options={ID_TYPES} locked={idLocked} />
           <Field label="Número de documento" value={draft.identificationNumber} onChange={v => setDraft(d => ({ ...d, identificationNumber: v }))} locked={idLocked} />
 
           <SectionLabel>Perfil médico</SectionLabel>
-          <SelectField label="Tipo de sangre" value={draft.bloodType} onChange={v => setDraft(d => ({ ...d, bloodType: v }))} options={BLOOD_OPTS} locked />
+          <SelectField label={`Tipo de sangre ${bloodLocked ? "(bloqueado)" : ""}`} value={draft.bloodType} onChange={v => setDraft(d => ({ ...d, bloodType: v }))} options={BLOOD_OPTS} locked={bloodLocked} />
           <div style={{ display: "flex", gap: 8 }}>
             <div style={{ flex: 1 }}><Field label="Altura (cm)" value={draft.heightCm} onChange={v => setDraft(d => ({ ...d, heightCm: v }))} placeholder="170" /></div>
             <div style={{ flex: 1 }}><Field label="Peso (kg)" value={draft.weightKg} onChange={v => setDraft(d => ({ ...d, weightKg: v }))} placeholder="65" /></div>
@@ -784,7 +907,12 @@ export default function ProfileClient() {
             <input type="checkbox" checked={draft.organDonor} onChange={e => setDraft(d => ({ ...d, organDonor: e.target.checked }))}
               style={{ width: 18, height: 18, accentColor: C.primary, cursor: "pointer" }} />
           </div>
-          <Field label="Aseguradora" value={draft.insuranceProvider} onChange={v => setDraft(d => ({ ...d, insuranceProvider: v }))} placeholder="Nombre de la EPS / seguro" />
+          <SelectField label="Aseguradora" value={draft.insuranceProvider} onChange={v => setDraft(d => ({ ...d, insuranceProvider: v }))} options={EPS_OPTIONS} />
+          {draft.insuranceProvider === "Otra" && (
+            <div style={{ marginTop: -8 }}>
+              <Field label="Escribe tu aseguradora o medicina prepagada" value={draft.customInsuranceProvider} onChange={v => setDraft(d => ({ ...d, customInsuranceProvider: v }))} placeholder="Nombre de la entidad" />
+            </div>
+          )}
         </Modal>
       )}
 
@@ -879,6 +1007,25 @@ export default function ProfileClient() {
         </Modal>
       )}
 
+      {toast && (
+        <div style={{
+          position: "fixed", top: 32, left: "50%", transform: "translateX(-50%)", zIndex: 9999,
+          background: C.card, color: C.primary,
+          border: `1px solid ${toast.type === "error" ? '#FCA5A5' : '#86EFAC'}`,
+          padding: "12px 16px", borderRadius: 12, fontSize: 13, fontFamily: SANS, fontWeight: 500,
+          boxShadow: "0 12px 32px rgba(0,0,0,0.08)", display: "flex", alignItems: "center", gap: 12,
+          maxWidth: 380, width: "max-content"
+        }}>
+          <div style={{
+            width: 8, height: 8, borderRadius: "50%", flexShrink: 0,
+            background: toast.type === "error" ? C.red : C.green
+          }} />
+          <span style={{ flex: 1, lineHeight: 1.4 }}>{toast.msg}</span>
+          <button onClick={() => setToast(null)} style={{ background: "transparent", border: "none", cursor: "pointer", display: "flex", padding: 4, marginLeft: 4, opacity: 0.5 }}>
+            <XIcon color={C.primary} size={12} />
+          </button>
+        </div>
+      )}
     </div>
   );
 }

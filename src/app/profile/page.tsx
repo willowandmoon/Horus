@@ -16,8 +16,9 @@ export default async function ProfilePage() {
             {/* ── Barra superior móvil ── */}
             <header className="lg:hidden flex items-center justify-between bg-white border-b border-[#E4E2DC] px-6 py-4 shrink-0">
                 <div className="flex items-center gap-2.5 ml-14">
-                    <img src="/gato.png" alt="Logo" className="w-8 h-8 object-contain" />
-                    <span className="text-[#1C1917] font-black tracking-widest text-sm uppercase">Horus</span>
+                    <img src="/uploads/profiles/horus-modo-claro.svg" alt="Logo" className="w-9 h-9 object-contain dark:hidden" />
+                    <img src="/uploads/profiles/horus-modo-oscuro.svg" alt="Logo" className="hidden w-9 h-9 object-contain dark:block" />
+                    <span className="text-[#1C1917] font-black tracking-widest text-sm uppercase dark:text-white">Horus</span>
                 </div>
                 <LogoutButton compact />
             </header>

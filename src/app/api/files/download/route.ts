@@ -64,7 +64,7 @@ export async function GET(request: Request) {
     return new NextResponse(buffer, {
       headers: {
         'Content-Type': mimeType,
-        'Content-Disposition': `attachment; filename="${filename}.${fileFormat}"`,
+        'Content-Disposition': `attachment; filename*=UTF-8''${encodeURIComponent(filename + '.' + fileFormat)}`,
         'Content-Length': String(buffer.length),
       },
     });

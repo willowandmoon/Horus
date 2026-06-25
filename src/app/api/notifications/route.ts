@@ -51,7 +51,7 @@ export async function GET() {
 // Mark a notification as read
 export async function PATCH(req: Request) {
     const userId = await getSessionUserId();
-    if (!userId) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+    if (!userId) return NextResponse.json({ error: "Tu sesión ha expirado o no has iniciado sesión. Por favor, vuelve a ingresar." }, { status: 401 });
 
     try {
         const { id } = await req.json() as { id: string };

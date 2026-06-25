@@ -19,7 +19,7 @@ const ALLOWED_EXTS = new Set(["jpg", "jpeg", "png", "webp", "gif"]);
 
 export async function POST(req: NextRequest) {
     const userId = await getSessionUserId();
-    if (!userId) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+    if (!userId) return NextResponse.json({ error: "Tu sesión ha expirado o no has iniciado sesión. Por favor, vuelve a ingresar." }, { status: 401 });
 
     const formData = await req.formData();
     const file = formData.get("photo") as File | null;

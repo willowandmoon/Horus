@@ -129,3 +129,28 @@ spline-viewer::part(logo) {
   0%, 100% { transform: translateY(0px) rotate(0deg); }
   50%       { transform: translateY(-22px) rotate(4deg); }
 }
+
+/* ── Custom Scrollbar ── */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+  border-radius: 8px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #D4D2C9;
+  border-radius: 8px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #AFAEA4;
+}
+
+/* Remove up/down arrows */
+::-webkit-scrollbar-button {
+  display: none;
+}

@@ -1,5 +1,5 @@
 import admin from "firebase-admin";
-import serviceAccount from "@/src/config/horus-64e3b-firebase-adminsdk-fbsvc-06eb372da6.json";
+import serviceAccount from "../../config/horus-64e3b-firebase-adminsdk-fbsvc-d821810d1c.json";
 
 let db: admin.firestore.Firestore;
 

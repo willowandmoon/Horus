@@ -63,8 +63,9 @@ export default function FloatingSidebar() {
     return (
         <aside className="fixed left-4 top-1/2 -translate-y-1/2 z-40 flex flex-col items-center gap-1 bg-[#191512] rounded-[28px] px-2 py-3 shadow-2xl">
             {/* Logo */}
-            <div className="mb-2 flex items-center justify-center w-9 h-9">
-                <img src="/gato.png" alt="Horus" className="w-7 h-7 object-contain opacity-80" />
+            <div className="mb-2 flex items-center justify-center w-10 h-10">
+                <img src="/uploads/profiles/horus-modo-oscuro.svg" alt="Horus" className="w-9 h-9 object-contain dark:hidden" />
+                <img src="/uploads/profiles/horus-modo-claro.svg" alt="Horus" className="hidden w-9 h-9 object-contain dark:block" />
             </div>
 
             <div className="w-5 h-px bg-white/10 mb-1" />

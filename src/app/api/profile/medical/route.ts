@@ -14,7 +14,7 @@ async function getSessionUserId(): Promise<string | null> {
 
 export async function GET() {
     const userId = await getSessionUserId();
-    if (!userId) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+    if (!userId) return NextResponse.json({ error: "Tu sesión ha expirado o no has iniciado sesión. Por favor, vuelve a ingresar." }, { status: 401 });
 
     const mp = await prisma.medicalProfile.findUnique({ where: { userId } });
     return NextResponse.json({
@@ -27,7 +27,7 @@ export async function GET() {
 
 export async function PUT(req: NextRequest) {
     const userId = await getSessionUserId();
-    if (!userId) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+    if (!userId) return NextResponse.json({ error: "Tu sesión ha expirado o no has iniciado sesión. Por favor, vuelve a ingresar." }, { status: 401 });
 
     const { heightCm, weightKg, organDonor, insuranceProvider } = await req.json();
 

@@ -17,7 +17,7 @@ async function getSessionUserId(): Promise<string | null> {
 
 export async function GET() {
     const userId = await getSessionUserId();
-    if (!userId) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+    if (!userId) return NextResponse.json({ error: "Tu sesión ha expirado o no has iniciado sesión. Por favor, vuelve a ingresar." }, { status: 401 });
 
     try {
         const [allergies, chronicConditions, medications, medicalHistory] = await Promise.all([
@@ -62,7 +62,7 @@ export async function GET() {
 
 export async function POST(request: Request) {
     const userId = await getSessionUserId();
-    if (!userId) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+    if (!userId) return NextResponse.json({ error: "Tu sesión ha expirado o no has iniciado sesión. Por favor, vuelve a ingresar." }, { status: 401 });
 
     try {
         const body = await request.json();

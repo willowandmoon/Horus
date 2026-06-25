@@ -13,7 +13,8 @@ export default function ChatButton({ userId }: { userId?: string }) {
             >
                 {/* Avatar */}
                 <div className="w-14 h-14 rounded-full bg-[#F0EBE3] flex items-center justify-center shrink-0 overflow-hidden">
-                    <img src="/gato.png" alt="Horus" className="w-10 h-10 object-contain" />
+                    <img src="/uploads/profiles/horus-modo-claro.svg" alt="Horus" className="w-11 h-11 object-contain dark:hidden" />
+                    <img src="/uploads/profiles/horus-modo-oscuro.svg" alt="Horus" className="hidden w-11 h-11 object-contain dark:block" />
                 </div>
 
                 {/* Info */}

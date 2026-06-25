@@ -920,85 +920,76 @@ export default function ArchivosPage() {
       <FloatingSidebar />
 
       <main className="pl-20 px-5 pt-8 pb-16 max-w-[1400px] mx-auto">
-        {/* Header */}
-        <div className="mb-8 pl-0 lg:pl-2">
-          <h1 style={{ fontFamily: DISPLAY, fontSize: 28, fontWeight: 700, color: C.primary, margin: 0 }}>
-            Mis archivos
-          </h1>
-          <p style={{ fontFamily: SANS, fontSize: 13, fontWeight: 400, color: C.muted, marginTop: 4, marginBottom: 0 }}>
-            Documentos y reportes médicos digitalizados
-          </p>
+        {/* Header & Stats */}
+        <div className="flex flex-col md:flex-row md:items-end justify-between mb-10 pl-2">
+          <div>
+            <h1 style={{ fontFamily: DISPLAY, fontSize: 32, fontWeight: 700, color: C.primary, margin: 0, letterSpacing: "-0.02em" }}>
+              Mis archivos
+            </h1>
+            <p style={{ fontFamily: SANS, fontSize: 14, color: C.muted, marginTop: 4, margin: 0 }}>
+              Gestiona tus documentos y reportes médicos
+            </p>
+          </div>
+
+          {docs.length > 0 && (
+            <div className="flex items-center gap-6 mt-6 md:mt-0 bg-[#F8F7F4] border border-[#E4E2DC] rounded-2xl px-6 py-3">
+              <div>
+                <p style={{ fontFamily: SANS, fontSize: 11, color: C.muted, textTransform: "uppercase", letterSpacing: "0.06em", margin: "0 0 2px" }}>Total</p>
+                <p style={{ fontFamily: DISPLAY, fontSize: 20, fontWeight: 700, color: C.primary, margin: 0 }}>{docs.length} <span className="text-sm font-normal text-[#8D99AE]">archivos</span></p>
+              </div>
+              <div className="h-8 w-px bg-[#E4E2DC]" />
+              <div>
+                <p style={{ fontFamily: SANS, fontSize: 11, color: C.muted, textTransform: "uppercase", letterSpacing: "0.06em", margin: "0 0 2px" }}>Último subido</p>
+                <p style={{ fontFamily: SANS, fontSize: 14, fontWeight: 600, color: C.primary, margin: 0 }}>{safeDate(lastUploaded)}</p>
+              </div>
+            </div>
+          )}
         </div>
 
-        {/* Stats */}
-        {docs.length > 0 && (
-          <div className="flex flex-wrap gap-3 mb-8">
-            <div style={{ display: "flex", alignItems: "center", gap: 12, backgroundColor: C.card, border: `1px solid ${C.border}`, borderRadius: 16, padding: "12px 20px" }}>
-              <span style={{ width: 36, height: 36, borderRadius: 10, backgroundColor: "#FDF2B2", color: "#5C4D04", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <svg width={16} height={16} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z" /><path d="M2 10h20" />
-                </svg>
-              </span>
-              <div>
-                <p style={{ fontFamily: SANS, fontSize: 11, color: C.muted, margin: 0 }}>Total</p>
-                <p style={{ fontFamily: DISPLAY, fontSize: 20, fontWeight: 700, color: C.primary, margin: 0 }}>{docs.length}</p>
-              </div>
-            </div>
-            <div style={{ display: "flex", alignItems: "center", gap: 12, backgroundColor: C.card, border: `1px solid ${C.border}`, borderRadius: 16, padding: "12px 20px" }}>
-              <span style={{ width: 36, height: 36, borderRadius: 10, backgroundColor: "#E3F2FD", color: "#0D47A1", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <svg width={16} height={16} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round">
-                  <rect x="3" y="4" width="18" height="18" rx="2" /><path d="M16 2v4M8 2v4M3 10h18" />
-                </svg>
-              </span>
-              <div>
-                <p style={{ fontFamily: SANS, fontSize: 11, color: C.muted, margin: 0 }}>Último subido</p>
-                <p style={{ fontFamily: SANS, fontSize: 13, fontWeight: 700, color: C.primary, margin: 0 }}>{safeDate(lastUploaded)}</p>
-              </div>
-            </div>
-          </div>
-        )}
-
-        <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-          {/* Upload zone */}
-          <div className="xl:col-span-1 space-y-4">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          {/* Left Column: Upload & AI */}
+          <div className="lg:col-span-4 space-y-6">
             <div
               onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
               onDragLeave={() => setDragOver(false)}
               onDrop={onDrop}
               onClick={() => !uploading && fileInputRef.current?.click()}
               style={{
-                borderRadius: 28,
-                border: `2px dashed ${dragOver ? "#FAD957" : C.border}`,
-                backgroundColor: dragOver ? "#FDF2B2" : C.card,
-                padding: "32px 20px",
+                borderRadius: 24,
+                border: dragOver ? `2px dashed ${C.primary}` : `1px solid ${C.border}`,
+                backgroundColor: dragOver ? C.mutedBg : C.card,
+                padding: "40px 24px",
                 display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
                 textAlign: "center", cursor: uploading ? "default" : "pointer",
-                transition: "all 0.2s",
+                transition: "all 0.3s ease",
+                boxShadow: "0 4px 20px rgba(0,0,0,0.02)"
               }}
+              className="hover:border-[#1C1917] hover:shadow-md group"
             >
               <div style={{
-                width: 64, height: 64, borderRadius: 16,
-                backgroundColor: dragOver ? "#FAD957" : C.mutedBg,
-                color: dragOver ? "#482D00" : C.muted,
+                width: 56, height: 56, borderRadius: 16,
+                backgroundColor: dragOver ? C.primary : C.mutedBg,
+                color: dragOver ? "#fff" : C.primary,
                 display: "flex", alignItems: "center", justifyContent: "center",
-                marginBottom: 16,
-              }}>
+                marginBottom: 20, transition: "all 0.3s ease"
+              }} className="group-hover:scale-110 group-hover:bg-[#1C1917] group-hover:text-white">
                 {uploading ? (
-                  <svg style={{ width: 28, height: 28, animation: "spin 1s linear infinite" }} viewBox="0 0 24 24" fill="none">
+                  <svg style={{ width: 24, height: 24, animation: "spin 1s linear infinite" }} viewBox="0 0 24 24" fill="none">
                     <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" opacity={0.25} />
                     <path d="M4 12a8 8 0 018-8v8H4z" fill="currentColor" opacity={0.75} />
                   </svg>
                 ) : (
-                  <svg style={{ width: 28, height: 28 }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 16.5V9.75m0 0 3 3m-3-3-3 3M6.75 19.5h10.5a2.25 2.25 0 0 0 2.25-2.25v-10.5A2.25 2.25 0 0 0 17.25 4.5H6.75A2.25 2.25 0 0 0 4.5 6.75v10.5a2.25 2.25 0 0 0 2.25 2.25Z" />
+                  <svg style={{ width: 24, height: 24 }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5" />
                   </svg>
                 )}
               </div>
-              <p style={{ fontFamily: DISPLAY, fontSize: 15, fontWeight: 700, color: C.primary, margin: "0 0 4px" }}>
-                {uploading ? "Procesando documento…" : dragOver ? "Suelta aquí" : "Subir documento"}
+              <p style={{ fontFamily: DISPLAY, fontSize: 16, fontWeight: 700, color: C.primary, margin: "0 0 6px" }}>
+                {uploading ? "Procesando documento…" : dragOver ? "Suelta el archivo aquí" : "Seleccionar archivo"}
               </p>
-              <p style={{ fontFamily: SANS, fontSize: 12, fontWeight: 400, color: C.muted, margin: 0 }}>
-                {uploading ? "Extrayendo y analizando con IA…" : "PDF, imagen, Word, JSON, TXT · máx 25 MB"}
+              <p style={{ fontFamily: SANS, fontSize: 13, color: C.muted, margin: 0 }}>
+                O arrastra y suelta<br/>
+                <span className="text-[11px] opacity-70 mt-2 block">PDF, JPG, PNG, DOCX, TXT (Max 25MB)</span>
               </p>
               <input ref={fileInputRef} type="file" accept=".pdf,.png,.jpg,.jpeg,.gif,.webp,.doc,.docx,.json,.txt,.csv" className="hidden" onChange={onFileChange} />
             </div>
@@ -1012,24 +1003,39 @@ export default function ArchivosPage() {
               </div>
             )}
 
-            <div style={{ backgroundColor: "#FDF2B2", border: "1px solid rgba(250,217,87,0.4)", borderRadius: 24, padding: "16px 20px" }}>
-              <p style={{ fontFamily: DISPLAY, fontSize: 11, fontWeight: 700, color: "#5C4D04", textTransform: "uppercase", letterSpacing: "0.06em", margin: "0 0 4px" }}>IA activa</p>
-              <p style={{ fontFamily: SANS, fontSize: 13, fontWeight: 500, color: "#5C4D04", lineHeight: 1.5, margin: 0 }}>
-                Cada archivo es analizado por IA para extraer datos médicos. Podrás revisar y confirmar qué guardar antes de que se añadan a tu perfil.
+            <div style={{ 
+              background: "linear-gradient(135deg, #1C1917 0%, #393430 100%)", 
+              borderRadius: 24, padding: "20px 24px", color: "#fff",
+              boxShadow: "0 8px 24px rgba(28,25,23,0.15)"
+            }}>
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center">
+                  <svg className="w-4 h-4 text-[#FAD957]" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 2l2.4 7.6H22l-6.2 4.5 2.4 7.6-6.2-4.5-6.2 4.5 2.4-7.6L2 9.6h7.6L12 2z"/>
+                  </svg>
+                </div>
+                <p style={{ fontFamily: DISPLAY, fontSize: 13, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", margin: 0 }}>
+                  IA Horus Activa
+                </p>
+              </div>
+              <p style={{ fontFamily: SANS, fontSize: 13, fontWeight: 400, color: "rgba(255,255,255,0.8)", lineHeight: 1.5, margin: 0 }}>
+                Analizamos automáticamente cada archivo subido para extraer datos médicos relevantes para tu perfil.
               </p>
             </div>
           </div>
 
           {/* Document list */}
-          <div className="xl:col-span-2">
-            <p style={{ fontFamily: SANS, fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", color: C.muted, marginBottom: 16, paddingLeft: 4 }}>
-              Documentos recientes
-            </p>
+          <div className="lg:col-span-8">
+            <div className="flex items-center justify-between mb-6 pl-2">
+              <h2 style={{ fontFamily: DISPLAY, fontSize: 18, fontWeight: 700, color: C.primary, margin: 0 }}>
+                Documentos recientes
+              </h2>
+            </div>
 
             {loading ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {[1, 2, 3, 4].map((i) => (
-                  <div key={i} style={{ backgroundColor: C.card, borderRadius: 24, height: 96, border: `1px solid ${C.border}` }} className="animate-pulse" />
+                  <div key={i} style={{ backgroundColor: C.card, borderRadius: 24, height: 160, border: `1px solid ${C.border}` }} className="animate-pulse" />
                 ))}
               </div>
             ) : docs.length === 0 ? (
@@ -1045,7 +1051,7 @@ export default function ArchivosPage() {
                 </p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {docs.map((doc, idx) => {
                   const typeKey = getTypeKey(doc.fileType);
                   const typeMeta = TYPE_COLOR[typeKey];
@@ -1054,57 +1060,70 @@ export default function ArchivosPage() {
                     <div
                       key={doc.publicId || idx}
                       style={{
-                        backgroundColor: C.card, borderRadius: 24,
+                        backgroundColor: C.card, borderRadius: 20,
                         border: `1px solid ${C.border}`,
-                        padding: 16, display: "flex", gap: 14, alignItems: "flex-start",
-                        overflow: "hidden",
+                        padding: "20px", display: "flex", flexDirection: "column", gap: 12,
+                        transition: "all 0.2s ease",
+                        boxShadow: "0 2px 8px rgba(0,0,0,0.02)"
                       }}
+                      className="hover:shadow-lg hover:border-[#D4D2C9] group"
                     >
-                      {/* Icon */}
-                      <div style={{
-                        width: 44, height: 44, borderRadius: 12, flexShrink: 0,
-                        backgroundColor: typeMeta.bg, color: typeMeta.fg,
-                        display: "flex", alignItems: "center", justifyContent: "center",
-                      }}>
-                        <FileTypeIcon type={typeKey} />
-                      </div>
-
-                      {/* Info */}
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <span style={{ fontFamily: SANS, fontSize: 10, fontWeight: 700, padding: "2px 8px", borderRadius: 20, backgroundColor: typeMeta.bg, color: typeMeta.fg, display: "inline-block", marginBottom: 4 }}>
-                          {typeMeta.label}
-                        </span>
-                        <p style={{ fontFamily: SANS, fontSize: 13, fontWeight: 700, color: C.primary, margin: "0 0 2px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                          {name}
-                        </p>
-                        <p style={{ fontFamily: SANS, fontSize: 11, color: C.muted, margin: 0 }}>
-                          {safeDate(doc.uploadedAt)}
-                        </p>
-                        {doc.extractedText && (
-                          <p style={{ fontFamily: SANS, fontSize: 11, color: C.muted, marginTop: 4, lineHeight: 1.4, overflow: "hidden", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" } as React.CSSProperties}>
-                            {doc.extractedText.slice(0, 120)}
+                      <div className="flex items-start gap-4">
+                        {/* Icon */}
+                        <div style={{
+                          width: 40, height: 40, borderRadius: 12, flexShrink: 0,
+                          backgroundColor: typeMeta.bg, color: typeMeta.fg,
+                          display: "flex", alignItems: "center", justifyContent: "center",
+                        }}>
+                          <FileTypeIcon type={typeKey} />
+                        </div>
+                        {/* Info */}
+                        <div style={{ flex: 1, minWidth: 0, paddingTop: 2 }}>
+                          <p style={{ fontFamily: SANS, fontSize: 14, fontWeight: 700, color: C.primary, margin: "0 0 4px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                            {name}
                           </p>
-                        )}
+                          <div className="flex items-center gap-2">
+                            <span style={{ fontFamily: SANS, fontSize: 10, fontWeight: 700, color: typeMeta.fg, textTransform: "uppercase", letterSpacing: "0.05em" }}>
+                              {typeMeta.label}
+                            </span>
+                            <span style={{ color: C.muted, fontSize: 10 }}>•</span>
+                            <span style={{ fontFamily: SANS, fontSize: 11, color: C.muted }}>
+                              {safeDate(doc.uploadedAt)}
+                            </span>
+                          </div>
+                        </div>
                       </div>
 
-                      {/* Actions: download + delete only (no eye button) */}
-                      <div style={{ display: "flex", flexDirection: "column", gap: 6, flexShrink: 0 }}>
+                      {doc.extractedText && (
+                        <div style={{ backgroundColor: C.mutedBg, borderRadius: 12, padding: "10px 12px", marginTop: 4 }}>
+                          <p style={{ fontFamily: SANS, fontSize: 11, color: C.muted, margin: 0, lineHeight: 1.4, overflow: "hidden", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" } as React.CSSProperties}>
+                            <span className="font-semibold text-[#1C1917] mr-1">IA:</span>
+                            {doc.extractedText}
+                          </p>
+                        </div>
+                      )}
+
+                      {/* Actions */}
+                      <div className="flex items-center gap-2 mt-2 pt-4 border-t border-[#E4E2DC]">
                         <a
-                          href={`/api/files/download?id=${btoa(doc.publicId)}`}
+                          href={`/api/files/download?id=${btoa(encodeURIComponent(doc.publicId).replace(/%([0-9A-F]{2})/g, (m, p1) => String.fromCharCode(parseInt(p1, 16))))}`}
                           title="Descargar"
                           onClick={(e) => e.stopPropagation()}
-                          style={{ width: 32, height: 32, borderRadius: 10, backgroundColor: C.mutedBg, border: `1px solid ${C.border}`, display: "flex", alignItems: "center", justifyContent: "center", color: C.primary, textDecoration: "none" }}
+                          style={{ flex: 1, height: 36, borderRadius: 10, backgroundColor: C.mutedBg, display: "flex", alignItems: "center", justifyContent: "center", gap: 8, color: C.primary, textDecoration: "none", transition: "background 0.2s", fontSize: 12, fontWeight: 600, fontFamily: SANS }}
+                          className="hover:bg-[#E4E2DC]"
                         >
                           <svg style={{ width: 14, height: 14 }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.2}>
                             <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
                           </svg>
+                          Descargar
                         </a>
                         <button
                           onClick={() => setDeleteTarget(doc)}
                           title="Eliminar"
-                          style={{ width: 32, height: 32, borderRadius: 10, backgroundColor: "#FEF2F2", border: "1px solid #FECACA", display: "flex", alignItems: "center", justifyContent: "center", color: C.red, cursor: "pointer", padding: 0 }}
+                          style={{ width: 36, height: 36, borderRadius: 10, backgroundColor: "#FEF2F2", display: "flex", alignItems: "center", justifyContent: "center", color: C.red, cursor: "pointer", padding: 0, transition: "background 0.2s" }}
+                          className="hover:bg-[#FECACA]"
                         >
-                          <svg style={{ width: 14, height: 14 }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.2}>
+                          <svg style={{ width: 14, height: 14 }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                             <path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
                           </svg>
                         </button>

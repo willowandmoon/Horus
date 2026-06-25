@@ -18,7 +18,7 @@ export async function PATCH(
     { params }: { params: Promise<{ id: string }> }
 ) {
     const userId = await getSessionUserId();
-    if (!userId) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+    if (!userId) return NextResponse.json({ error: "Tu sesión ha expirado o no has iniciado sesión. Por favor, vuelve a ingresar." }, { status: 401 });
 
     const { id } = await params;
     const { type, data } = await req.json();
@@ -80,7 +80,7 @@ export async function DELETE(
     { params }: { params: Promise<{ id: string }> }
 ) {
     const userId = await getSessionUserId();
-    if (!userId) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+    if (!userId) return NextResponse.json({ error: "Tu sesión ha expirado o no has iniciado sesión. Por favor, vuelve a ingresar." }, { status: 401 });
 
     const { id } = await params;
     const type = req.nextUrl.searchParams.get("type");

@@ -87,7 +87,8 @@ function WelcomeScreen({ onSuggest }: { onSuggest: (t: string) => void }) {
     return (
         <div className="flex flex-col items-center justify-center h-full gap-5 py-8 px-4">
             <div className="w-20 h-20 rounded-full flex items-center justify-center overflow-hidden" style={{ background: MBG }}>
-                <img src="/gato.png" alt="Horus" className="w-14 h-14 object-contain" />
+                <img src="/uploads/profiles/horus-modo-claro.svg" alt="Horus" className="w-16 h-16 object-contain dark:hidden" />
+                <img src="/uploads/profiles/horus-modo-oscuro.svg" alt="Horus" className="hidden w-16 h-16 object-contain dark:block" />
             </div>
             <div className="text-center">
                 <p className="text-base font-bold" style={{ color: PRIMARY }}>Hola, soy Horus</p>
@@ -319,7 +320,8 @@ export default function ChatModal({ onClose, userId }: { onClose: () => void; us
                         style={{ background: CARD, borderColor: BORDER }}>
                         <div className="w-10 h-10 rounded-full flex items-center justify-center overflow-hidden shrink-0"
                             style={{ background: MBG }}>
-                            <img src="/gato.png" alt="Horus" className="w-7 h-7 object-contain" />
+                            <img src="/uploads/profiles/horus-modo-claro.svg" alt="Horus" className="w-8 h-8 object-contain dark:hidden" />
+                            <img src="/uploads/profiles/horus-modo-oscuro.svg" alt="Horus" className="hidden w-8 h-8 object-contain dark:block" />
                         </div>
                         <div className="flex-1 min-w-0">
                             <p className="text-sm font-bold leading-tight" style={{ color: PRIMARY }}>Horus · IA</p>

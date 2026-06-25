@@ -70,7 +70,8 @@ export default function NotificationsCard() {
     const [loading, setLoading] = useState(true);
     const [error, setError]     = useState(false);
 
-    const load = useCallback(async () => {
+    const load = useCallback(async (isManual = false) => {
+        if (isManual) setLoading(true);
         try {
             const res  = await fetch("/api/notifications", { cache: "no-store" });
             const data = await res.json() as { notifications: Notif[] };
@@ -86,7 +87,7 @@ export default function NotificationsCard() {
     useEffect(() => {
         load();
         // Refresh every 60 s so QR scan notifications appear quickly
-        const id = setInterval(load, 60_000);
+        const id = setInterval(() => load(false), 60_000);
         return () => clearInterval(id);
     }, [load]);
 
@@ -124,7 +125,7 @@ export default function NotificationsCard() {
                         </span>
                     )}
                 </div>
-                <button onClick={load} title="Actualizar"
+                <button onClick={() => load(true)} title="Actualizar"
                     className="text-[#8D99AE] hover:text-[#1A1512] transition-colors p-1">
                     <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99"/>
