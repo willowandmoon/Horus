@@ -2208,10 +2208,17 @@ export const OrderScalarFieldEnum = {
   status: 'status',
   totalAmount: 'totalAmount',
   currency: 'currency',
+  shippingFullName: 'shippingFullName',
+  shippingPhone: 'shippingPhone',
   shippingStreet: 'shippingStreet',
+  shippingNeighborhood: 'shippingNeighborhood',
   shippingCity: 'shippingCity',
   shippingDepartment: 'shippingDepartment',
   shippingZip: 'shippingZip',
+  shippingInstructions: 'shippingInstructions',
+  braceletColor: 'braceletColor',
+  cardFrontUrl: 'cardFrontUrl',
+  cardBackUrl: 'cardBackUrl',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const

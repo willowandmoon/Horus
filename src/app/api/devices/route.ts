@@ -23,7 +23,7 @@ export async function GET() {
             where: { userId, isActive: true },
             select: { id: true, deviceName: true, deviceModel: true, osVersion: true, lastActive: true },
             orderBy: { lastActive: "desc" },
-            take: 3,
+            take: 1,
         }),
     ]);
 

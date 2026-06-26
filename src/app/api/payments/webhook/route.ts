@@ -1,12 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { mp }                        from "@/src/infrastructure/payments/mercadopago.client";
 import { prisma }                    from "@/src/infrastructure/database/prisma/client";
-import type { Prisma } from "@/generated/prisma/client";
+import type { Prisma } from "@/src/generated/client";
 import { sendOrderConfirmationEmail } from "@/src/infrastructure/email/order-confirmation";
 
 export const runtime = "nodejs";
 
-type OrderWithProduct = Prisma.OrderGetPayload<{ include: { product: true } }>;
+type OrderWithProduct = Prisma.OrderGetPayload<{
+    include: { product: true; payment: true; user: { select: { email: true } } };
+}>;
 
 interface MercadoPagoPayment {
     id?: string | number;
@@ -48,7 +50,7 @@ export async function POST(request: NextRequest) {
         // 2. Buscar la orden por referencia
         const order = await prisma.order.findUnique({
             where:   { reference },
-            include: { payment: true, product: true },
+            include: { payment: true, product: true, user: { select: { email: true } } },
         });
 
         if (!order) {
@@ -120,8 +122,9 @@ async function handleApprovedPayment(order: OrderWithProduct, mpData: MercadoPag
     });
 
     try {
+        const buyerEmail = order.user?.email ?? process.env.EMAIL_TO ?? "emma122120063a@gmail.com";
         await sendOrderConfirmationEmail({
-            to: process.env.EMAIL_TO ?? "emma122120063a@gmail.com",
+            to: buyerEmail,
             from: process.env.EMAIL_FROM ?? "emma122120063a@gmail.com",
             orderId: order.id,
             userId: order.userId,
@@ -132,10 +135,14 @@ async function handleApprovedPayment(order: OrderWithProduct, mpData: MercadoPag
             currency: order.currency,
             createdAt: order.createdAt,
             shipping: {
-                street: order.shippingStreet,
-                city: order.shippingCity,
-                department: order.shippingDepartment,
-                zip: order.shippingZip,
+                fullName:     order.shippingFullName,
+                phone:        order.shippingPhone,
+                street:       order.shippingStreet,
+                neighborhood: order.shippingNeighborhood,
+                city:         order.shippingCity,
+                department:   order.shippingDepartment,
+                zip:          order.shippingZip,
+                instructions: order.shippingInstructions,
             },
         });
     } catch (error) {

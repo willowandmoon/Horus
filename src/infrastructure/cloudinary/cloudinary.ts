@@ -71,4 +71,38 @@ export function uploadMedicalDocument(
   });
 }
 
+export function uploadCustomizationImage(
+  buffer: Buffer,
+  userId: string,
+  side: "front" | "back"
+): Promise<UploadResult> {
+  return uploadOrderImage(buffer, `user-${userId}`, side);
+}
+
+export function uploadOrderImage(
+  buffer: Buffer,
+  orderId: string,
+  side: "front" | "back"
+): Promise<UploadResult> {
+  return new Promise((resolve, reject) => {
+    if (!buffer || buffer.length === 0) {
+      return reject(new Error("[Cloudinary] Buffer vacío para customización."));
+    }
+
+    const folder = `horus/orders/${orderId}`;
+    const publicId = side; // front.jpg / back.jpg — sobreescribe si se vuelve a subir
+
+    const stream = cloudinary.uploader.upload_stream(
+      { folder, resource_type: "image", public_id: publicId, overwrite: true, invalidate: true },
+      (error: UploadApiErrorResponse | undefined, result: UploadApiResponse | undefined) => {
+        if (error || !result) return reject(error || new Error("Sin respuesta de Cloudinary"));
+        resolve(result as UploadResult);
+      }
+    );
+
+    stream.on("error", reject);
+    stream.end(buffer);
+  });
+}
+
 export default cloudinary;

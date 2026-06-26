@@ -33,7 +33,8 @@ export const metadata: Metadata = {
   title: "Horus",
   description: "Red de protección inteligente con tecnología NFC.",
   icons: {
-    icon: "/ojo.png",
+    icon: "/logos-horus-5.svg",
+    apple: "/logos-horus-5.svg",
   },
 };
 
@@ -49,7 +50,7 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col">
         {/* Desregistra service workers obsoletos que causan crashes en dev */}
-        <Script id="sw-cleanup" strategy="beforeInteractive">{`
+        <Script id="sw-cleanup" strategy="afterInteractive">{`
           if ('serviceWorker' in navigator) {
             navigator.serviceWorker.getRegistrations().then(function(regs) {
               regs.forEach(function(reg) { reg.unregister(); });

@@ -18,195 +18,155 @@ export interface OrderEmailPayload {
     currency: string;
     createdAt: Date;
     shipping: {
+        fullName?: string | null;
+        phone?: string | null;
         street: string;
+        neighborhood?: string | null;
         city: string;
         department: string;
         zip?: string | null;
+        instructions?: string | null;
     };
 }
 
 const DEFAULT_TO = "emma122120063a@gmail.com";
 
+// Horus brand palette
 const BRAND = {
-    dark: "#2B2D42",
-    accent: "#D90429",
-    light: "#EDF2F4",
-    muted: "#8D99AE",
-    border: "#E5E7EB",
+    dark:   "#1A1512",
+    gold:   "#FAD957",
+    cream:  "#F2F1EC",
+    muted:  "#8D99AE",
+    border: "#E4E2DC",
+    white:  "#FFFFFF",
 };
 
-const FONT_DIR = resolve(process.cwd(), "assets", "fonts", "roboto");
-const ROBOTO_REGULAR = resolve(FONT_DIR, "Roboto-Regular.ttf");
+const FONT_DIR    = resolve(process.cwd(), "assets", "fonts", "roboto");
+const ROBOTO      = resolve(FONT_DIR, "Roboto-Regular.ttf");
 const ROBOTO_BOLD = resolve(FONT_DIR, "Roboto-Bold.ttf");
+const LOGO_PATH   = resolve(process.cwd(), "public", "logos-horus-4.png");
 
 function formatCurrency(value: number, currency: string) {
-    return `${value.toLocaleString("es-CO")} ${currency}`;
+    return `$${value.toLocaleString("es-CO")} ${currency}`;
 }
 
 function resolveFonts(doc: InstanceType<typeof PDFDocument>) {
-    const hasRoboto = existsSync(ROBOTO_REGULAR) && existsSync(ROBOTO_BOLD);
-    if (hasRoboto) {
-        doc.registerFont("Roboto", ROBOTO_REGULAR);
-        doc.registerFont("Roboto-Bold", ROBOTO_BOLD);
-        return { regular: "Roboto", bold: "Roboto-Bold" };
+    if (existsSync(ROBOTO) && existsSync(ROBOTO_BOLD)) {
+        doc.registerFont("R",  ROBOTO);
+        doc.registerFont("RB", ROBOTO_BOLD);
+        return { r: "R", b: "RB" };
     }
-
-    return { regular: "Helvetica", bold: "Helvetica-Bold" };
+    return { r: "Helvetica", b: "Helvetica-Bold" };
 }
 
-function drawTableRow(
+function tableRow(
     doc: InstanceType<typeof PDFDocument>,
-    x: number,
-    y: number,
-    width: number,
-    label: string,
-    value: string,
-    isStriped: boolean,
-    fonts: { regular: string; bold: string }
+    x: number, y: number, w: number,
+    label: string, value: string,
+    shade: boolean,
+    fonts: { r: string; b: string }
 ) {
-    const rowHeight = 24;
-    const labelWidth = Math.round(width * 0.38);
+    const h = 26, lw = Math.round(w * 0.38);
+    doc.save()
+        .fillColor(shade ? BRAND.cream : BRAND.white)
+        .rect(x, y, w, h).fill()
+        .restore();
+    doc.strokeColor(BRAND.border).lineWidth(0.4).rect(x, y, w, h).stroke();
+    doc.fillColor(BRAND.muted).font(fonts.b).fontSize(9.5).text(label, x + 10, y + 8, { width: lw - 12 });
+    doc.fillColor(BRAND.dark).font(fonts.r).fontSize(9.5).text(value, x + lw, y + 8, { width: w - lw - 12 });
+    return y + h;
+}
 
-    doc.save();
-    doc.fillColor(isStriped ? BRAND.light : "#FFFFFF");
-    doc.rect(x, y, width, rowHeight).fill();
-    doc.restore();
-
-    doc.strokeColor(BRAND.border).lineWidth(0.5).rect(x, y, width, rowHeight).stroke();
-
-    doc.fillColor(BRAND.dark)
-        .font(fonts.bold)
-        .fontSize(10)
-        .text(label, x + 10, y + 7, { width: labelWidth - 12 });
-
-    doc.fillColor(BRAND.dark)
-        .font(fonts.regular)
-        .fontSize(10)
-        .text(value, x + labelWidth, y + 7, { width: width - labelWidth - 12 });
-
-    return y + rowHeight;
+function sectionHeader(
+    doc: InstanceType<typeof PDFDocument>,
+    x: number, y: number, w: number,
+    title: string,
+    fonts: { r: string; b: string }
+) {
+    doc.fillColor(BRAND.gold).rect(x, y + 2, 3, 13).fill();
+    doc.fillColor(BRAND.dark).font(fonts.b).fontSize(11).text(title, x + 11, y + 1);
+    return y + 22;
 }
 
 export async function generateReceiptPdfBuffer(payload: OrderEmailPayload): Promise<Buffer> {
     return new Promise((resolve, reject) => {
-        const doc = new PDFDocument({ size: "A4", margin: 48 });
+        const doc    = new PDFDocument({ size: "A4", margin: 48, compress: true });
         const chunks: Buffer[] = [];
-        const fonts = resolveFonts(doc);
+        const fonts  = resolveFonts(doc);
 
-        doc.on("data", (chunk: Buffer) => chunks.push(chunk));
-        doc.on("end", () => resolve(Buffer.concat(chunks)));
+        doc.on("data",  (c: Buffer) => chunks.push(c));
+        doc.on("end",   () => resolve(Buffer.concat(chunks)));
         doc.on("error", reject);
 
-        const pageWidth = doc.page.width;
-        const margin = doc.page.margins.left;
-        const contentWidth = pageWidth - doc.page.margins.left - doc.page.margins.right;
+        const pw = doc.page.width;
+        const m  = doc.page.margins.left;
+        const cw = pw - m * 2;
 
-        // Header
-        doc.save();
-        doc.fillColor(BRAND.dark).rect(0, 0, pageWidth, 86).fill();
-        doc.fillColor("#FFFFFF")
-            .font(fonts.bold)
-            .fontSize(20)
-            .text("Horus Braslet", margin, 26);
-        doc.fillColor("#E5E7EB")
-            .font(fonts.regular)
-            .fontSize(10)
-            .text("Confirmacion de compra", margin, 54);
-        doc.restore();
+        /* ── HEADER ── */
+        doc.fillColor(BRAND.dark).rect(0, 0, pw, 96).fill();
+        doc.fillColor(BRAND.gold).rect(0, 93, pw, 3).fill();
 
-        let cursorY = 110;
+        if (existsSync(LOGO_PATH)) {
+            doc.image(LOGO_PATH, m, 20, { height: 52, fit: [52, 52] });
+        }
 
-        // Meta
-        doc.fillColor(BRAND.dark).font(fonts.bold).fontSize(12).text("Datos de la orden", margin, cursorY);
-        cursorY += 18;
-        cursorY = drawTableRow(doc, margin, cursorY, contentWidth, "Orden", payload.reference, true, fonts);
-        cursorY = drawTableRow(doc, margin, cursorY, contentWidth, "ID Orden", payload.orderId, false, fonts);
-        cursorY = drawTableRow(doc, margin, cursorY, contentWidth, "ID Usuario", payload.userId, true, fonts);
-        cursorY = drawTableRow(
-            doc,
-            margin,
-            cursorY,
-            contentWidth,
-            "Fecha",
-            payload.createdAt.toLocaleString("es-CO"),
-            false,
-            fonts
-        );
+        const textX = existsSync(LOGO_PATH) ? m + 64 : m;
+        doc.fillColor(BRAND.white).font(fonts.b).fontSize(22).text("HORUS", textX, 22);
+        doc.fillColor(BRAND.gold).font(fonts.r).fontSize(10).text("Confirmación de compra", textX, 50);
 
-        cursorY += 18;
+        /* ── ORDEN ── */
+        let y = 118;
+        y = sectionHeader(doc, m, y, cw, "Datos de la orden", fonts);
+        y = tableRow(doc, m, y, cw, "Referencia",  payload.reference,                         true,  fonts);
+        y = tableRow(doc, m, y, cw, "ID de orden", payload.orderId,                           false, fonts);
+        y = tableRow(doc, m, y, cw, "Fecha",       payload.createdAt.toLocaleString("es-CO"), true,  fonts);
 
-        // Producto
-        doc.fillColor(BRAND.dark).font(fonts.bold).fontSize(12).text("Detalle del producto", margin, cursorY);
-        cursorY += 18;
-        cursorY = drawTableRow(doc, margin, cursorY, contentWidth, "Producto", payload.productName, true, fonts);
-        cursorY = drawTableRow(doc, margin, cursorY, contentWidth, "Tipo", payload.productType, false, fonts);
-        cursorY = drawTableRow(
-            doc,
-            margin,
-            cursorY,
-            contentWidth,
-            "Total",
-            formatCurrency(payload.totalAmount, payload.currency),
-            true,
-            fonts
-        );
+        y += 20;
 
-        cursorY += 18;
+        /* ── PRODUCTO ── */
+        y = sectionHeader(doc, m, y, cw, "Detalle del producto", fonts);
+        y = tableRow(doc, m, y, cw, "Producto", payload.productName,                               true,  fonts);
+        y = tableRow(doc, m, y, cw, "Tipo",     payload.productType,                               false, fonts);
+        y = tableRow(doc, m, y, cw, "Total",    formatCurrency(payload.totalAmount, payload.currency), true, fonts);
 
-        // Envio
-        doc.fillColor(BRAND.dark).font(fonts.bold).fontSize(12).text("Direccion de envio", margin, cursorY);
-        cursorY += 18;
-        cursorY = drawTableRow(doc, margin, cursorY, contentWidth, "Calle", payload.shipping.street, true, fonts);
-        cursorY = drawTableRow(
-            doc,
-            margin,
-            cursorY,
-            contentWidth,
-            "Ciudad",
-            `${payload.shipping.city} - ${payload.shipping.department}`,
-            false,
-            fonts
-        );
-        cursorY = drawTableRow(
-            doc,
-            margin,
-            cursorY,
-            contentWidth,
-            "Codigo postal",
-            payload.shipping.zip ?? "N/A",
-            true,
-            fonts
-        );
+        y += 20;
 
-        // Footer
-        const footerY = doc.page.height - 80;
-        doc.fillColor(BRAND.accent).rect(margin, footerY, contentWidth, 1).fill();
-        doc.fillColor(BRAND.muted)
-            .font(fonts.regular)
-            .fontSize(9)
-            .text("Gracias por confiar en Horus Braslet. Tu compra esta confirmada.", margin, footerY + 12);
+        /* ── ENVÍO ── */
+        y = sectionHeader(doc, m, y, cw, "Dirección de envío", fonts);
+        if (payload.shipping.fullName)
+            y = tableRow(doc, m, y, cw, "Destinatario", payload.shipping.fullName, true,  fonts);
+        if (payload.shipping.phone)
+            y = tableRow(doc, m, y, cw, "Teléfono",     payload.shipping.phone,    false, fonts);
+        y = tableRow(doc, m, y, cw, "Dirección", payload.shipping.street, !payload.shipping.phone, fonts);
+        if (payload.shipping.neighborhood)
+            y = tableRow(doc, m, y, cw, "Barrio", payload.shipping.neighborhood, false, fonts);
+        y = tableRow(doc, m, y, cw, "Ciudad", `${payload.shipping.city}, ${payload.shipping.department}`, false, fonts);
+        if (payload.shipping.zip)
+            y = tableRow(doc, m, y, cw, "Código postal",   payload.shipping.zip,          true,  fonts);
+        if (payload.shipping.instructions)
+            y = tableRow(doc, m, y, cw, "Instrucciones",   payload.shipping.instructions, false, fonts);
+
+        /* ── FOOTER ── */
+        const fy = doc.page.height - 72;
+        doc.fillColor(BRAND.dark).rect(0, fy, pw, 72).fill();
+        doc.fillColor(BRAND.gold).rect(0, fy, pw, 2).fill();
+        doc.fillColor(BRAND.white).font(fonts.b).fontSize(10).text("Gracias por confiar en HORUS", m, fy + 16);
+        doc.fillColor(BRAND.muted).font(fonts.r).fontSize(9)
+            .text("Tu compra está confirmada. Pronto recibirás tu dispositivo.", m, fy + 32);
+        doc.fillColor(BRAND.muted).font(fonts.r).fontSize(8).text("horus.co  ·  soporte@horus.co", m, fy + 50);
 
         doc.end();
     });
 }
 
 function createTransport() {
-    const host = process.env.EMAIL_HOST;
-    const port = Number(process.env.EMAIL_PORT ?? 465);
+    const host   = process.env.EMAIL_HOST;
+    const port   = Number(process.env.EMAIL_PORT ?? 465);
     const secure = String(process.env.EMAIL_SECURE ?? "true") === "true";
-    const user = process.env.EMAIL_USER;
-    const pass = process.env.EMAIL_PASS;
-
-    if (!host || !user || !pass) {
-        return null;
-    }
-
-    return nodemailer.createTransport({
-        host,
-        port,
-        secure,
-        auth: { user, pass },
-    });
+    const user   = process.env.EMAIL_USER;
+    const pass   = process.env.EMAIL_PASS;
+    if (!host || !user || !pass) return null;
+    return nodemailer.createTransport({ host, port, secure, auth: { user, pass } });
 }
 
 export async function sendOrderConfirmationEmail(payload: OrderEmailPayload) {
@@ -220,16 +180,41 @@ export async function sendOrderConfirmationEmail(payload: OrderEmailPayload) {
     const recipient = payload.to || process.env.EMAIL_TO || DEFAULT_TO;
 
     await transport.sendMail({
-        from: payload.from,
-        to: recipient,
-        subject: "Confirmacion de compra - Horus Braslet",
-        text: `Tu compra fue confirmada. Orden: ${payload.reference}. Total: ${formatCurrency(payload.totalAmount, payload.currency)}.`,
-        attachments: [
-            {
-                filename: "comprobante-horus.pdf",
-                content: pdfBuffer,
-                contentType: "application/pdf",
-            },
-        ],
+        from:    payload.from,
+        to:      recipient,
+        subject: `Tu pedido HORUS está confirmado — ${payload.reference}`,
+        html: `
+            <div style="font-family:sans-serif;background:#F2F1EC;padding:32px">
+                <div style="max-width:520px;margin:0 auto;background:#1A1512;border-radius:16px;overflow:hidden">
+                    <div style="padding:28px 32px;border-bottom:3px solid #FAD957">
+                        <p style="color:#FAD957;font-size:11px;letter-spacing:0.2em;margin:0 0 4px">HORUS</p>
+                        <h1 style="color:#FFFFFF;font-size:20px;margin:0">Compra confirmada</h1>
+                    </div>
+                    <div style="padding:28px 32px">
+                        <p style="color:#8D99AE;font-size:13px;margin:0 0 8px">Hola ${payload.shipping.fullName ?? ""},</p>
+                        <p style="color:#F2F1EC;font-size:14px;margin:0 0 20px">
+                            Tu pedido <strong style="color:#FAD957">${payload.reference}</strong> ha sido confirmado.
+                        </p>
+                        <div style="background:#2D2319;border-radius:10px;padding:16px 20px;margin-bottom:20px">
+                            <p style="color:#8D99AE;font-size:11px;margin:0 0 6px;letter-spacing:0.1em">TOTAL PAGADO</p>
+                            <p style="color:#FAD957;font-size:24px;font-weight:bold;margin:0">
+                                ${formatCurrency(payload.totalAmount, payload.currency)}
+                            </p>
+                        </div>
+                        <p style="color:#8D99AE;font-size:12px;margin:0">
+                            Adjunto encontrarás el comprobante de tu compra en PDF.
+                        </p>
+                    </div>
+                    <div style="padding:16px 32px;border-top:1px solid #2D2319">
+                        <p style="color:#4A4440;font-size:11px;margin:0">HORUS · soporte@horus.co</p>
+                    </div>
+                </div>
+            </div>
+        `,
+        attachments: [{
+            filename:    `comprobante-horus-${payload.reference}.pdf`,
+            content:     pdfBuffer,
+            contentType: "application/pdf",
+        }],
     });
 }

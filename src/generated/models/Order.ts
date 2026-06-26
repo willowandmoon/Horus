@@ -42,10 +42,17 @@ export type OrderMinAggregateOutputType = {
   status: $Enums.OrderStatus | null
   totalAmount: runtime.Decimal | null
   currency: string | null
+  shippingFullName: string | null
+  shippingPhone: string | null
   shippingStreet: string | null
+  shippingNeighborhood: string | null
   shippingCity: string | null
   shippingDepartment: string | null
   shippingZip: string | null
+  shippingInstructions: string | null
+  braceletColor: string | null
+  cardFrontUrl: string | null
+  cardBackUrl: string | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -58,10 +65,17 @@ export type OrderMaxAggregateOutputType = {
   status: $Enums.OrderStatus | null
   totalAmount: runtime.Decimal | null
   currency: string | null
+  shippingFullName: string | null
+  shippingPhone: string | null
   shippingStreet: string | null
+  shippingNeighborhood: string | null
   shippingCity: string | null
   shippingDepartment: string | null
   shippingZip: string | null
+  shippingInstructions: string | null
+  braceletColor: string | null
+  cardFrontUrl: string | null
+  cardBackUrl: string | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -74,10 +88,17 @@ export type OrderCountAggregateOutputType = {
   status: number
   totalAmount: number
   currency: number
+  shippingFullName: number
+  shippingPhone: number
   shippingStreet: number
+  shippingNeighborhood: number
   shippingCity: number
   shippingDepartment: number
   shippingZip: number
+  shippingInstructions: number
+  braceletColor: number
+  cardFrontUrl: number
+  cardBackUrl: number
   createdAt: number
   updatedAt: number
   _all: number
@@ -100,10 +121,17 @@ export type OrderMinAggregateInputType = {
   status?: true
   totalAmount?: true
   currency?: true
+  shippingFullName?: true
+  shippingPhone?: true
   shippingStreet?: true
+  shippingNeighborhood?: true
   shippingCity?: true
   shippingDepartment?: true
   shippingZip?: true
+  shippingInstructions?: true
+  braceletColor?: true
+  cardFrontUrl?: true
+  cardBackUrl?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -116,10 +144,17 @@ export type OrderMaxAggregateInputType = {
   status?: true
   totalAmount?: true
   currency?: true
+  shippingFullName?: true
+  shippingPhone?: true
   shippingStreet?: true
+  shippingNeighborhood?: true
   shippingCity?: true
   shippingDepartment?: true
   shippingZip?: true
+  shippingInstructions?: true
+  braceletColor?: true
+  cardFrontUrl?: true
+  cardBackUrl?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -132,10 +167,17 @@ export type OrderCountAggregateInputType = {
   status?: true
   totalAmount?: true
   currency?: true
+  shippingFullName?: true
+  shippingPhone?: true
   shippingStreet?: true
+  shippingNeighborhood?: true
   shippingCity?: true
   shippingDepartment?: true
   shippingZip?: true
+  shippingInstructions?: true
+  braceletColor?: true
+  cardFrontUrl?: true
+  cardBackUrl?: true
   createdAt?: true
   updatedAt?: true
   _all?: true
@@ -235,10 +277,17 @@ export type OrderGroupByOutputType = {
   status: $Enums.OrderStatus
   totalAmount: runtime.Decimal
   currency: string
+  shippingFullName: string | null
+  shippingPhone: string | null
   shippingStreet: string
+  shippingNeighborhood: string | null
   shippingCity: string
   shippingDepartment: string
   shippingZip: string | null
+  shippingInstructions: string | null
+  braceletColor: string | null
+  cardFrontUrl: string | null
+  cardBackUrl: string | null
   createdAt: Date
   updatedAt: Date
   _count: OrderCountAggregateOutputType | null
@@ -274,10 +323,17 @@ export type OrderWhereInput = {
   status?: Prisma.EnumOrderStatusFilter<"Order"> | $Enums.OrderStatus
   totalAmount?: Prisma.DecimalFilter<"Order"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: Prisma.StringFilter<"Order"> | string
+  shippingFullName?: Prisma.StringNullableFilter<"Order"> | string | null
+  shippingPhone?: Prisma.StringNullableFilter<"Order"> | string | null
   shippingStreet?: Prisma.StringFilter<"Order"> | string
+  shippingNeighborhood?: Prisma.StringNullableFilter<"Order"> | string | null
   shippingCity?: Prisma.StringFilter<"Order"> | string
   shippingDepartment?: Prisma.StringFilter<"Order"> | string
   shippingZip?: Prisma.StringNullableFilter<"Order"> | string | null
+  shippingInstructions?: Prisma.StringNullableFilter<"Order"> | string | null
+  braceletColor?: Prisma.StringNullableFilter<"Order"> | string | null
+  cardFrontUrl?: Prisma.StringNullableFilter<"Order"> | string | null
+  cardBackUrl?: Prisma.StringNullableFilter<"Order"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Order"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Order"> | Date | string
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
@@ -294,10 +350,17 @@ export type OrderOrderByWithRelationInput = {
   status?: Prisma.SortOrder
   totalAmount?: Prisma.SortOrder
   currency?: Prisma.SortOrder
+  shippingFullName?: Prisma.SortOrderInput | Prisma.SortOrder
+  shippingPhone?: Prisma.SortOrderInput | Prisma.SortOrder
   shippingStreet?: Prisma.SortOrder
+  shippingNeighborhood?: Prisma.SortOrderInput | Prisma.SortOrder
   shippingCity?: Prisma.SortOrder
   shippingDepartment?: Prisma.SortOrder
   shippingZip?: Prisma.SortOrderInput | Prisma.SortOrder
+  shippingInstructions?: Prisma.SortOrderInput | Prisma.SortOrder
+  braceletColor?: Prisma.SortOrderInput | Prisma.SortOrder
+  cardFrontUrl?: Prisma.SortOrderInput | Prisma.SortOrder
+  cardBackUrl?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   user?: Prisma.UserOrderByWithRelationInput
@@ -317,10 +380,17 @@ export type OrderWhereUniqueInput = Prisma.AtLeast<{
   status?: Prisma.EnumOrderStatusFilter<"Order"> | $Enums.OrderStatus
   totalAmount?: Prisma.DecimalFilter<"Order"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: Prisma.StringFilter<"Order"> | string
+  shippingFullName?: Prisma.StringNullableFilter<"Order"> | string | null
+  shippingPhone?: Prisma.StringNullableFilter<"Order"> | string | null
   shippingStreet?: Prisma.StringFilter<"Order"> | string
+  shippingNeighborhood?: Prisma.StringNullableFilter<"Order"> | string | null
   shippingCity?: Prisma.StringFilter<"Order"> | string
   shippingDepartment?: Prisma.StringFilter<"Order"> | string
   shippingZip?: Prisma.StringNullableFilter<"Order"> | string | null
+  shippingInstructions?: Prisma.StringNullableFilter<"Order"> | string | null
+  braceletColor?: Prisma.StringNullableFilter<"Order"> | string | null
+  cardFrontUrl?: Prisma.StringNullableFilter<"Order"> | string | null
+  cardBackUrl?: Prisma.StringNullableFilter<"Order"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Order"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Order"> | Date | string
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
@@ -337,10 +407,17 @@ export type OrderOrderByWithAggregationInput = {
   status?: Prisma.SortOrder
   totalAmount?: Prisma.SortOrder
   currency?: Prisma.SortOrder
+  shippingFullName?: Prisma.SortOrderInput | Prisma.SortOrder
+  shippingPhone?: Prisma.SortOrderInput | Prisma.SortOrder
   shippingStreet?: Prisma.SortOrder
+  shippingNeighborhood?: Prisma.SortOrderInput | Prisma.SortOrder
   shippingCity?: Prisma.SortOrder
   shippingDepartment?: Prisma.SortOrder
   shippingZip?: Prisma.SortOrderInput | Prisma.SortOrder
+  shippingInstructions?: Prisma.SortOrderInput | Prisma.SortOrder
+  braceletColor?: Prisma.SortOrderInput | Prisma.SortOrder
+  cardFrontUrl?: Prisma.SortOrderInput | Prisma.SortOrder
+  cardBackUrl?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   _count?: Prisma.OrderCountOrderByAggregateInput
@@ -361,10 +438,17 @@ export type OrderScalarWhereWithAggregatesInput = {
   status?: Prisma.EnumOrderStatusWithAggregatesFilter<"Order"> | $Enums.OrderStatus
   totalAmount?: Prisma.DecimalWithAggregatesFilter<"Order"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: Prisma.StringWithAggregatesFilter<"Order"> | string
+  shippingFullName?: Prisma.StringNullableWithAggregatesFilter<"Order"> | string | null
+  shippingPhone?: Prisma.StringNullableWithAggregatesFilter<"Order"> | string | null
   shippingStreet?: Prisma.StringWithAggregatesFilter<"Order"> | string
+  shippingNeighborhood?: Prisma.StringNullableWithAggregatesFilter<"Order"> | string | null
   shippingCity?: Prisma.StringWithAggregatesFilter<"Order"> | string
   shippingDepartment?: Prisma.StringWithAggregatesFilter<"Order"> | string
   shippingZip?: Prisma.StringNullableWithAggregatesFilter<"Order"> | string | null
+  shippingInstructions?: Prisma.StringNullableWithAggregatesFilter<"Order"> | string | null
+  braceletColor?: Prisma.StringNullableWithAggregatesFilter<"Order"> | string | null
+  cardFrontUrl?: Prisma.StringNullableWithAggregatesFilter<"Order"> | string | null
+  cardBackUrl?: Prisma.StringNullableWithAggregatesFilter<"Order"> | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Order"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Order"> | Date | string
 }
@@ -375,10 +459,17 @@ export type OrderCreateInput = {
   status?: $Enums.OrderStatus
   totalAmount: runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: string
+  shippingFullName?: string | null
+  shippingPhone?: string | null
   shippingStreet: string
+  shippingNeighborhood?: string | null
   shippingCity: string
   shippingDepartment: string
   shippingZip?: string | null
+  shippingInstructions?: string | null
+  braceletColor?: string | null
+  cardFrontUrl?: string | null
+  cardBackUrl?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   user: Prisma.UserCreateNestedOneWithoutOrdersInput
@@ -395,10 +486,17 @@ export type OrderUncheckedCreateInput = {
   status?: $Enums.OrderStatus
   totalAmount: runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: string
+  shippingFullName?: string | null
+  shippingPhone?: string | null
   shippingStreet: string
+  shippingNeighborhood?: string | null
   shippingCity: string
   shippingDepartment: string
   shippingZip?: string | null
+  shippingInstructions?: string | null
+  braceletColor?: string | null
+  cardFrontUrl?: string | null
+  cardBackUrl?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   payment?: Prisma.PaymentUncheckedCreateNestedOneWithoutOrderInput
@@ -411,10 +509,17 @@ export type OrderUpdateInput = {
   status?: Prisma.EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
   totalAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: Prisma.StringFieldUpdateOperationsInput | string
+  shippingFullName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  shippingPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   shippingStreet?: Prisma.StringFieldUpdateOperationsInput | string
+  shippingNeighborhood?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   shippingCity?: Prisma.StringFieldUpdateOperationsInput | string
   shippingDepartment?: Prisma.StringFieldUpdateOperationsInput | string
   shippingZip?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  shippingInstructions?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  braceletColor?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cardFrontUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cardBackUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user?: Prisma.UserUpdateOneRequiredWithoutOrdersNestedInput
@@ -431,10 +536,17 @@ export type OrderUncheckedUpdateInput = {
   status?: Prisma.EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
   totalAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: Prisma.StringFieldUpdateOperationsInput | string
+  shippingFullName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  shippingPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   shippingStreet?: Prisma.StringFieldUpdateOperationsInput | string
+  shippingNeighborhood?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   shippingCity?: Prisma.StringFieldUpdateOperationsInput | string
   shippingDepartment?: Prisma.StringFieldUpdateOperationsInput | string
   shippingZip?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  shippingInstructions?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  braceletColor?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cardFrontUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cardBackUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   payment?: Prisma.PaymentUncheckedUpdateOneWithoutOrderNestedInput
@@ -449,10 +561,17 @@ export type OrderCreateManyInput = {
   status?: $Enums.OrderStatus
   totalAmount: runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: string
+  shippingFullName?: string | null
+  shippingPhone?: string | null
   shippingStreet: string
+  shippingNeighborhood?: string | null
   shippingCity: string
   shippingDepartment: string
   shippingZip?: string | null
+  shippingInstructions?: string | null
+  braceletColor?: string | null
+  cardFrontUrl?: string | null
+  cardBackUrl?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -463,10 +582,17 @@ export type OrderUpdateManyMutationInput = {
   status?: Prisma.EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
   totalAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: Prisma.StringFieldUpdateOperationsInput | string
+  shippingFullName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  shippingPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   shippingStreet?: Prisma.StringFieldUpdateOperationsInput | string
+  shippingNeighborhood?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   shippingCity?: Prisma.StringFieldUpdateOperationsInput | string
   shippingDepartment?: Prisma.StringFieldUpdateOperationsInput | string
   shippingZip?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  shippingInstructions?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  braceletColor?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cardFrontUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cardBackUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -479,10 +605,17 @@ export type OrderUncheckedUpdateManyInput = {
   status?: Prisma.EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
   totalAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: Prisma.StringFieldUpdateOperationsInput | string
+  shippingFullName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  shippingPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   shippingStreet?: Prisma.StringFieldUpdateOperationsInput | string
+  shippingNeighborhood?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   shippingCity?: Prisma.StringFieldUpdateOperationsInput | string
   shippingDepartment?: Prisma.StringFieldUpdateOperationsInput | string
   shippingZip?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  shippingInstructions?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  braceletColor?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cardFrontUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cardBackUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -505,10 +638,17 @@ export type OrderCountOrderByAggregateInput = {
   status?: Prisma.SortOrder
   totalAmount?: Prisma.SortOrder
   currency?: Prisma.SortOrder
+  shippingFullName?: Prisma.SortOrder
+  shippingPhone?: Prisma.SortOrder
   shippingStreet?: Prisma.SortOrder
+  shippingNeighborhood?: Prisma.SortOrder
   shippingCity?: Prisma.SortOrder
   shippingDepartment?: Prisma.SortOrder
   shippingZip?: Prisma.SortOrder
+  shippingInstructions?: Prisma.SortOrder
+  braceletColor?: Prisma.SortOrder
+  cardFrontUrl?: Prisma.SortOrder
+  cardBackUrl?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -525,10 +665,17 @@ export type OrderMaxOrderByAggregateInput = {
   status?: Prisma.SortOrder
   totalAmount?: Prisma.SortOrder
   currency?: Prisma.SortOrder
+  shippingFullName?: Prisma.SortOrder
+  shippingPhone?: Prisma.SortOrder
   shippingStreet?: Prisma.SortOrder
+  shippingNeighborhood?: Prisma.SortOrder
   shippingCity?: Prisma.SortOrder
   shippingDepartment?: Prisma.SortOrder
   shippingZip?: Prisma.SortOrder
+  shippingInstructions?: Prisma.SortOrder
+  braceletColor?: Prisma.SortOrder
+  cardFrontUrl?: Prisma.SortOrder
+  cardBackUrl?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -541,10 +688,17 @@ export type OrderMinOrderByAggregateInput = {
   status?: Prisma.SortOrder
   totalAmount?: Prisma.SortOrder
   currency?: Prisma.SortOrder
+  shippingFullName?: Prisma.SortOrder
+  shippingPhone?: Prisma.SortOrder
   shippingStreet?: Prisma.SortOrder
+  shippingNeighborhood?: Prisma.SortOrder
   shippingCity?: Prisma.SortOrder
   shippingDepartment?: Prisma.SortOrder
   shippingZip?: Prisma.SortOrder
+  shippingInstructions?: Prisma.SortOrder
+  braceletColor?: Prisma.SortOrder
+  cardFrontUrl?: Prisma.SortOrder
+  cardBackUrl?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -687,10 +841,17 @@ export type OrderCreateWithoutUserInput = {
   status?: $Enums.OrderStatus
   totalAmount: runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: string
+  shippingFullName?: string | null
+  shippingPhone?: string | null
   shippingStreet: string
+  shippingNeighborhood?: string | null
   shippingCity: string
   shippingDepartment: string
   shippingZip?: string | null
+  shippingInstructions?: string | null
+  braceletColor?: string | null
+  cardFrontUrl?: string | null
+  cardBackUrl?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   product: Prisma.ProductCreateNestedOneWithoutOrdersInput
@@ -705,10 +866,17 @@ export type OrderUncheckedCreateWithoutUserInput = {
   status?: $Enums.OrderStatus
   totalAmount: runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: string
+  shippingFullName?: string | null
+  shippingPhone?: string | null
   shippingStreet: string
+  shippingNeighborhood?: string | null
   shippingCity: string
   shippingDepartment: string
   shippingZip?: string | null
+  shippingInstructions?: string | null
+  braceletColor?: string | null
+  cardFrontUrl?: string | null
+  cardBackUrl?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   payment?: Prisma.PaymentUncheckedCreateNestedOneWithoutOrderInput
@@ -752,10 +920,17 @@ export type OrderScalarWhereInput = {
   status?: Prisma.EnumOrderStatusFilter<"Order"> | $Enums.OrderStatus
   totalAmount?: Prisma.DecimalFilter<"Order"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: Prisma.StringFilter<"Order"> | string
+  shippingFullName?: Prisma.StringNullableFilter<"Order"> | string | null
+  shippingPhone?: Prisma.StringNullableFilter<"Order"> | string | null
   shippingStreet?: Prisma.StringFilter<"Order"> | string
+  shippingNeighborhood?: Prisma.StringNullableFilter<"Order"> | string | null
   shippingCity?: Prisma.StringFilter<"Order"> | string
   shippingDepartment?: Prisma.StringFilter<"Order"> | string
   shippingZip?: Prisma.StringNullableFilter<"Order"> | string | null
+  shippingInstructions?: Prisma.StringNullableFilter<"Order"> | string | null
+  braceletColor?: Prisma.StringNullableFilter<"Order"> | string | null
+  cardFrontUrl?: Prisma.StringNullableFilter<"Order"> | string | null
+  cardBackUrl?: Prisma.StringNullableFilter<"Order"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Order"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Order"> | Date | string
 }
@@ -766,10 +941,17 @@ export type OrderCreateWithoutProductInput = {
   status?: $Enums.OrderStatus
   totalAmount: runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: string
+  shippingFullName?: string | null
+  shippingPhone?: string | null
   shippingStreet: string
+  shippingNeighborhood?: string | null
   shippingCity: string
   shippingDepartment: string
   shippingZip?: string | null
+  shippingInstructions?: string | null
+  braceletColor?: string | null
+  cardFrontUrl?: string | null
+  cardBackUrl?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   user: Prisma.UserCreateNestedOneWithoutOrdersInput
@@ -784,10 +966,17 @@ export type OrderUncheckedCreateWithoutProductInput = {
   status?: $Enums.OrderStatus
   totalAmount: runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: string
+  shippingFullName?: string | null
+  shippingPhone?: string | null
   shippingStreet: string
+  shippingNeighborhood?: string | null
   shippingCity: string
   shippingDepartment: string
   shippingZip?: string | null
+  shippingInstructions?: string | null
+  braceletColor?: string | null
+  cardFrontUrl?: string | null
+  cardBackUrl?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   payment?: Prisma.PaymentUncheckedCreateNestedOneWithoutOrderInput
@@ -826,10 +1015,17 @@ export type OrderCreateWithoutPaymentInput = {
   status?: $Enums.OrderStatus
   totalAmount: runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: string
+  shippingFullName?: string | null
+  shippingPhone?: string | null
   shippingStreet: string
+  shippingNeighborhood?: string | null
   shippingCity: string
   shippingDepartment: string
   shippingZip?: string | null
+  shippingInstructions?: string | null
+  braceletColor?: string | null
+  cardFrontUrl?: string | null
+  cardBackUrl?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   user: Prisma.UserCreateNestedOneWithoutOrdersInput
@@ -845,10 +1041,17 @@ export type OrderUncheckedCreateWithoutPaymentInput = {
   status?: $Enums.OrderStatus
   totalAmount: runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: string
+  shippingFullName?: string | null
+  shippingPhone?: string | null
   shippingStreet: string
+  shippingNeighborhood?: string | null
   shippingCity: string
   shippingDepartment: string
   shippingZip?: string | null
+  shippingInstructions?: string | null
+  braceletColor?: string | null
+  cardFrontUrl?: string | null
+  cardBackUrl?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   subscription?: Prisma.SubscriptionUncheckedCreateNestedOneWithoutOrderInput
@@ -876,10 +1079,17 @@ export type OrderUpdateWithoutPaymentInput = {
   status?: Prisma.EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
   totalAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: Prisma.StringFieldUpdateOperationsInput | string
+  shippingFullName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  shippingPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   shippingStreet?: Prisma.StringFieldUpdateOperationsInput | string
+  shippingNeighborhood?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   shippingCity?: Prisma.StringFieldUpdateOperationsInput | string
   shippingDepartment?: Prisma.StringFieldUpdateOperationsInput | string
   shippingZip?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  shippingInstructions?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  braceletColor?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cardFrontUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cardBackUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user?: Prisma.UserUpdateOneRequiredWithoutOrdersNestedInput
@@ -895,10 +1105,17 @@ export type OrderUncheckedUpdateWithoutPaymentInput = {
   status?: Prisma.EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
   totalAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: Prisma.StringFieldUpdateOperationsInput | string
+  shippingFullName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  shippingPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   shippingStreet?: Prisma.StringFieldUpdateOperationsInput | string
+  shippingNeighborhood?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   shippingCity?: Prisma.StringFieldUpdateOperationsInput | string
   shippingDepartment?: Prisma.StringFieldUpdateOperationsInput | string
   shippingZip?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  shippingInstructions?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  braceletColor?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cardFrontUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cardBackUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   subscription?: Prisma.SubscriptionUncheckedUpdateOneWithoutOrderNestedInput
@@ -910,10 +1127,17 @@ export type OrderCreateWithoutSubscriptionInput = {
   status?: $Enums.OrderStatus
   totalAmount: runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: string
+  shippingFullName?: string | null
+  shippingPhone?: string | null
   shippingStreet: string
+  shippingNeighborhood?: string | null
   shippingCity: string
   shippingDepartment: string
   shippingZip?: string | null
+  shippingInstructions?: string | null
+  braceletColor?: string | null
+  cardFrontUrl?: string | null
+  cardBackUrl?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   user: Prisma.UserCreateNestedOneWithoutOrdersInput
@@ -929,10 +1153,17 @@ export type OrderUncheckedCreateWithoutSubscriptionInput = {
   status?: $Enums.OrderStatus
   totalAmount: runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: string
+  shippingFullName?: string | null
+  shippingPhone?: string | null
   shippingStreet: string
+  shippingNeighborhood?: string | null
   shippingCity: string
   shippingDepartment: string
   shippingZip?: string | null
+  shippingInstructions?: string | null
+  braceletColor?: string | null
+  cardFrontUrl?: string | null
+  cardBackUrl?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   payment?: Prisma.PaymentUncheckedCreateNestedOneWithoutOrderInput
@@ -960,10 +1191,17 @@ export type OrderUpdateWithoutSubscriptionInput = {
   status?: Prisma.EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
   totalAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: Prisma.StringFieldUpdateOperationsInput | string
+  shippingFullName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  shippingPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   shippingStreet?: Prisma.StringFieldUpdateOperationsInput | string
+  shippingNeighborhood?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   shippingCity?: Prisma.StringFieldUpdateOperationsInput | string
   shippingDepartment?: Prisma.StringFieldUpdateOperationsInput | string
   shippingZip?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  shippingInstructions?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  braceletColor?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cardFrontUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cardBackUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user?: Prisma.UserUpdateOneRequiredWithoutOrdersNestedInput
@@ -979,10 +1217,17 @@ export type OrderUncheckedUpdateWithoutSubscriptionInput = {
   status?: Prisma.EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
   totalAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: Prisma.StringFieldUpdateOperationsInput | string
+  shippingFullName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  shippingPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   shippingStreet?: Prisma.StringFieldUpdateOperationsInput | string
+  shippingNeighborhood?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   shippingCity?: Prisma.StringFieldUpdateOperationsInput | string
   shippingDepartment?: Prisma.StringFieldUpdateOperationsInput | string
   shippingZip?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  shippingInstructions?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  braceletColor?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cardFrontUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cardBackUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   payment?: Prisma.PaymentUncheckedUpdateOneWithoutOrderNestedInput
@@ -995,10 +1240,17 @@ export type OrderCreateManyUserInput = {
   status?: $Enums.OrderStatus
   totalAmount: runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: string
+  shippingFullName?: string | null
+  shippingPhone?: string | null
   shippingStreet: string
+  shippingNeighborhood?: string | null
   shippingCity: string
   shippingDepartment: string
   shippingZip?: string | null
+  shippingInstructions?: string | null
+  braceletColor?: string | null
+  cardFrontUrl?: string | null
+  cardBackUrl?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -1009,10 +1261,17 @@ export type OrderUpdateWithoutUserInput = {
   status?: Prisma.EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
   totalAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: Prisma.StringFieldUpdateOperationsInput | string
+  shippingFullName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  shippingPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   shippingStreet?: Prisma.StringFieldUpdateOperationsInput | string
+  shippingNeighborhood?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   shippingCity?: Prisma.StringFieldUpdateOperationsInput | string
   shippingDepartment?: Prisma.StringFieldUpdateOperationsInput | string
   shippingZip?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  shippingInstructions?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  braceletColor?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cardFrontUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cardBackUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   product?: Prisma.ProductUpdateOneRequiredWithoutOrdersNestedInput
@@ -1027,10 +1286,17 @@ export type OrderUncheckedUpdateWithoutUserInput = {
   status?: Prisma.EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
   totalAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: Prisma.StringFieldUpdateOperationsInput | string
+  shippingFullName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  shippingPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   shippingStreet?: Prisma.StringFieldUpdateOperationsInput | string
+  shippingNeighborhood?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   shippingCity?: Prisma.StringFieldUpdateOperationsInput | string
   shippingDepartment?: Prisma.StringFieldUpdateOperationsInput | string
   shippingZip?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  shippingInstructions?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  braceletColor?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cardFrontUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cardBackUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   payment?: Prisma.PaymentUncheckedUpdateOneWithoutOrderNestedInput
@@ -1044,10 +1310,17 @@ export type OrderUncheckedUpdateManyWithoutUserInput = {
   status?: Prisma.EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
   totalAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: Prisma.StringFieldUpdateOperationsInput | string
+  shippingFullName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  shippingPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   shippingStreet?: Prisma.StringFieldUpdateOperationsInput | string
+  shippingNeighborhood?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   shippingCity?: Prisma.StringFieldUpdateOperationsInput | string
   shippingDepartment?: Prisma.StringFieldUpdateOperationsInput | string
   shippingZip?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  shippingInstructions?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  braceletColor?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cardFrontUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cardBackUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -1059,10 +1332,17 @@ export type OrderCreateManyProductInput = {
   status?: $Enums.OrderStatus
   totalAmount: runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: string
+  shippingFullName?: string | null
+  shippingPhone?: string | null
   shippingStreet: string
+  shippingNeighborhood?: string | null
   shippingCity: string
   shippingDepartment: string
   shippingZip?: string | null
+  shippingInstructions?: string | null
+  braceletColor?: string | null
+  cardFrontUrl?: string | null
+  cardBackUrl?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -1073,10 +1353,17 @@ export type OrderUpdateWithoutProductInput = {
   status?: Prisma.EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
   totalAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: Prisma.StringFieldUpdateOperationsInput | string
+  shippingFullName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  shippingPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   shippingStreet?: Prisma.StringFieldUpdateOperationsInput | string
+  shippingNeighborhood?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   shippingCity?: Prisma.StringFieldUpdateOperationsInput | string
   shippingDepartment?: Prisma.StringFieldUpdateOperationsInput | string
   shippingZip?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  shippingInstructions?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  braceletColor?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cardFrontUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cardBackUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user?: Prisma.UserUpdateOneRequiredWithoutOrdersNestedInput
@@ -1091,10 +1378,17 @@ export type OrderUncheckedUpdateWithoutProductInput = {
   status?: Prisma.EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
   totalAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: Prisma.StringFieldUpdateOperationsInput | string
+  shippingFullName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  shippingPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   shippingStreet?: Prisma.StringFieldUpdateOperationsInput | string
+  shippingNeighborhood?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   shippingCity?: Prisma.StringFieldUpdateOperationsInput | string
   shippingDepartment?: Prisma.StringFieldUpdateOperationsInput | string
   shippingZip?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  shippingInstructions?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  braceletColor?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cardFrontUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cardBackUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   payment?: Prisma.PaymentUncheckedUpdateOneWithoutOrderNestedInput
@@ -1108,10 +1402,17 @@ export type OrderUncheckedUpdateManyWithoutProductInput = {
   status?: Prisma.EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
   totalAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: Prisma.StringFieldUpdateOperationsInput | string
+  shippingFullName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  shippingPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   shippingStreet?: Prisma.StringFieldUpdateOperationsInput | string
+  shippingNeighborhood?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   shippingCity?: Prisma.StringFieldUpdateOperationsInput | string
   shippingDepartment?: Prisma.StringFieldUpdateOperationsInput | string
   shippingZip?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  shippingInstructions?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  braceletColor?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cardFrontUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cardBackUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -1126,10 +1427,17 @@ export type OrderSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   status?: boolean
   totalAmount?: boolean
   currency?: boolean
+  shippingFullName?: boolean
+  shippingPhone?: boolean
   shippingStreet?: boolean
+  shippingNeighborhood?: boolean
   shippingCity?: boolean
   shippingDepartment?: boolean
   shippingZip?: boolean
+  shippingInstructions?: boolean
+  braceletColor?: boolean
+  cardFrontUrl?: boolean
+  cardBackUrl?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
@@ -1146,10 +1454,17 @@ export type OrderSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   status?: boolean
   totalAmount?: boolean
   currency?: boolean
+  shippingFullName?: boolean
+  shippingPhone?: boolean
   shippingStreet?: boolean
+  shippingNeighborhood?: boolean
   shippingCity?: boolean
   shippingDepartment?: boolean
   shippingZip?: boolean
+  shippingInstructions?: boolean
+  braceletColor?: boolean
+  cardFrontUrl?: boolean
+  cardBackUrl?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
@@ -1164,10 +1479,17 @@ export type OrderSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   status?: boolean
   totalAmount?: boolean
   currency?: boolean
+  shippingFullName?: boolean
+  shippingPhone?: boolean
   shippingStreet?: boolean
+  shippingNeighborhood?: boolean
   shippingCity?: boolean
   shippingDepartment?: boolean
   shippingZip?: boolean
+  shippingInstructions?: boolean
+  braceletColor?: boolean
+  cardFrontUrl?: boolean
+  cardBackUrl?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
@@ -1182,15 +1504,22 @@ export type OrderSelectScalar = {
   status?: boolean
   totalAmount?: boolean
   currency?: boolean
+  shippingFullName?: boolean
+  shippingPhone?: boolean
   shippingStreet?: boolean
+  shippingNeighborhood?: boolean
   shippingCity?: boolean
   shippingDepartment?: boolean
   shippingZip?: boolean
+  shippingInstructions?: boolean
+  braceletColor?: boolean
+  cardFrontUrl?: boolean
+  cardBackUrl?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type OrderOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "productId" | "reference" | "status" | "totalAmount" | "currency" | "shippingStreet" | "shippingCity" | "shippingDepartment" | "shippingZip" | "createdAt" | "updatedAt", ExtArgs["result"]["order"]>
+export type OrderOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "productId" | "reference" | "status" | "totalAmount" | "currency" | "shippingFullName" | "shippingPhone" | "shippingStreet" | "shippingNeighborhood" | "shippingCity" | "shippingDepartment" | "shippingZip" | "shippingInstructions" | "braceletColor" | "cardFrontUrl" | "cardBackUrl" | "createdAt" | "updatedAt", ExtArgs["result"]["order"]>
 export type OrderInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   product?: boolean | Prisma.ProductDefaultArgs<ExtArgs>
@@ -1222,10 +1551,17 @@ export type $OrderPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs 
     status: $Enums.OrderStatus
     totalAmount: runtime.Decimal
     currency: string
+    shippingFullName: string | null
+    shippingPhone: string | null
     shippingStreet: string
+    shippingNeighborhood: string | null
     shippingCity: string
     shippingDepartment: string
     shippingZip: string | null
+    shippingInstructions: string | null
+    braceletColor: string | null
+    cardFrontUrl: string | null
+    cardBackUrl: string | null
     createdAt: Date
     updatedAt: Date
   }, ExtArgs["result"]["order"]>
@@ -1662,10 +1998,17 @@ export interface OrderFieldRefs {
   readonly status: Prisma.FieldRef<"Order", 'OrderStatus'>
   readonly totalAmount: Prisma.FieldRef<"Order", 'Decimal'>
   readonly currency: Prisma.FieldRef<"Order", 'String'>
+  readonly shippingFullName: Prisma.FieldRef<"Order", 'String'>
+  readonly shippingPhone: Prisma.FieldRef<"Order", 'String'>
   readonly shippingStreet: Prisma.FieldRef<"Order", 'String'>
+  readonly shippingNeighborhood: Prisma.FieldRef<"Order", 'String'>
   readonly shippingCity: Prisma.FieldRef<"Order", 'String'>
   readonly shippingDepartment: Prisma.FieldRef<"Order", 'String'>
   readonly shippingZip: Prisma.FieldRef<"Order", 'String'>
+  readonly shippingInstructions: Prisma.FieldRef<"Order", 'String'>
+  readonly braceletColor: Prisma.FieldRef<"Order", 'String'>
+  readonly cardFrontUrl: Prisma.FieldRef<"Order", 'String'>
+  readonly cardBackUrl: Prisma.FieldRef<"Order", 'String'>
   readonly createdAt: Prisma.FieldRef<"Order", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"Order", 'DateTime'>
 }

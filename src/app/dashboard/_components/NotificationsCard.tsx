@@ -141,7 +141,7 @@ export default function NotificationsCard() {
             ) : error ? (
                 <div className="py-4 text-center">
                     <p className="text-xs text-[#EF4444] mb-2">Error al cargar notificaciones</p>
-                    <button onClick={load} className="text-xs text-[#8D99AE] hover:text-[#1A1512] transition-colors">
+                    <button onClick={() => load()} className="text-xs text-[#8D99AE] hover:text-[#1A1512] transition-colors">
                         Reintentar
                     </button>
                 </div>

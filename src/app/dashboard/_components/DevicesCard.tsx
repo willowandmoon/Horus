@@ -78,22 +78,45 @@ export default function DevicesCard() {
                             </div>
                         </div>
                     ))}
-                    {sessions.map(s => (
-                        <div key={s.id} className="flex items-center gap-3 py-2.5 border-b border-[#E4E2DC] last:border-0">
-                            <div className="w-11 h-11 rounded-2xl bg-[#F0EBE3] flex items-center justify-center shrink-0">
-                                <svg className="w-5 h-5 text-[#8D99AE]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
-                                    <path d="M10.5 1.5H8.25A2.25 2.25 0 0 0 6 3.75v16.5a2.25 2.25 0 0 0 2.25 2.25h7.5A2.25 2.25 0 0 0 18 20.25V3.75a2.25 2.25 0 0 0-2.25-2.25H13.5m-3 0V3h3V1.5m-3 0h3m-3 18.75h3"/>
-                                </svg>
-                            </div>
-                            <div className="flex-1 min-w-0">
-                                <div className="flex items-center gap-1.5 mb-0.5">
-                                    <p className="text-sm font-bold text-[#1A1512] truncate">{s.deviceModel ?? s.deviceName ?? "Sesión activa"}</p>
-                                    <span className="w-1.5 h-1.5 rounded-full bg-[#22C55E] shrink-0" />
+                    {sessions.map(s => {
+                        const isSmartwatch = s.deviceModel?.toLowerCase().includes("gwear") || 
+                                             s.deviceModel?.toLowerCase().includes("wear") || 
+                                             s.deviceModel?.toLowerCase().includes("watch") ||
+                                             s.deviceName?.toLowerCase().includes("wear") || 
+                                             s.deviceName?.toLowerCase().includes("watch");
+                        
+                        const displayName = isSmartwatch 
+                            ? "Reloj Horus" 
+                            : (s.deviceModel ?? s.deviceName ?? "Sesión activa");
+
+                        return (
+                            <div key={s.id} className="flex items-center gap-3 py-2.5 border-b border-[#E4E2DC] last:border-0">
+                                <div className="w-11 h-11 rounded-2xl bg-[#F0EBE3] flex items-center justify-center shrink-0">
+                                    {isSmartwatch ? (
+                                        <svg className="w-5 h-5 text-[#8D99AE]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
+                                            <path d="M9 6V2h6v4M9 18v4h6v-4" stroke="currentColor" />
+                                            <rect x="6" y="6" width="12" height="12" rx="3" stroke="currentColor" />
+                                            <circle cx="12" cy="12" r="3" stroke="currentColor" />
+                                        </svg>
+                                    ) : (
+                                        <svg className="w-5 h-5 text-[#8D99AE]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
+                                            <path d="M10.5 1.5H8.25A2.25 2.25 0 0 0 6 3.75v16.5a2.25 2.25 0 0 0 2.25 2.25h7.5A2.25 2.25 0 0 0 18 20.25V3.75a2.25 2.25 0 0 0-2.25-2.25H13.5m-3 0V3h3V1.5m-3 0h3m-3 18.75h3"/>
+                                        </svg>
+                                    )}
                                 </div>
-                                <p className="text-[11px] text-[#8D99AE]">{s.osVersion ?? "App Horus"} · {relTime(s.lastActive)}</p>
+                                <div className="flex-1 min-w-0">
+                                    <div className="flex items-center gap-1.5 mb-0.5">
+                                        <p className="text-sm font-bold text-[#1A1512] truncate">{displayName}</p>
+                                        <span className="w-1.5 h-1.5 rounded-full bg-[#22C55E] shrink-0" />
+                                    </div>
+                                    <p className="text-[11px] text-[#8D99AE]">
+                                        {isSmartwatch && s.deviceModel ? `${s.deviceModel} · ` : ""}
+                                        {s.osVersion ? `OS: ${s.osVersion}` : "App Horus"} · {relTime(s.lastActive)}
+                                    </p>
+                                </div>
                             </div>
-                        </div>
-                    ))}
+                        );
+                    })}
                 </>
             )}
 
