@@ -115,8 +115,8 @@ export class MedicalHistoryScraper {
               allergiesToInsert.push({
                 userId: userId,
                 allergenName: name,
-                allergyType: a.allergyType,
-                severity: a.severity,
+                allergyType: a.allergyType || "OTHER" as any,
+                severity: a.severity || "MILD" as any,
                 reactionDescription: a.reactionDescription || null,
                 createdAt: nowColombia,
                 updatedAt: nowColombia,
@@ -244,7 +244,7 @@ export class MedicalHistoryScraper {
             seenHistoryKeysInBatch.add(key);
             historyToInsert.push({
               userId: userId,
-              eventType: h.eventType,
+              eventType: h.eventType || "OTHER" as any,
               eventName: h.eventName,
               location: h.location || null,
               outcome: h.outcome || null,
