@@ -31,7 +31,7 @@ export class MedicalHistoryScraper {
       // Sub-paso C: Normalizar nombres de medicamentos extraídos
       let normalizedMedications: Record<string, string> = {};
       if (structuredJson.medications && structuredJson.medications.length > 0) {
-        const rawNames = structuredJson.medications.map((m) => m.customMedicationName).filter(Boolean);
+        const rawNames = structuredJson.medications.map((m) => m.customMedicationName).filter(Boolean) as string[];
         if (rawNames.length > 0) {
           normalizedMedications = await normalizeMedicationNames(rawNames);
         }

@@ -130,7 +130,7 @@ export async function createOrderService(input: CreateOrderInput): Promise<Creat
         items: { id: string; title: string; description?: string; quantity: number; unit_price: number; currency_id: string }[];
         payer: { email: string };
         back_urls: { success: string; failure: string; pending: string };
-        notification_url: string;
+        notification_url?: string;
         statement_descriptor: string;
         auto_return?: "approved";
     };
