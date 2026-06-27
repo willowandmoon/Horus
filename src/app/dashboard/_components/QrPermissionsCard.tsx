@@ -142,24 +142,6 @@ export default function QrPermissionsCard({ userId, hasSubscription }: { userId:
         }
     };
 
-    if (!hasSubscription) {
-        return (
-            <div className="bg-white rounded-[24px] p-5 shadow-sm border border-[#E4E2DC] flex flex-col items-center text-center gap-3 py-8">
-                <div className="w-12 h-12 rounded-2xl bg-[#FAD957]/20 flex items-center justify-center">
-                    <svg className="w-6 h-6 text-[#1A1512]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 0 1 3.75 9.375v-4.5ZM3.75 14.625c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5a1.125 1.125 0 0 1-1.125-1.125v-4.5ZM13.5 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 0 1 13.5 9.375v-4.5Z"/>
-                    </svg>
-                </div>
-                <div>
-                    <p className="text-sm font-bold text-[#1A1512]">QR médico disponible con suscripción</p>
-                    <p className="text-xs text-[#8D99AE] mt-1 max-w-[200px] mx-auto">Tu código QR de emergencia se activa cuando adquieres tu dispositivo Horus</p>
-                </div>
-                <a href="/tienda" className="px-4 py-2 rounded-xl bg-[#1A1512] text-white text-xs font-bold hover:opacity-80 transition-opacity">
-                    Ver productos
-                </a>
-            </div>
-        );
-    }
 
     return (
         <div className="bg-white rounded-[24px] p-5 shadow-sm border border-[#E4E2DC]">

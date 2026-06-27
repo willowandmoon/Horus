@@ -6,34 +6,7 @@ import ChatModal from "./ChatModal";
 export default function ChatButton({ userId, hasSubscription }: { userId?: string; hasSubscription?: boolean }) {
     const [open, setOpen] = useState(false);
 
-    if (!hasSubscription) {
-        return (
-            <div className="w-full bg-white rounded-[28px] p-5 flex items-center gap-4 shadow-sm border border-[#E4E2DC] relative overflow-hidden">
-                {/* blurred content */}
-                <div className="w-14 h-14 rounded-full bg-[#F0EBE3] flex items-center justify-center shrink-0 overflow-hidden opacity-40 blur-[1px]">
-                    <img src="/logos-horus-2.svg" alt="Horus" className="w-11 h-11 object-contain" />
-                </div>
-                <div className="flex-1 min-w-0 opacity-40 blur-[1px]">
-                    <p className="text-base font-bold text-[#1A1512]">Horus · IA</p>
-                    <p className="text-sm text-[#8D99AE]">Primeros auxilios, emergencias y consultas médicas</p>
-                </div>
 
-                {/* overlay */}
-                <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/80 backdrop-blur-sm rounded-[28px] px-6 text-center gap-2">
-                    <div className="w-9 h-9 rounded-full bg-[#FAD957] flex items-center justify-center mb-1">
-                        <svg className="w-5 h-5 text-[#1A1512]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />
-                        </svg>
-                    </div>
-                    <p className="text-sm font-bold text-[#1A1512]">IA Horus disponible con suscripción</p>
-                    <p className="text-xs text-[#8D99AE]">Adquiere tu manilla o tarjeta Horus para acceder al asistente médico inteligente</p>
-                    <Link href="/tienda" className="mt-2 px-4 py-2 rounded-xl bg-[#1A1512] text-white text-xs font-bold hover:opacity-80 transition-opacity">
-                        Ver productos
-                    </Link>
-                </div>
-            </div>
-        );
-    }
 
     return (
         <>
